@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "831394327307",
+    "project_id": "lottosproject-512d8",
+    "storage_bucket": "lottosproject-512d8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831394327307:android:e5fae478a0a7ad40af900e",
+        "android_client_info": {
+          "package_name": "com.example.lottos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC80yI1Os_r9jylNDfIJ5fxTFdQZVHAWgo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
