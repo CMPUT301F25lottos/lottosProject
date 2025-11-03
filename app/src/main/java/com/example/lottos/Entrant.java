@@ -1,6 +1,7 @@
 package com.example.lottos;
 
 public class Entrant extends User{
+    private String userName;
     private UserInfo userInfo;
     private EventList waitListedEvents = new EventList();
     private EventList invitedEvents = new EventList();
@@ -10,10 +11,11 @@ public class Entrant extends User{
 
     /**
      * Constructs an Entrant object
+     * @param userName The userName of the entrant
      * @param userInfo The UserInfo object for the entrant
      */
-    public Entrant(UserInfo userInfo) {
-        super(userInfo);
+    public Entrant(String userName, UserInfo userInfo) {
+        super(userName, userInfo);
     }
 
     /**

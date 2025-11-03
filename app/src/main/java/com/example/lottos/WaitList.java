@@ -8,7 +8,7 @@ public class WaitList {
     private LocalDate closeDate;
     private LocalTime closeTime;
     private int waitListCap;
-    private ArrayList<Entrant> entrants;
+    private UserList entrants;
 
     /**
      * Constructor for WaitList object
@@ -50,7 +50,7 @@ public class WaitList {
      * Getter method for entrants arraylist
      * @return The arraylist of entrants on the waitlist
      */
-    public ArrayList<Entrant> getEntrants() {
+    public UserList getEntrants() {
         return entrants;
     }
 
@@ -79,18 +79,10 @@ public class WaitList {
     }
 
     /**
-     * Method to add an entrant to the waitlist
-     * @param entrant The entrant to add to the waitlist
+     * Setter method for entrants list
+     * @param entrants The new UserList object to be set
      */
-    public void addEntrant(Entrant entrant) {
-        entrants.add(entrant);
-    }
-
-    /**
-     * Method to remove an entrant from the waitlist
-     * @param entrant The entrant to remove from the waitlist
-     */
-    public void removeEntrant(Entrant entrant) {
-        entrants.remove(entrant);
+    public void setEntrants(UserList entrants) {
+        this.entrants = entrants;
     }
 }

@@ -136,6 +136,18 @@
                 android:text="Leave WaitList"/>
 
             <Button
+                android:id="@+id/btnAccept"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Accept Invite"/>
+
+            <Button
+                android:id="@+id/btnDecline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Decline Invite"/>
+
+            <Button
                 android:id="@+id/btnViewWaitList"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

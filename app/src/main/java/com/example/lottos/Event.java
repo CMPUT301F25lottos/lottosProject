@@ -2,6 +2,7 @@ package com.example.lottos;
 
 import java.sql.Array;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Event {
     private String eventName;
@@ -9,9 +10,9 @@ public class Event {
     private EventTime eventTime;
     private EventInfo eventInfo;
     private WaitList waitList;
-    private ArrayList<Entrant> selectedList = new ArrayList<Entrant>();
-    private ArrayList<Entrant> cancelledList = new ArrayList<Entrant>();
-    private ArrayList<Entrant> enrolledList = new ArrayList<Entrant>();
+    private UserList selectedList;
+    private UserList cancelledList;
+    private UserList enrolledList;
 
     /**
      * Constructs an Event Object
@@ -72,7 +73,7 @@ public class Event {
      * Getter method for the selected list
      * @return The list of entrants selected for the event
      */
-    public ArrayList<Entrant> getSelectedList() {
+    public UserList getSelectedList() {
         return selectedList;
     }
 
@@ -80,7 +81,7 @@ public class Event {
      * Getter method for the cancelled list
      * @return The list of entrants cancelled for the event
      */
-    public ArrayList<Entrant> getCancelledList() {
+    public UserList getCancelledList() {
         return cancelledList;
     }
 
@@ -88,7 +89,7 @@ public class Event {
      * Getter method for the enrolled list
      * @return The list of entrants enrolled in the event
      */
-    public ArrayList<Entrant> getEnrolledList() {
+    public UserList getEnrolledList() {
         return enrolledList;
     }
 
@@ -133,51 +134,45 @@ public class Event {
     }
 
     /**
-     * Method to add entrant to selected list
-     * @param entrant The entrant to add to selected list
+     * Setter method for selected list
+     * @param selectedList The new UserList object to be set
      */
-    public void addSelectedEntrant(Entrant entrant) {
-        selectedList.add(entrant);
+    public void setSelectedList(UserList selectedList) {
+        this.selectedList = selectedList;
     }
 
     /**
-     * Method to remove entrant from selected list
-     * @param entrant The entrant to remove from selected list
+     * Setter method for cancelled list
+     * @param cancelledList The new UserList object to be set
      */
-    public void removeSelectedEntrant(Entrant entrant) {
-        selectedList.remove(entrant);
+    public void setCancelledList(UserList cancelledList) {
+        this.cancelledList = cancelledList;
     }
 
     /**
-     * Method to add entrant to cancelled list
-     * @param entrant The entrant to add to cancelled list
+     * Setter method for enrolled list
+     * @param enrolledList The new UserList object to be set
      */
-    public void addCancelledEntrant(Entrant entrant) {
-        cancelledList.add(entrant);
+    public void setEnrolledList(UserList enrolledList) {
+        this.enrolledList = enrolledList;
     }
 
-    /**
-     * Method to remove entrant from cancelled list
-     * @param entrant The entrant to remove from cancelled list
-     */
-    public void removeCancelledEntrant(Entrant entrant) {
-        cancelledList.remove(entrant);
+    @Override
+    public boolean equals(Object event) {
+        if (this == event) {
+            return true;
+        }
+        if (event == null || (getClass() != event.getClass())) {
+            return false;
+        }
+        else {
+            Event check = (Event) event;
+            return (eventName.equals(check.getEventName()));
+        }
     }
 
-    /**
-     * Method to add entrant to enrolled list
-     * @param entrant The entrant to add to enrolled list
-     */
-    public void addEnrolledEntrant(Entrant entrant) {
-        enrolledList.add(entrant);
+    @Override
+    public int hashCode() {
+        return eventName.hashCode();
     }
-
-    /**
-     * Method to remove entrant from enrolled list
-     * @param entrant The entrant to remove from enrolled list
-     */
-    public void removeEnrolledEntrant(Entrant entrant) {
-        enrolledList.remove(entrant);
-    }
-
 }
