@@ -6,30 +6,30 @@ import java.util.ArrayList;
  * This is a class that keeps a list of Event objects
  */
 public class EventList {
-    private ArrayList<Event> events = new ArrayList<Event>();
+    private ArrayList<String> events = new ArrayList<String>();
 
     /**
      * Getter method for event list
      * @return The list of events
      */
-    public ArrayList<Event> getEvents() {
+    public ArrayList<String> getEvents() {
         return events;
     }
 
     /**
      * Method to add event to event list
-     * @param event The event to add to the event list
+     * @param eventName The event to add to the event list
      */
-    public void addEvent(Event event) {
-        events.add(event);
+    public void addEvent(String eventName) {
+        events.add(eventName);
     }
 
     /**
      * Method to remove event from event list
-     * @param event The event to remove from the event list
+     * @param eventName The event to remove from the event list
      */
-    public void removeEvent(Event event) {
-        events.remove(event);
+    public void removeEvent(String eventName) {
+        events.remove(eventName);
     }
 
 

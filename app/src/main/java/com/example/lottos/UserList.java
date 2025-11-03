@@ -8,29 +8,29 @@ import java.util.ArrayList;
  * This is a class that keeps a list of User objects
  */
 public class UserList {
-    private ArrayList<User> users = new ArrayList<User>();
+    private ArrayList<String> users = new ArrayList<String>();
 
     /**
      * Getter method for user list
      * @return The list of users
      */
-    public ArrayList<User> getUsers() {
+    public ArrayList<String> getUsers() {
         return users;
     }
 
     /**
      * Method to add user to user list
-     * @param user The user to add to the user list
+     * @param userName The user to add to the user list
      */
-    public void addUser(User user) {
-        users.add(user);
+    public void addUser(String userName) {
+        users.add(userName);
     }
 
     /**
      * Method to remove user from user list
-     * @param user The user to remove from user list
+     * @param userName The user to remove from user list
      */
-    public void removeUser(User user) {
-        users.remove(user);
+    public void removeUser(String userName) {
+        users.remove(userName);
     }
 }
