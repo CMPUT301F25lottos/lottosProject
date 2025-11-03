@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/WelcomeScreen">
+
+    <fragment
+        android:id="@+id/WelcomeScreen"
+        android:name="com.example.lottos.WelcomeScreen"
+        android:label="WelcomeScreen"
+        tools:layout="@layout/fragment_welcome_screen">
+
+        <action
+            android:id="@+id/action_WelcomeScreen_to_LoginScreen"
+            app:destination="@+id/LoginScreen"/>
+
+        <action
+            android:id="@+id/action_WelcomeScreen_to_SignupScreen"
+            app:destination="@+id/SignupScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/LoginScreen"
+        android:name="com.example.lottos.LoginScreen"
+        android:label="LoginScreen"
+        tools:layout="@layout/fragment_login_screen">
+
+        <action
+            android:id="@+id/action_LoginScreen_to_WelcomeScreen"
+            app:destination="@+id/WelcomeScreen"/>
+
+        <action
+            android:id="@+id/action_LoginScreen_to_HomeScreen"
+            app:destination="@id/HomeScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/SignupScreen"
+        android:name="com.example.lottos.SignupScreen"
+        android:label="SignupScreen"
+        tools:layout="@layout/fragment_signup_screen">
+
+        <action
+            android:id="@+id/action_SignupScreen_to_WelcomeScreen"
+            app:destination="@+id/WelcomeScreen"/>
+
+        <action
+            android:id="@+id/action_SignupScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/HomeScreen"
+        android:name="com.example.lottos.HomeScreen"
+        android:label="HomeScreen"
+        tools:layout="@layout/fragment_home_screen">
+
+        <action
+            android:id="@+id/action_HomeScreen_to_WelcomeScreen"
+            app:destination="@+id/WelcomeScreen"/>
+
+        <action
+            android:id="@+id/action_HomeScreen_to_EntrantEventsScreen"
+            app:destination="@+id/EntrantEventsScreen"/>
+
+        <action
+            android:id="@+id/action_HomeScreen_to_EntrantWaitListsScreen"
+            app:destination="@+id/EntrantWaitListsScreen"/>
+
+        <action
+            android:id="@+id/action_HomeScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen"/>
+
+        <action
+            android:id="@+id/action_HomeScreen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen"/>
+
+        <action
+            android:id="@+id/action_HomeScreen_to_LotteryInfoScreen"
+            app:destination="@+id/LotteryInfoScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/EntrantEventsScreen"
+        android:name="com.example.lottos.EntrantEventsScreen"
+        android:label="EntrantEventsScreen"
+        tools:layout="@layout/fragment_entrant_events_screen">
+
+        <action
+            android:id="@+id/action_EntrantEventsScreen_to_HomeScreen"
+            app:destination="@id/HomeScreen"/>
+
+        <action
+            android:id="@+id/action_EntrantEventsScreen_to_EventDetailsScreen"
+            app:destination="@+id/EventDetailsScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/EventDetailsScreen"
+        android:name="com.example.lottos.EventDetailsScreen"
+        android:label="EventDetailsScreen"
+        tools:layout="@layout/fragment_event_details_screen">
+
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_EntrantEventsScreen"
+            app:destination="@+id/EntrantEventsScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/EntrantWaitListsScreen"
+        android:name="com.example.lottos.EntrantWaitListsScreen"
+        android:label="EntrantWaitListsScreen"
+        tools:layout="@layout/fragment_entrant_wait_lists_screen">
+
+        <action
+            android:id="@+id/action_EntrantWaitListsScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen"/>
+
+        <action
+            android:id="@+id/action_EntrantWaitListsScreen_to_EventDetailsScreen"
+            app:destination="@+id/EventDetailsScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/ProfileScreen"
+        android:name="com.example.lottos.ProfileScreen"
+        android:label="ProfileScreen"
+        tools:layout="@layout/fragment_profile_screen">
+
+        <action
+            android:id="@+id/action_ProfileScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen"/>
+
+        <action
+            android:id="@+id/action_ProfileScreen_to_EditProfileScreen"
+            app:destination="@+id/EditProfileScreen"/>
+
+        <action
+            android:id="@+id/action_ProfileScreen_to_WelcomeScreen"
+            app:destination="@id/WelcomeScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/EditProfileScreen"
+        android:name="com.example.lottos.EditProfileScreen"
+        android:label="EditProfileScreen"
+        tools:layout="@layout/fragment_edit_profile_screen">
+
+        <action
+            android:id="@+id/action_EditProfileScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/OrganizerEventsScreen"
+        android:name="com.example.lottos.OrganizerEventsScreen"
+        android:label="OrganizerEventsScreen"
+        tools:layout="@layout/fragment_organizer_events_screen">
+
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen"/>
+
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_EventDetailsScreen"
+            app:destination="@+id/EventDetailsScreen"/>
+
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_CreateEventScreen"
+            app:destination="@+id/CreateEventScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/CreateEventScreen"
+        android:name="com.example.lottos.CreateEventScreen"
+        android:label="CreateEventScreen"
+        tools:layout="@layout/fragment_create_event_screen">
+
+        <action
+            android:id="@+id/action_CreateEventScreen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/LotteryInfoScreen"
+        android:name="com.example.lottos.LotteryInfoScreen"
+        android:label="LotteryInfoScreen"
+        tools:layout="@layout/fragment_lottery_info_screen">
+
+        <action
+            android:id="@+id/action_LotteryInfoScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen"/>
+
+    </fragment>
+
+</navigation>

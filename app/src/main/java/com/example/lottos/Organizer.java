@@ -3,16 +3,18 @@ package com.example.lottos;
 import java.util.ArrayList;
 
 public class Organizer extends User{
+    private String userName;
     private UserInfo userInfo;
     private EventList openEvents = new EventList();
     private EventList closedEvents = new EventList();
 
     /**
      * Constructs an Organizer object
-     * @param userInfo
+     * @param userName The username of the organizer
+     * @param userInfo The UserInfo object for the Organizer
      */
-    public Organizer(UserInfo userInfo) {
-        super(userInfo);
+    public Organizer(String userName, UserInfo userInfo) {
+        super(userName, userInfo);
     }
 
     /**
