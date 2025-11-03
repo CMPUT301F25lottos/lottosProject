@@ -30,6 +30,20 @@ public class WelcomeScreen extends Fragment {
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        binding.btnLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NavHostFragment.findNavController(WelcomeScreen.this).navigate(WelcomeScreenDirections.actionWelcomeScreenToLoginScreen());
+            }
+        });
+
+        binding.btnSignUp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void  onClick(View v) {
+                NavHostFragment.findNavController(WelcomeScreen.this).navigate(WelcomeScreenDirections.actionWelcomeScreenToSignupScreen());
+            }
+        });
     }
 
     @Override
