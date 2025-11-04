@@ -54,6 +54,13 @@
                     android:layout_height="wrap_content"
                     android:text="Login"
                     android:layout_marginTop="24dp"/>
+
+                <Button
+                    android:id="@+id/btnBack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Back"
+                    android:layout_marginTop="24dp"/>
             </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

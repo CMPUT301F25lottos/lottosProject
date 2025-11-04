@@ -39,6 +39,13 @@ public class LoginScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        binding.btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NavHostFragment.findNavController(LoginScreen.this).navigate(LoginScreenDirections.actionLoginScreenToWelcomeScreen());
+            }
+        });
+
         db = FirebaseFirestore.getInstance();
         entrantsRef = db.collection("entrants");
         organizersRef = db.collection("organizers");
@@ -62,15 +69,13 @@ public class LoginScreen extends Fragment {
             if (task.isSuccessful()) {
                 DocumentSnapshot doc = task.getResult();
                 if (doc.exists()) {
-                    Map<String, Object> userInfo = (Map<String, Object>) doc.get("userInfo");
-                    String storedPassword = (String) Objects.requireNonNull(userInfo).get("password");
-                    if (storedPassword.equals(password)) {
+                    UserInfo userInfo = doc.get("userInfo", UserInfo.class);
+                    if (userInfo != null && password.equals(userInfo.getPassword())) {
                         navigateToHome(userName);
                     } else {
                         Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    // Try checking organizers if not found in entrants
                     checkOrganizerLogin(userName, password);
                 }
             } else {
@@ -86,15 +91,14 @@ public class LoginScreen extends Fragment {
             if (task.isSuccessful()) {
                 DocumentSnapshot doc = task.getResult();
                 if (doc.exists()) {
-                    Map<String, Object> userInfo = (Map<String, Object>) doc.get("userInfo");
-                    String storedPassword = (String) Objects.requireNonNull(userInfo).get("password");
-                    if (storedPassword.equals(password)) {
+                    UserInfo userInfo = doc.get("userInfo", UserInfo.class);
+                    if (userInfo != null && password.equals(userInfo.getPassword())) {
                         navigateToHome(userName);
                     } else {
-                        Toast.makeText(getContext(), "User name or password invalidundefined", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Username or password invalid", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(getContext(), "User name or password invalidundefined", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Username or password invalid", Toast.LENGTH_SHORT).show();
                 }
             } else {
                 Log.e("Firestore", "Error getting organizer document", task.getException());
@@ -102,6 +106,7 @@ public class LoginScreen extends Fragment {
             }
         });
     }
+
 
     private void navigateToHome(String userName) {
         LoginScreenDirections.ActionLoginScreenToHomeScreen action =
