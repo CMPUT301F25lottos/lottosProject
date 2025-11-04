@@ -59,6 +59,10 @@
         android:label="HomeScreen"
         tools:layout="@layout/fragment_home_screen">
 
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
+
         <action
             android:id="@+id/action_HomeScreen_to_WelcomeScreen"
             app:destination="@+id/WelcomeScreen"/>
