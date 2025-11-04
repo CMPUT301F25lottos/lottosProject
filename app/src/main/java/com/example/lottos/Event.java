@@ -6,7 +6,7 @@ import java.util.Objects;
 
 public class Event {
     private String eventName;
-    private Organizer organizer;
+    private String organizer;
     private EventTime eventTime;
     private EventInfo eventInfo;
     private WaitList waitList;
@@ -21,7 +21,7 @@ public class Event {
      * @param eventTime The EventTime object for the event
      * @param eventInfo The EventInfo object for the event
      */
-    public Event(String eventName, Organizer organizer, EventTime eventTime, EventInfo eventInfo, WaitList waitList) {
+    public Event(String eventName, String organizer, EventTime eventTime, EventInfo eventInfo, WaitList waitList) {
         this.eventName = eventName;
         this.organizer = organizer;
         this.eventTime = eventTime;
@@ -41,7 +41,7 @@ public class Event {
      * Getter method for organizer
      * @return The organizer of the event
      */
-    public Organizer getOrganizer() {
+    public String getOrganizer() {
         return organizer;
     }
 
@@ -105,7 +105,7 @@ public class Event {
      * Setter method for the organizer
      * @param organizer The new organizer to set
      */
-    public void setOrganizer(Organizer organizer) {
+    public void setOrganizer(String  organizer) {
         this.organizer = organizer;
     }
 

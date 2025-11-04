@@ -3,11 +3,11 @@ package com.example.lottos;
 public class Entrant extends User{
     private String userName;
     private UserInfo userInfo;
-    private EventList waitListedEvents = new EventList();
-    private EventList invitedEvents = new EventList();
-    private EventList uninvitedEvents = new EventList();
-    private EventList declinedEvents = new EventList();
-    private EventList enrolledEvents = new EventList();
+    private EventList waitListedEvents;
+    private EventList invitedEvents;
+    private EventList uninvitedEvents;
+    private EventList declinedEvents;
+    private EventList enrolledEvents;
 
     /**
      * Constructs an Entrant object

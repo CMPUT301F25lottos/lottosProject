@@ -59,6 +59,10 @@
         android:label="HomeScreen"
         tools:layout="@layout/fragment_home_screen">
 
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
+
         <action
             android:id="@+id/action_HomeScreen_to_WelcomeScreen"
             app:destination="@+id/WelcomeScreen"/>
@@ -91,6 +95,10 @@
         android:label="EntrantEventsScreen"
         tools:layout="@layout/fragment_entrant_events_screen">
 
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
+
         <action
             android:id="@+id/action_EntrantEventsScreen_to_HomeScreen"
             app:destination="@id/HomeScreen"/>
@@ -107,6 +115,14 @@
         android:label="EventDetailsScreen"
         tools:layout="@layout/fragment_event_details_screen">
 
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
+
+        <argument
+            android:name="eventName"
+            app:argType="java.lang.String"/>
+
         <action
             android:id="@+id/action_EventDetailsScreen_to_EntrantEventsScreen"
             app:destination="@+id/EntrantEventsScreen"/>
@@ -118,6 +134,10 @@
         android:name="com.example.lottos.EntrantWaitListsScreen"
         android:label="EntrantWaitListsScreen"
         tools:layout="@layout/fragment_entrant_wait_lists_screen">
+
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
 
         <action
             android:id="@+id/action_EntrantWaitListsScreen_to_HomeScreen"
@@ -134,6 +154,10 @@
         android:name="com.example.lottos.ProfileScreen"
         android:label="ProfileScreen"
         tools:layout="@layout/fragment_profile_screen">
+
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
 
         <action
             android:id="@+id/action_ProfileScreen_to_HomeScreen"
@@ -155,6 +179,10 @@
         android:label="EditProfileScreen"
         tools:layout="@layout/fragment_edit_profile_screen">
 
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
+
         <action
             android:id="@+id/action_EditProfileScreen_to_ProfileScreen"
             app:destination="@+id/ProfileScreen"/>
@@ -166,6 +194,10 @@
         android:name="com.example.lottos.OrganizerEventsScreen"
         android:label="OrganizerEventsScreen"
         tools:layout="@layout/fragment_organizer_events_screen">
+
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
 
         <action
             android:id="@+id/action_OrganizerEventsScreen_to_HomeScreen"
@@ -187,6 +219,10 @@
         android:label="CreateEventScreen"
         tools:layout="@layout/fragment_create_event_screen">
 
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
+
         <action
             android:id="@+id/action_CreateEventScreen_to_OrganizerEventsScreen"
             app:destination="@+id/OrganizerEventsScreen"/>
@@ -198,6 +234,10 @@
         android:name="com.example.lottos.LotteryInfoScreen"
         android:label="LotteryInfoScreen"
         tools:layout="@layout/fragment_lottery_info_screen">
+
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
 
         <action
             android:id="@+id/action_LotteryInfoScreen_to_HomeScreen"
