@@ -38,6 +38,14 @@ public class OrganizerEventsScreen extends Fragment {
                 NavHostFragment.findNavController(OrganizerEventsScreen.this).navigate(OrganizerEventsScreenDirections.actionOrganizerEventsScreenToHomeScreen(userName));
             }
         });
+
+        binding.btnCreateEvent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NavHostFragment.findNavController(OrganizerEventsScreen.this).navigate(OrganizerEventsScreenDirections.actionOrganizerEventsScreenToCreateEventScreen(userName));
+            }
+        });
+
     }
 
     @Override

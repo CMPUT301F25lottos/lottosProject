@@ -38,6 +38,8 @@ public class EntrantEventsScreen extends Fragment {
                 NavHostFragment.findNavController(EntrantEventsScreen.this).navigate(EntrantEventsScreenDirections.actionEntrantEventsScreenToHomeScreen(userName));
             }
         });
+
+
     }
 
     @Override
