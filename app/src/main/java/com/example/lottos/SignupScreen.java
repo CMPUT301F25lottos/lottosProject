@@ -39,6 +39,14 @@ public class SignupScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        binding.btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NavHostFragment.findNavController(SignupScreen.this).navigate(SignupScreenDirections.actionSignupScreenToWelcomeScreen());
+            }
+        });
+
+
         entrantUserNameArrayList = new ArrayList<>();
         organizerUserNameArrayList = new ArrayList<>();
 

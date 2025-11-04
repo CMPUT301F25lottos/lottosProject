@@ -87,6 +87,8 @@
             android:id="@+id/action_HomeScreen_to_LotteryInfoScreen"
             app:destination="@+id/LotteryInfoScreen"/>
 
+
+
     </fragment>
 
     <fragment
