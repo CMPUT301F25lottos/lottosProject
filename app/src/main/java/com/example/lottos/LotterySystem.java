@@ -2,6 +2,7 @@ package com.example.lottos;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,16 +12,16 @@ public class LotterySystem {
     { this.seed = seed; }
     private ArrayList<String> DeterministicOrder(ArrayList<String> src, String seed) {
         ArrayList<String> order = new ArrayList<String>(src);
-        ArrayList<String> Keyorder = new ArrayList<String>;
-        ArrayList<String> Output = new ArrayList<String>;
-        Map<Long, String> keyMap = new HashMap<>();
+        ArrayList<String> Keyorder = new ArrayList<String>();
+        ArrayList<String> Output = new ArrayList<String>();
+        Map<String, String> keyMap = new HashMap<>();
         for (int i = 0; i < order.size(); i++){
-            String s = order.get(i)+seed;
-            long key = s.hashCode();
+            String s = order.get(i);
+            String key = (s+seed).hashCode()+ "";
             Keyorder.add(key);
             keyMap.put(key, s);
         }
-        Arrays.sort(Keyorder);
+        Collections.sort(Keyorder);
         for (int i = 0; i < Keyorder.size(); i++){
             Output.add(keyMap.get(Keyorder.get(i)));
         }
@@ -34,8 +35,8 @@ public class LotterySystem {
         ArrayList<String> order = DeterministicOrder(LocalWaitList, seed);
         for(int i = 0; i < targetCount; i++){
             if (LocalselectedList.size() >= targetCount) break;
-            if (!LocalselectedList.contains(order[i])){
-                LocalselectedList.add(order[i]);
+            if (!LocalselectedList.contains(order.get(i))){
+                LocalselectedList.add(order.get(i));
             }
 
         }
