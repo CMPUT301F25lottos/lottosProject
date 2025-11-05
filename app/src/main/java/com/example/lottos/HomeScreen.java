@@ -45,25 +45,20 @@ public class HomeScreen extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         String userName = HomeScreenArgs.fromBundle(getArguments()).getUserName();
-
         db = FirebaseFirestore.getInstance();
 
-        // Automatically update event open status when home screen loads
+        // Hide all buttons first until role is verified
+        binding.btnOpenEvents.setVisibility(View.GONE);
+        binding.btnOrgEvents.setVisibility(View.GONE);
+        binding.btnWaitLists.setVisibility(View.GONE);
+
+        // Automatically update event status
         updateEventOpenStatus();
 
-        // Navigation buttons
-        binding.btnOpenEvents.setOnClickListener(v ->
-                NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections.actionHomeScreenToOrganizerEventsScreen(userName)));
+        // 🔍 Check which collection the user belongs to
+        checkUserRole(userName);
 
-        binding.btnOrgEvents.setOnClickListener(v ->
-                NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections.actionHomeScreenToEntrantEventsScreen(userName)));
-
-        binding.btnWaitLists.setOnClickListener(v ->
-                NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections.actionHomeScreenToEntrantWaitListsScreen(userName)));
-
+        // Navigation (shared)
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
                         .navigate(HomeScreenDirections.actionHomeScreenToProfileScreen(userName)));
@@ -76,6 +71,53 @@ public class HomeScreen extends Fragment {
                 NavHostFragment.findNavController(HomeScreen.this)
                         .navigate(HomeScreenDirections.actionHomeScreenToWelcomeScreen()));
     }
+
+    /**
+     * Determines whether the user is an organizer or entrant
+     * and displays appropriate buttons.
+     */
+    private void checkUserRole(String userName) {
+        DocumentSnapshot[] foundUser = new DocumentSnapshot[1];
+
+        // Check organizers collection first
+        db.collection("organizers").document(userName).get().addOnSuccessListener(organizerDoc -> {
+            if (organizerDoc.exists()) {
+                // Organizer found
+                binding.btnOpenEvents.setVisibility(View.VISIBLE);
+
+                // Organizer navigation
+                binding.btnOpenEvents.setOnClickListener(v ->
+                        NavHostFragment.findNavController(HomeScreen.this)
+                                .navigate(HomeScreenDirections.actionHomeScreenToOrganizerEventsScreen(userName)));
+
+                Toast.makeText(getContext(), "Logged in as Organizer", Toast.LENGTH_SHORT).show();
+            } else {
+                // Not organizer → check entrants
+                db.collection("entrants").document(userName).get().addOnSuccessListener(entrantDoc -> {
+                    if (entrantDoc.exists()) {
+                        // Entrant found
+                        binding.btnOrgEvents.setVisibility(View.VISIBLE);
+                        binding.btnWaitLists.setVisibility(View.VISIBLE);
+
+                        // Entrant navigation
+                        binding.btnOrgEvents.setOnClickListener(v ->
+                                NavHostFragment.findNavController(HomeScreen.this)
+                                        .navigate(HomeScreenDirections.actionHomeScreenToEntrantEventsScreen(userName)));
+
+                        binding.btnWaitLists.setOnClickListener(v ->
+                                NavHostFragment.findNavController(HomeScreen.this)
+                                        .navigate(HomeScreenDirections.actionHomeScreenToEntrantWaitListsScreen(userName)));
+
+                        Toast.makeText(getContext(), "Logged in as Entrant", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), "User not found in any collection.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        }).addOnFailureListener(e ->
+                Toast.makeText(getContext(), "Failed to check user role.", Toast.LENGTH_SHORT).show());
+    }
+
 
     /**
      * Checks all events in "open events" and updates IsOpen field
