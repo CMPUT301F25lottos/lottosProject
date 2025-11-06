@@ -31,7 +31,7 @@ public class CreateEventScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        String userName = EntrantWaitListsScreenArgs.fromBundle(getArguments()).getUserName(); // pass the user info
+        String userName = CreateEventScreenArgs.fromBundle(getArguments()).getUserName(); // pass the user info
 
         binding.btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
