@@ -65,6 +65,16 @@ public class EventDetailsScreen extends Fragment {
 
         eventDoc.get().addOnSuccessListener(eventSnapshot -> {
             Boolean isOpen = eventSnapshot.getBoolean("IsOpen");
+            
+            String organizer = eventSnapshot.getString("organizer");
+            String location = eventSnapshot.getString("location");
+            String description = eventSnapshot.getString("description");
+            Long capacity = eventSnapshot.getLong("selectionCap");
+
+            if (organizer != null) binding.tvOrganizer.setText("Organizer: " + organizer);
+            if (location != null) binding.tvLocation.setText("Location: " + location);
+            if (description != null) binding.tvDescription.setText("Description: " + description);
+            if (capacity != null) binding.tvCapacity.setText("Capacity: " + capacity);
 
             entrantDoc.get().addOnSuccessListener(entrantSnapshot -> {
                 Map<String, Object> waitlistedMap = (Map<String, Object>) entrantSnapshot.get("waitListedEvents");
