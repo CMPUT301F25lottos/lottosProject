@@ -24,13 +24,14 @@
             android:layout_marginTop="24dp"/>
 
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="382dp"
+            android:layout_height="168dp"
+            android:layout_marginTop="28dp"
+            android:text="  Each time the lottery system runs, it will resolve the user in the list based on hash function, and select the first x people in the list"
+            android:textSize="28sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvLotterySystem"
-            android:text="Put Description of Lottery System Here"
-            android:layout_marginTop="12dp"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvLotterySystem" />
 
         <Button
             android:id="@+id/btnBack"
