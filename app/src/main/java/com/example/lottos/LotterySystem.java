@@ -27,9 +27,9 @@ public class LotterySystem {
         return Output;
 
     }
-    public ArrayList<String> Selected(WaitList waitList, UserList selectedList, int targetCount){
+    public ArrayList<String> Selected(UserList waitList, UserList selectedList, int targetCount){
         ArrayList<String> LocalselectedList=selectedList.getUsers();
-        ArrayList<String> LocalWaitList=waitList.getEntrants().getUsers();
+        ArrayList<String> LocalWaitList=waitList.getUsers();
         if (LocalselectedList.size() >= targetCount) return LocalselectedList;
         ArrayList<String> order = DeterministicOrder(LocalWaitList, seed);
         for(int i = 0; i < targetCount; i++){

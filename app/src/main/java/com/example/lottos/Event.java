@@ -1,58 +1,62 @@
 package com.example.lottos;
 
-import java.sql.Array;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.UUID;
+
 
 public class Event {
     private String eventName;
+    private String EventId;
     private String organizer;
-    private LocalDate startDate;
-    private LocalTime startTime;
-    private LocalDate endDate;
-    private LocalTime endTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     private String description;
 
     private String location;
     private int selectionCap;
-    private WaitList waitList;
+    private UserList waitList;
     private UserList selectedList;
-    private UserList cancelledList;
+    private int currentPointer;
     private UserList enrolledList;
+    private UserList cancelledList;
 
-    /**
-     * Constructs an Event Object
-     * @param eventName The name of the event
-     * @param organizer The organizer of the event
 
-     */
     public Event(String eventName, String organizer,
-                 LocalDate startDate, LocalTime startTime,
-                 LocalDate endDate, LocalTime endTime,
+                 LocalDateTime startTime, LocalDateTime endTime,
                  String description, String location,
                  int selectionCap) {
-
+        this.EventId = UUID.randomUUID().toString();
         this.eventName = eventName;
         this.organizer = organizer;
-        this.startDate = startDate;
         this.startTime = startTime;
-        this.endDate = endDate;
         this.endTime = endTime;
         this.description = description;
+        // this place should have a photo URL or something
         this.location = location;
         this.selectionCap = selectionCap;
+        this.waitList = new UserList();
+        this.selectedList = new UserList();
+        this.cancelledList = new UserList();
+        this.enrolledList = new UserList();
+
+    }
+    public boolean isOrganizer() {
+        FirebaseUser cur = FirebaseAuth.getInstance().getCurrentUser();
+        return cur != null && Objects.equals(cur.getUid(), organizer);
     }
 
 
-    /**
-     * Getter method for event name
-     * @return The name of the event
-     */
     public String getEventName() {
         return eventName;
+    }
+    public String getEventId() {
+        return EventId;
     }
 
     /**
@@ -63,74 +67,41 @@ public class Event {
         return organizer;
     }
 
-    /**
-     * Getter method for event time
-     * @return The EventTime object for the event
-     */
-    public LocalDate getStartDate() {
-        return startDate;
-    }
 
     /**
      * Getter method for start time
      * @return The time the event starts
      */
-    public LocalTime getStartTime() {
+    public LocalDateTime getStartTime() {
         return startTime;
     }
 
-    /**
-     * Getter method for end date
-     * @return The date the event ends
-     */
-    public LocalDate getEndDate() {
-        return endDate;
-    }
+
 
     /**
      * Getter method for end time
      * @return The time the event ends
      */
-    public LocalTime getEndTime() {
+    public LocalDateTime getEndTime() {
         return endTime;
     }
 
-    /**
-     * Getter method for the days the event runs
-     * @return String representing the days of the week the event will run eg.,"SuMTWRFS" for all days
-
-    public String getDaysRunning() {
-        return daysRunning;
-    }
-
-     * Setter method for start date
-     * @param startDate The new start date to be set
-     */
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
 
     /**
      * Setter method for start time
      * @param startTime The new start time to be set
      */
-    public void setStartTime(LocalTime startTime) {
+    public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
 
-    /**
-     * Setter method for end date
-     * @param endDate The new end date to be set
-     */
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
+
 
     /**
      * Setter method for end time
      * @param endTime The new end time to be set
      */
-    public void setEndTime(LocalTime endTime) {
+    public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
 
@@ -145,7 +116,7 @@ public class Event {
      * Getter method for event waitlist
      * @return The WaitList object for the event
      */
-    public WaitList getWaitList() {
+    public UserList getWaitList() {
         return waitList;
     }
 
@@ -238,7 +209,7 @@ public class Event {
      * Setter method for waitlist
      * @param waitList The new WaitList object to set
      */
-    public void setWaitList(WaitList waitList) {
+    public void setWaitList(UserList waitList) {
         this.waitList = waitList;
     }
 
