@@ -44,10 +44,10 @@ public class EventHistoryScreen extends Fragment {
     }
 
     private void loadHistory() {
-        db.collection("entrants").document(userName).get()
+        db.collection("users").document(userName).get()
                 .addOnSuccessListener(snapshot -> {
                     if (snapshot.exists()) {
-                        List<String> history = (List<String>) snapshot.get("invitedEvents.events");
+                        List<String> history = (List<String>) snapshot.get("waitListedEvents.events");
                         if (history == null || history.isEmpty()) {
                             Toast.makeText(getContext(), "No past events found.", Toast.LENGTH_SHORT).show();
                         } else {
