@@ -29,7 +29,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvLotterySystem"
-            android:text="Put Description of Lottery System Here"
+            android:text="The lottery system allows organizers to manage the waiting list fairly.\nParticipants can choose to join and leave the waiting list for open events, and after the registration period ends,\nparticipants on the waiting list will be randomly selected to participate in the event.\nThe system will send a notification to the participants whether they got selected or not."
             android:layout_marginTop="12dp"/>
 
         <Button
