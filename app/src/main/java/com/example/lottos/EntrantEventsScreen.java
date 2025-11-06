@@ -1,24 +1,28 @@
 package com.example.lottos;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lottos.databinding.FragmentEntrantEventsScreenBinding;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,15 +30,12 @@ public class EntrantEventsScreen extends Fragment {
 
     private FragmentEntrantEventsScreenBinding binding;
     private FirebaseFirestore db;
-    private ArrayList<String> openEvents;
-    private ArrayAdapter<String> openEventsAdapter;
+    private List<EventItem> eventList;
     private String userName;
+    private List<String> userWaitlistedEvents = new ArrayList<>();
 
     @Override
-    public View onCreateView(
-            @NonNull LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState
-    ) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentEntrantEventsScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -43,124 +44,257 @@ public class EntrantEventsScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get username from navigation arguments
-        userName = EntrantEventsScreenArgs.fromBundle(getArguments()).getUserName();
+        EntrantEventsScreenArgs args = EntrantEventsScreenArgs.fromBundle(getArguments());
+        userName = args.getUserName();
 
         db = FirebaseFirestore.getInstance();
-        openEvents = new ArrayList<>();
+        eventList = new ArrayList<>();
 
-        // Setup adapter for ListView
-        openEventsAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, openEvents);
-        binding.lvEntrantEvents.setAdapter(openEventsAdapter);
+        binding.recyclerEvents.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerEvents.setAdapter(new EventItemAdapter());
 
-        // Back button → return to home screen
         binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(EntrantEventsScreen.this)
-                        .navigate(EntrantEventsScreenDirections.actionEntrantEventsScreenToHomeScreen(userName))
-        );
+                NavHostFragment.findNavController(this)
+                        .navigate(EntrantEventsScreenDirections.actionEntrantEventsScreenToHomeScreen(userName)));
 
-        // Display only open events
-        displayOpenEvents();
-
-        // When user taps on an event → confirm joining
-        binding.lvEntrantEvents.setOnItemClickListener((parent, view1, position, id) -> {
-            String selectedEvent = openEvents.get(position);
-
-            if (selectedEvent.equals("No events found.") || selectedEvent.equals("No open events available.")) {
-                return;
-            }
-
-            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                    .setTitle("Join Waitlist")
-                    .setMessage("Do you want to join the waitlist for \"" + selectedEvent + "\"?")
-                    .setPositiveButton("Yes", (dialog, which) -> addEntrantToWaitlist(userName, selectedEvent))
-                    .setNegativeButton("Cancel", null)
-                    .show();
-        });
+        loadUserWaitlistedEvents();
     }
 
-    /**
-     * Loads and displays all open events where IsOpen == true
-     */
-    private void displayOpenEvents() {
-        CollectionReference eventsRef = db.collection("open events");
-
-        // Clear previous list
-        openEvents.clear();
-
-        eventsRef.get().addOnSuccessListener(querySnapshot -> {
-            if (querySnapshot.isEmpty()) {
-                openEvents.add("No events found.");
-                openEventsAdapter.notifyDataSetChanged();
-                return;
-            }
-
-            for (QueryDocumentSnapshot doc : querySnapshot) {
-                Boolean isOpen = doc.getBoolean("IsOpen");
-                String eventName = doc.getString("eventName");
-
-                if (isOpen != null && isOpen && eventName != null) {
-                    openEvents.add(eventName);
-                }
-            }
-
-            if (openEvents.isEmpty()) {
-                openEvents.add("No open events available.");
-            }
-
-            openEventsAdapter.notifyDataSetChanged();
-
-        }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), "Failed to load open events.", Toast.LENGTH_SHORT).show();
-        });
-    }
-
-    /**
-     * Adds an entrant to the waitlist for a given event — only if not already joined.
-     */
-    private void addEntrantToWaitlist(String userName, String eventName) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference usersDoc = db.collection("users").document(userName);
-        DocumentReference eventDoc = db.collection("open events").document(eventName);
-
-        // Step 1️⃣: Check if the users already joined this event
-        usersDoc.get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                Map<String, Object> waitListedMap = (Map<String, Object>) snapshot.get("waitListedEvents");
-                if (waitListedMap != null) {
-                    List<String> events = (List<String>) waitListedMap.get("events");
-                    if (events != null && events.contains(eventName)) {
-                        Toast.makeText(getContext(), "You’ve already in this waitlist.", Toast.LENGTH_SHORT).show();
-                        return; // Stop here
+    /** Step 1: Load user's existing waitlisted events before loading all events */
+    private void loadUserWaitlistedEvents() {
+        db.collection("entrants").document(userName).get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) {
+                        List<String> waitlisted = (List<String>) snapshot.get("waitListedEvents.events");
+                        if (waitlisted != null) {
+                            userWaitlistedEvents = waitlisted;
+                        }
                     }
-                }
-            }
-
-            // Step 2️⃣: Proceed to add users to both places
-            usersDoc.update("waitListedEvents.events", FieldValue.arrayUnion(eventName))
-                    .addOnSuccessListener(aVoid -> {
-                        eventDoc.update("waitList.users.users", FieldValue.arrayUnion(userName))
-                                .addOnSuccessListener(aVoid2 -> {
-                                    Toast.makeText(getContext(),
-                                            "You’ve joined the waitlist for " + eventName + "!",
-                                            Toast.LENGTH_SHORT).show();
-                                })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(),
-                                                "Failed to update event waitlist.",
-                                                Toast.LENGTH_SHORT).show());
-                    })
-                    .addOnFailureListener(e ->
-                            Toast.makeText(getContext(),
-                                    "Failed to update your waitlisted events.",
-                                    Toast.LENGTH_SHORT).show());
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(),
-                        "Failed to check your current waitlists.",
-                        Toast.LENGTH_SHORT).show()
-        );
+                    // after loading user's waitlist, now load events
+                    loadEvents();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Failed to load user waitlist", e);
+                    loadEvents();
+                });
     }
 
+    /** Step 2: Load events and mark joined ones */
+    private void loadEvents() {
+        db.collection("open events").get().addOnSuccessListener(value -> {
+            eventList.clear();
+            for (QueryDocumentSnapshot doc : value) {
+                String eventName = doc.getId();
+                Boolean openFlag = doc.getBoolean("IsOpen");
+                boolean isOpen = openFlag != null && openFlag;
+
+                // create event item and set joined state
+                EventItem item = new EventItem(eventName, isOpen);
+                item.isJoined = userWaitlistedEvents.contains(eventName);
+                eventList.add(item);
+            }
+
+            // Sort open events first
+            eventList.sort((a, b) -> Boolean.compare(!a.IsOpen, !b.IsOpen));
+            binding.recyclerEvents.getAdapter().notifyDataSetChanged();
+        }).addOnFailureListener(e -> {
+            Log.e("Firestore", "Failed to load events", e);
+            Toast.makeText(getContext(), "Error loading events", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    /** Step 3: Join waitlist */
+    private void joinWaitlist(String eventName, EventItem event, Button button) {
+        DocumentReference entrantRef = db.collection("entrants").document(userName);
+        DocumentReference eventRef = db.collection("open events").document(eventName);
+
+        entrantRef.get().addOnSuccessListener(snapshot -> {
+            if (!snapshot.exists()) return;
+
+            List<String> entrantWaitlist = (List<String>) snapshot.get("waitListedEvents.events");
+            if (entrantWaitlist == null) entrantWaitlist = new ArrayList<>();
+
+            if (entrantWaitlist.contains(eventName)) {
+                Toast.makeText(getContext(), "Already joined " + eventName, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            entrantWaitlist.add(eventName);
+            Map<String, Object> entrantUpdate = new HashMap<>();
+            entrantUpdate.put("waitListedEvents.events", entrantWaitlist);
+
+            entrantRef.update(entrantUpdate)
+                    .addOnSuccessListener(aVoid -> {
+                        eventRef.get().addOnSuccessListener(eventSnap -> {
+                            if (!eventSnap.exists()) return;
+
+                            Map<String, Object> waitlist = (Map<String, Object>) eventSnap.get("waitList");
+                            List<String> usersList = new ArrayList<>();
+
+                            if (waitlist != null && waitlist.get("entrants") instanceof Map) {
+                                Map<String, Object> entrantsMap = (Map<String, Object>) waitlist.get("entrants");
+                                if (entrantsMap.get("users") instanceof List) {
+                                    usersList = (List<String>) entrantsMap.get("users");
+                                }
+                            }
+
+                            if (!usersList.contains(userName)) {
+                                usersList.add(userName);
+                                Map<String, Object> updateMap = new HashMap<>();
+                                updateMap.put("waitList.entrants.users", usersList);
+
+                                eventRef.update(updateMap)
+                                        .addOnSuccessListener(v -> {
+                                            Toast.makeText(getContext(), "Joined waitlist for " + eventName, Toast.LENGTH_SHORT).show();
+                                            event.isJoined = true;
+                                            button.setText("Leave Waitlist");
+                                            userWaitlistedEvents.add(eventName);
+                                        })
+                                        .addOnFailureListener(err -> Log.e("Firestore", "Error updating event waitlist", err));
+                            }
+                        });
+                    })
+                    .addOnFailureListener(e -> Log.e("Firestore", "Error updating entrant waitlist", e));
+        });
+    }
+
+    /** Step 4: Leave waitlist */
+    private void leaveWaitlist(String eventName, EventItem event, Button button) {
+        DocumentReference entrantRef = db.collection("entrants").document(userName);
+        DocumentReference eventRef = db.collection("open events").document(eventName);
+
+        entrantRef.get().addOnSuccessListener(snapshot -> {
+            if (!snapshot.exists()) return;
+
+            List<String> entrantWaitlist = (List<String>) snapshot.get("waitListedEvents.events");
+            if (entrantWaitlist == null) entrantWaitlist = new ArrayList<>();
+
+            if (!entrantWaitlist.contains(eventName)) {
+                Toast.makeText(getContext(), "Not on waitlist for " + eventName, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            entrantWaitlist.remove(eventName);
+            Map<String, Object> entrantUpdate = new HashMap<>();
+            entrantUpdate.put("waitListedEvents.events", entrantWaitlist);
+
+            entrantRef.update(entrantUpdate)
+                    .addOnSuccessListener(aVoid -> {
+                        eventRef.get().addOnSuccessListener(eventSnap -> {
+                            if (!eventSnap.exists()) return;
+
+                            Map<String, Object> waitlist = (Map<String, Object>) eventSnap.get("waitList");
+                            List<String> usersList = new ArrayList<>();
+
+                            if (waitlist != null && waitlist.get("entrants") instanceof Map) {
+                                Map<String, Object> entrantsMap = (Map<String, Object>) waitlist.get("entrants");
+                                if (entrantsMap.get("users") instanceof List) {
+                                    usersList = (List<String>) entrantsMap.get("users");
+                                }
+                            }
+
+                            usersList.remove(userName);
+                            Map<String, Object> updateMap = new HashMap<>();
+                            updateMap.put("waitList.entrants.users", usersList);
+
+                            eventRef.update(updateMap)
+                                    .addOnSuccessListener(v -> {
+                                        Toast.makeText(getContext(), "Left waitlist for " + eventName, Toast.LENGTH_SHORT).show();
+                                        event.isJoined = false;
+                                        button.setText("Join Waitlist");
+                                        userWaitlistedEvents.remove(eventName);
+                                    })
+                                    .addOnFailureListener(err -> Log.e("Firestore", "Error updating event waitlist", err));
+                        });
+                    })
+                    .addOnFailureListener(e -> Log.e("Firestore", "Error updating entrant waitlist", e));
+        });
+    }
+
+    private void goToDetails(String eventName) {
+        EntrantEventsScreenDirections.ActionEntrantEventsScreenToEventDetailsScreen action =
+                EntrantEventsScreenDirections.actionEntrantEventsScreenToEventDetailsScreen(userName, eventName);
+        NavHostFragment.findNavController(EntrantEventsScreen.this).navigate(action);
+    }
+
+    /** Event model now tracks joined state */
+    private static class EventItem {
+        String name;
+        boolean IsOpen;
+        boolean isJoined;
+
+        EventItem(String name, boolean isOpen) {
+            this.name = name;
+            this.IsOpen = isOpen;
+            this.isJoined = false;
+        }
+    }
+
+    private class EventItemAdapter extends RecyclerView.Adapter<EventItemAdapter.VH> {
+
+        class VH extends RecyclerView.ViewHolder {
+            TextView tvEventName;
+            Button btnJoin;
+
+            VH(@NonNull LinearLayout layout) {
+                super(layout);
+                tvEventName = (TextView) layout.getChildAt(0);
+                btnJoin = (Button) layout.getChildAt(1);
+            }
+        }
+
+        @NonNull
+        @Override
+        public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            LinearLayout layout = new LinearLayout(parent.getContext());
+            layout.setOrientation(LinearLayout.HORIZONTAL);
+            layout.setPadding(16, 16, 16, 16);
+            layout.setLayoutParams(new RecyclerView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            ));
+
+            TextView tv = new TextView(parent.getContext());
+            tv.setLayoutParams(new LinearLayout.LayoutParams(0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            tv.setTextSize(16f);
+
+            Button btn = new Button(parent.getContext());
+            btn.setText("Join Waitlist");
+
+            layout.addView(tv);
+            layout.addView(btn);
+
+            return new VH(layout);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull VH holder, int position) {
+            EventItem ev = eventList.get(position);
+            holder.tvEventName.setText((ev.IsOpen ? "🟢 Open: " : "🔴 Closed: ") + ev.name);
+
+            holder.btnJoin.setVisibility(ev.IsOpen ? View.VISIBLE : View.GONE);
+            holder.btnJoin.setEnabled(ev.IsOpen);
+
+            // reflect joined state
+            holder.btnJoin.setText(ev.isJoined ? "Leave Waitlist" : "Join Waitlist");
+
+            holder.itemView.setOnClickListener(v -> goToDetails(ev.name));
+
+            holder.btnJoin.setOnClickListener(v -> {
+                if (!ev.isJoined) {
+                    joinWaitlist(ev.name, ev, holder.btnJoin);
+                } else {
+                    leaveWaitlist(ev.name, ev, holder.btnJoin);
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return eventList.size();
+        }
+    }
 
     @Override
     public void onDestroyView() {

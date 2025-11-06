@@ -9,13 +9,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.databinding.FragmentEventDetailsScreenBinding;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
@@ -26,8 +24,8 @@ import java.util.Map;
 public class EventDetailsScreen extends Fragment {
 
     private FragmentEventDetailsScreenBinding binding;
-    private String eventId;
     private String eventName;
+    private String userName;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
@@ -39,8 +37,9 @@ public class EventDetailsScreen extends Fragment {
         mAuth = FirebaseAuth.getInstance();
 
         if (getArguments() != null) {
-            eventId = getArguments().getString("eventId");
-            eventName = getArguments().getString("eventName");
+            EventDetailsScreenArgs args = EventDetailsScreenArgs.fromBundle(getArguments());
+            eventName = args.getEventName();
+            userName = args.getUserName();
         }
 
         return binding.getRoot();
@@ -50,68 +49,18 @@ public class EventDetailsScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            Toast.makeText(getContext(), "Error: No user logged in.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(this).navigateUp()
+        );
 
-        String userName = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "TestEntrant1";
-
-        // Setup listeners for all buttons
-        binding.btnJoin.setOnClickListener(v -> joinWaitlist(userName));
-        binding.btnLeave.setOnClickListener(v -> leaveWaitlist(userName));
-        binding.btnAccept.setOnClickListener(v -> acceptEventInvite(userName));
-        binding.btnDecline.setOnClickListener(v -> declineEventInvite(userName));
-        binding.btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
-
-        // Load role (entrant vs organizer) and configure UI
-        checkUserRoleAndSetupUI(userName);
-    }
-
-    /**
-     * Determines if the current user is an organizer or entrant and sets up UI accordingly.
-     */
-    private void checkUserRoleAndSetupUI(String userName) {
-        DocumentReference organizerDoc = db.collection("organizers").document(userName);
-        organizerDoc.get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                setupOrganizerUI();
-            } else {
-                setupEntrantUI(userName);
-            }
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to check user role.", Toast.LENGTH_SHORT).show());
-    }
-
-    /**
-     * Organizer UI logic.
-     */
-    private void setupOrganizerUI() {
+        // Default hide everything until we know what to show
         hideAllButtons();
-        DocumentReference eventDoc = db.collection("open events").document(eventId);
 
-        eventDoc.get().addOnSuccessListener(snapshot -> {
-            Boolean isOpen = snapshot.getBoolean("IsOpen");
-            if (isOpen != null && isOpen) {
-                binding.btnViewWaitList.setVisibility(View.VISIBLE);
-                binding.btnBack.setVisibility(View.VISIBLE);
-            } else {
-                binding.btnViewSelected.setVisibility(View.VISIBLE);
-                binding.btnViewCancelled.setVisibility(View.VISIBLE);
-                binding.btnViewEnrolled.setVisibility(View.VISIBLE);
-                binding.btnBack.setVisibility(View.VISIBLE);
-            }
-        });
+        setupEntrantUI(userName);
     }
 
-    /**
-     * Entrant UI logic.
-     */
     private void setupEntrantUI(String userName) {
-        hideAllButtons();
-
-        DocumentReference eventDoc = db.collection("open events").document(eventId);
+        DocumentReference eventDoc = db.collection("open events").document(eventName);
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         eventDoc.get().addOnSuccessListener(eventSnapshot -> {
@@ -124,11 +73,29 @@ public class EventDetailsScreen extends Fragment {
                 Map<String, Object> waitlistedMap = (Map<String, Object>) usersSnapshot.get("waitListedEvents");
                 List<String> waitListedEvents = waitlistedMap != null ? (List<String>) waitlistedMap.get("events") : new ArrayList<>();
 
-                if (isOpen != null && isOpen) {
-                    // Event is open → show Join Waitlist + Back
-                    binding.btnJoin.setVisibility(View.VISIBLE);
-                    binding.btnBack.setVisibility(View.VISIBLE);
+                // Determine if user is already in waitlist
+                boolean isAlreadyWaitlisted = waitListedEvents.contains(eventName);
 
+                // Always show Back button
+                binding.btnBack.setVisibility(View.VISIBLE);
+
+                if (isOpen != null && isOpen) {
+                    // Event open
+                    if (isAlreadyWaitlisted) {
+                        binding.btnJoin.setText("Leave Waitlist");
+                        binding.btnJoin.setVisibility(View.VISIBLE);
+                    } else {
+                        binding.btnJoin.setText("Join Waitlist");
+                        binding.btnJoin.setVisibility(View.VISIBLE);
+                    }
+
+                    binding.btnJoin.setOnClickListener(v -> {
+                        if (binding.btnJoin.getText().toString().equals("Join Waitlist")) {
+                            joinWaitlist(userName);
+                        } else {
+                            leaveWaitlist(userName);
+                        }
+                    });
                 } else {
                     // Event is closed
                     if (invitedEvents != null && invitedEvents.contains(eventName)) {
@@ -154,15 +121,12 @@ public class EventDetailsScreen extends Fragment {
                 }
 
             }).addOnFailureListener(e ->
-                    Toast.makeText(getContext(), "Failed to fetch users info.", Toast.LENGTH_SHORT).show());
+                    Toast.makeText(getContext(), "Failed to load users info.", Toast.LENGTH_SHORT).show());
         });
     }
 
-    /**
-     * Adds the user to the waitlist if the event is open.
-     */
     private void joinWaitlist(String userName) {
-        DocumentReference eventDoc = db.collection("open events").document(eventId);
+        DocumentReference eventDoc = db.collection("open events").document(eventName);
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
@@ -171,28 +135,25 @@ public class EventDetailsScreen extends Fragment {
                 throw new FirebaseFirestoreException("This event is closed.", FirebaseFirestoreException.Code.ABORTED);
             }
 
-            transaction.update(eventDoc, "waitList.users.users", FieldValue.arrayUnion(userName));
-            transaction.update(usersDoc, "waitListedEvents.events", FieldValue.arrayUnion(eventName));
+            transaction.update(eventDoc, "waitList.users.users", com.google.firebase.firestore.FieldValue.arrayUnion(userName));
+            transaction.update(usersDoc, "waitListedEvents.events", com.google.firebase.firestore.FieldValue.arrayUnion(eventName));
             return null;
         }).addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Joined waitlist successfully!", Toast.LENGTH_SHORT).show();
-            hideAllButtons();
-            binding.btnLeave.setVisibility(View.VISIBLE);
-            binding.btnBack.setVisibility(View.VISIBLE);
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
+            Toast.makeText(getContext(), "Joined waitlist!", Toast.LENGTH_SHORT).show();
+            binding.btnJoin.setText("Leave Waitlist");
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e("Firestore", "Join waitlist failed", e);
+        });
     }
 
-    /**
-     * Removes the user from the waitlist.
-     */
     private void leaveWaitlist(String userName) {
-        DocumentReference eventDoc = db.collection("open events").document(eventId);
+        DocumentReference eventDoc = db.collection("open events").document(eventName);
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
-            transaction.update(eventDoc, "waitList.users.users", FieldValue.arrayRemove(userName));
-            transaction.update(usersDoc, "waitListedEvents.events", FieldValue.arrayRemove(eventName));
+            transaction.update(eventDoc, "waitList.users.users", com.google.firebase.firestore.FieldValue.arrayRemove(userName));
+            transaction.update(usersDoc, "waitListedEvents.events", com.google.firebase.firestore.FieldValue.arrayRemove(eventName));
             return null;
         }).addOnSuccessListener(aVoid -> {
             Toast.makeText(getContext(), "Left waitlist successfully!", Toast.LENGTH_SHORT).show();

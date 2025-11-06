@@ -1,40 +1,61 @@
 package com.example.lottos;
 
-import java.sql.Array;
-import java.util.ArrayList;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
+
 
 public class Event {
     private String eventName;
+    private String EventId;
     private String organizer;
-    private EventTime eventTime;
-    private EventInfo eventInfo;
-    private WaitList waitList;
-    private UserList selectedList;
-    private UserList cancelledList;
-    private UserList enrolledList;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
-    /**
-     * Constructs an Event Object
-     * @param eventName The name of the event
-     * @param organizer The organizer of the event
-     * @param eventTime The EventTime object for the event
-     * @param eventInfo The EventInfo object for the event
-     */
-    public Event(String eventName, String organizer, EventTime eventTime, EventInfo eventInfo, WaitList waitList) {
+    private String description;
+
+    private String location;
+    private int selectionCap;
+    private UserList waitList;
+    private UserList selectedList;
+    private int currentPointer;
+    private UserList enrolledList;
+    private UserList cancelledList;
+
+
+    public Event(String eventName, String organizer,
+                 LocalDateTime startTime, LocalDateTime endTime,
+                 String description, String location,
+                 int selectionCap) {
+        this.EventId = UUID.randomUUID().toString();
         this.eventName = eventName;
         this.organizer = organizer;
-        this.eventTime = eventTime;
-        this.eventInfo = eventInfo;
-        this.waitList = waitList;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.description = description;
+        // this place should have a photo URL or something
+        this.location = location;
+        this.selectionCap = selectionCap;
+        this.waitList = new UserList();
+        this.selectedList = new UserList();
+        this.cancelledList = new UserList();
+        this.enrolledList = new UserList();
+
+    }
+    public boolean isOrganizer() {
+        FirebaseUser cur = FirebaseAuth.getInstance().getCurrentUser();
+        return cur != null && Objects.equals(cur.getUid(), organizer);
     }
 
-    /**
-     * Getter method for event name
-     * @return The name of the event
-     */
+
     public String getEventName() {
         return eventName;
+    }
+    public String getEventId() {
+        return EventId;
     }
 
     /**
@@ -45,27 +66,56 @@ public class Event {
         return organizer;
     }
 
+
     /**
-     * Getter method for event time
-     * @return The EventTime object for the event
+     * Getter method for start time
+     * @return The time the event starts
      */
-    public EventTime getEventTime() {
-        return eventTime;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
+
+
+
+    /**
+     * Getter method for end time
+     * @return The time the event ends
+     */
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+
+    /**
+     * Setter method for start time
+     * @param startTime The new start time to be set
+     */
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+
+
+    /**
+     * Setter method for end time
+     * @param endTime The new end time to be set
+     */
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
 
     /**
      * Getter method for event info
      * @return The EventInfo object for the event
      */
-    public EventInfo getEventInfo() {
-        return eventInfo;
-    }
+
 
     /**
      * Getter method for event waitlist
      * @return The WaitList object for the event
      */
-    public WaitList getWaitList() {
+    public UserList getWaitList() {
         return waitList;
     }
 
@@ -109,27 +159,56 @@ public class Event {
         this.organizer = organizer;
     }
 
-    /**
-     * Setter method for event time
-     * @param eventTime The new EventTime object to set
-     */
-    public void setEventTime(EventTime eventTime) {
-        this.eventTime = eventTime;
+    public String getDescription() {
+        return description;
     }
 
     /**
-     * Setter method for event info
-     * @param eventInfo The EventInfo object to set
+     * Getter method for location
+     * @return The location of the event
      */
-    public void setEventInfo(EventInfo eventInfo) {
-        this.eventInfo = eventInfo;
+    public String getLocation() {
+        return location;
     }
+
+    /**
+     * Getter method for selection cap
+     * @return The maximum number of entrants to enroll
+     */
+    public int getSelectionCap() {
+        return selectionCap;
+    }
+
+    /**
+     * Setter method for description
+     * @param description The new description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    /**
+     * Setter method for location
+     * @param location The new location to set
+     */
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    /**
+     * Setter method for selection cap
+     * @param selectionCap The new selection cap to set
+     */
+    public void setSelectionCap(int selectionCap) {
+        this.selectionCap = selectionCap;
+    }
+
 
     /**
      * Setter method for waitlist
      * @param waitList The new WaitList object to set
      */
-    public void setWaitList(WaitList waitList) {
+    public void setWaitList(UserList waitList) {
         this.waitList = waitList;
     }
 
