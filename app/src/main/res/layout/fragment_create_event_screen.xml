@@ -43,7 +43,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Enter Location"/>
-
+            <EditText
+                android:id="@+id/etRegisterEndTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Register End Time yyyy-MM-dd HH:mm"/>
             <EditText
                 android:id="@+id/etStartTime"
                 android:layout_width="match_parent"
@@ -74,13 +78,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Enter WaitList Capacity (Optional)"/>
-
-
-            <EditText
-                android:id="@+id/etWLEndTime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter WaitList Closing Time yyyy-MM-dd HH:mm (Optional)"/>
 
         </LinearLayout>
 

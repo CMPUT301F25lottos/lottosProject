@@ -118,6 +118,18 @@ public class EntrantEventsScreen extends Fragment {
                 Toast.makeText(getContext(), "Already joined " + eventName, Toast.LENGTH_SHORT).show();
                 return;
             }
+            final List<String> userWaitlistFinal = new ArrayList<>(userWaitlist);
+
+            eventRef.get().addOnSuccessListener(eventSnap -> {
+                if (!eventSnap.exists()) return;
+
+                Long capLong = eventSnap.getLong("waitListCapacity");
+                int capacity = capLong != null ? capLong.intValue() : 0;
+                if (userWaitlistFinal.size() >= capacity) {
+                    Toast.makeText(getContext(), "This event is already full", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            });
 
             userWaitlist.add(eventName);
             Map<String, Object> userUpdate = new HashMap<>();
@@ -131,17 +143,13 @@ public class EntrantEventsScreen extends Fragment {
                             Map<String, Object> waitlist = (Map<String, Object>) eventSnap.get("waitList");
                             List<String> usersList = new ArrayList<>();
 
-                            if (waitlist != null && waitlist.get("users") instanceof Map) {
-                                Map<String, Object> usersMap = (Map<String, Object>) waitlist.get("users");
-                                if (usersMap.get("users") instanceof List) {
-                                    usersList = (List<String>) usersMap.get("users");
-                                }
-                            }
+                            usersList = (List<String>) eventSnap.get("waitList.users");
+                            if (usersList == null) usersList = new ArrayList<>();
 
                             if (!usersList.contains(userName)) {
                                 usersList.add(userName);
                                 Map<String, Object> updateMap = new HashMap<>();
-                                updateMap.put("waitList.users.users", usersList);
+                                updateMap.put("waitList.users", usersList);
 
                                 eventRef.update(updateMap)
                                         .addOnSuccessListener(v -> {
@@ -186,16 +194,12 @@ public class EntrantEventsScreen extends Fragment {
                             Map<String, Object> waitlist = (Map<String, Object>) eventSnap.get("waitList");
                             List<String> usersList = new ArrayList<>();
 
-                            if (waitlist != null && waitlist.get("users") instanceof Map) {
-                                Map<String, Object> usersMap = (Map<String, Object>) waitlist.get("users");
-                                if (usersMap.get("users") instanceof List) {
-                                    usersList = (List<String>) usersMap.get("users");
-                                }
-                            }
+                            usersList = (List<String>) eventSnap.get("waitList.users");
+                            if (usersList == null) usersList = new ArrayList<>();
 
                             usersList.remove(userName);
                             Map<String, Object> updateMap = new HashMap<>();
-                            updateMap.put("waitList.users.users", usersList);
+                            updateMap.put("waitList.users", usersList);
 
                             eventRef.update(updateMap)
                                     .addOnSuccessListener(v -> {
