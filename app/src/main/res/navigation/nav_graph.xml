@@ -87,6 +87,9 @@
             android:id="@+id/action_HomeScreen_to_LotteryInfoScreen"
             app:destination="@+id/LotteryInfoScreen"/>
 
+        <action
+            android:id="@+id/action_HomeScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
 
 
     </fragment>
@@ -243,6 +246,22 @@
 
         <action
             android:id="@+id/action_LotteryInfoScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/EventHistoryScreen"
+        android:name="com.example.lottos.EventHistoryScreen"
+        android:label="EventHistoryScreen"
+        tools:layout="@layout/fragment_event_history_screen">
+
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
+
+        <action
+            android:id="@+id/action_event_history_screen_to_HomeScreen"
             app:destination="@+id/HomeScreen"/>
 
     </fragment>
