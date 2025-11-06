@@ -96,13 +96,13 @@ public class EntrantWaitListsScreen extends Fragment {
 
     /** Load user's waitlisted events and categorize open/closed */
     private void loadEntrantWaitlists(String userName) {
-        DocumentReference entrantDoc = db.collection("entrants").document(userName);
+        DocumentReference usersDoc = db.collection("users").document(userName);
         openWaitlists.clear();
         closedWaitlists.clear();
 
-        entrantDoc.get().addOnSuccessListener(snapshot -> {
+        usersDoc.get().addOnSuccessListener(snapshot -> {
             if (!snapshot.exists()) {
-                Toast.makeText(getContext(), "Entrant not found.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "users not found.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -158,15 +158,15 @@ public class EntrantWaitListsScreen extends Fragment {
 
     /** Remove entrant from event’s waitlist in Firestore */
     private void deleteEntrantFromWaitlist(String userName, String eventName) {
-        DocumentReference entrantDoc = db.collection("entrants").document(userName);
-        entrantDoc.get().addOnSuccessListener(snapshot -> {
+        DocumentReference usersDoc = db.collection("users").document(userName);
+        usersDoc.get().addOnSuccessListener(snapshot -> {
             if (snapshot.exists()) {
                 Map<String, Object> waitListedMap = (Map<String, Object>) snapshot.get("waitListedEvents");
                 if (waitListedMap != null) {
                     List<String> events = (List<String>) waitListedMap.get("events");
                     if (events != null && events.contains(eventName)) {
                         events.remove(eventName);
-                        entrantDoc.update("waitListedEvents.events", events)
+                        usersDoc.update("waitListedEvents.events", events)
                                 .addOnSuccessListener(aVoid -> {
                                     openWaitlists.remove(eventName);
                                     openAdapter.notifyDataSetChanged();
