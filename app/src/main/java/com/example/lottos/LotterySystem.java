@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class LotterySystem {
     private String seed;//can just be event name or other number
-    public LotterySystem(String seed)
-    { this.seed = seed; }
+    public LotterySystem(String eventName)
+    { this.seed = eventName + "_" + System.currentTimeMillis(); }
     private ArrayList<String> DeterministicOrder(ArrayList<String> src, String seed) {
         ArrayList<String> order = new ArrayList<String>(src);
         ArrayList<String> Keyorder = new ArrayList<String>();

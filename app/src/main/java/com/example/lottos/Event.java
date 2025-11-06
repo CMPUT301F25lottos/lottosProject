@@ -1,14 +1,23 @@
 package com.example.lottos;
 
 import java.sql.Array;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Objects;
 
 public class Event {
     private String eventName;
     private String organizer;
-    private EventTime eventTime;
-    private EventInfo eventInfo;
+    private LocalDate startDate;
+    private LocalTime startTime;
+    private LocalDate endDate;
+    private LocalTime endTime;
+
+    private String description;
+
+    private String location;
+    private int selectionCap;
     private WaitList waitList;
     private UserList selectedList;
     private UserList cancelledList;
@@ -18,16 +27,25 @@ public class Event {
      * Constructs an Event Object
      * @param eventName The name of the event
      * @param organizer The organizer of the event
-     * @param eventTime The EventTime object for the event
-     * @param eventInfo The EventInfo object for the event
+
      */
-    public Event(String eventName, String organizer, EventTime eventTime, EventInfo eventInfo, WaitList waitList) {
+    public Event(String eventName, String organizer,
+                 LocalDate startDate, LocalTime startTime,
+                 LocalDate endDate, LocalTime endTime,
+                 String description, String location,
+                 int selectionCap) {
+
         this.eventName = eventName;
         this.organizer = organizer;
-        this.eventTime = eventTime;
-        this.eventInfo = eventInfo;
-        this.waitList = waitList;
+        this.startDate = startDate;
+        this.startTime = startTime;
+        this.endDate = endDate;
+        this.endTime = endTime;
+        this.description = description;
+        this.location = location;
+        this.selectionCap = selectionCap;
     }
+
 
     /**
      * Getter method for event name
@@ -49,17 +67,79 @@ public class Event {
      * Getter method for event time
      * @return The EventTime object for the event
      */
-    public EventTime getEventTime() {
-        return eventTime;
+    public LocalDate getStartDate() {
+        return startDate;
     }
+
+    /**
+     * Getter method for start time
+     * @return The time the event starts
+     */
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    /**
+     * Getter method for end date
+     * @return The date the event ends
+     */
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    /**
+     * Getter method for end time
+     * @return The time the event ends
+     */
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    /**
+     * Getter method for the days the event runs
+     * @return String representing the days of the week the event will run eg.,"SuMTWRFS" for all days
+
+    public String getDaysRunning() {
+        return daysRunning;
+    }
+
+     * Setter method for start date
+     * @param startDate The new start date to be set
+     */
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    /**
+     * Setter method for start time
+     * @param startTime The new start time to be set
+     */
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    /**
+     * Setter method for end date
+     * @param endDate The new end date to be set
+     */
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    /**
+     * Setter method for end time
+     * @param endTime The new end time to be set
+     */
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
+
 
     /**
      * Getter method for event info
      * @return The EventInfo object for the event
      */
-    public EventInfo getEventInfo() {
-        return eventInfo;
-    }
+
 
     /**
      * Getter method for event waitlist
@@ -109,21 +189,50 @@ public class Event {
         this.organizer = organizer;
     }
 
-    /**
-     * Setter method for event time
-     * @param eventTime The new EventTime object to set
-     */
-    public void setEventTime(EventTime eventTime) {
-        this.eventTime = eventTime;
+    public String getDescription() {
+        return description;
     }
 
     /**
-     * Setter method for event info
-     * @param eventInfo The EventInfo object to set
+     * Getter method for location
+     * @return The location of the event
      */
-    public void setEventInfo(EventInfo eventInfo) {
-        this.eventInfo = eventInfo;
+    public String getLocation() {
+        return location;
     }
+
+    /**
+     * Getter method for selection cap
+     * @return The maximum number of entrants to enroll
+     */
+    public int getSelectionCap() {
+        return selectionCap;
+    }
+
+    /**
+     * Setter method for description
+     * @param description The new description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    /**
+     * Setter method for location
+     * @param location The new location to set
+     */
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    /**
+     * Setter method for selection cap
+     * @param selectionCap The new selection cap to set
+     */
+    public void setSelectionCap(int selectionCap) {
+        this.selectionCap = selectionCap;
+    }
+
 
     /**
      * Setter method for waitlist
