@@ -67,9 +67,13 @@ public class HomeScreen extends Fragment {
                 NavHostFragment.findNavController(HomeScreen.this)
                         .navigate(HomeScreenDirections.actionHomeScreenToOrganizerEventsScreen(userName)));
 
-        binding.btnOpenEvents.setOnClickListener(v ->
+        binding.btnWaitLists.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections.actionHomeScreenToOrganizerEventsScreen(userName)));
+                        .navigate(HomeScreenDirections.actionHomeScreenToEntrantWaitListsScreen(userName)));
+
+        binding.btnOrgEvents.setOnClickListener(v ->
+                NavHostFragment.findNavController(HomeScreen.this)
+                        .navigate(HomeScreenDirections.actionHomeScreenToEntrantEventsScreen(userName)));
     }
 
     /**
