@@ -60,6 +60,7 @@ public class EntrantEventsScreen extends Fragment {
         loadUserWaitlistedEvents();
     }
 
+<<<<<<< HEAD
     /** Step 1: Load user's existing waitlisted events before loading all events */
     private void loadUserWaitlistedEvents() {
         db.collection("entrants").document(userName).get()
@@ -77,6 +78,88 @@ public class EntrantEventsScreen extends Fragment {
                     Log.e("Firestore", "Failed to load user waitlist", e);
                     loadEvents();
                 });
+=======
+    /**
+     * Loads and displays all open events where IsOpen == true
+     */
+    private void displayOpenEvents() {
+        CollectionReference eventsRef = db.collection("open events");
+
+        // Clear previous list
+        openEvents.clear();
+
+        eventsRef.get().addOnSuccessListener(querySnapshot -> {
+            if (querySnapshot.isEmpty()) {
+                openEvents.add("No events found.");
+                openEventsAdapter.notifyDataSetChanged();
+                return;
+            }
+
+            for (QueryDocumentSnapshot doc : querySnapshot) {
+                Boolean isOpen = doc.getBoolean("IsOpen");
+                String eventName = doc.getString("eventName");
+
+                if (isOpen != null && isOpen && eventName != null) {
+                    openEvents.add(eventName);
+                }
+            }
+
+            if (openEvents.isEmpty()) {
+                openEvents.add("No open events available.");
+            }
+
+            openEventsAdapter.notifyDataSetChanged();
+
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), "Failed to load open events.", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    /**
+     * Adds an entrant to the waitlist for a given event — only if not already joined.
+     */
+    private void addEntrantToWaitlist(String userName, String eventName) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference usersDoc = db.collection("users").document(userName);
+        DocumentReference eventDoc = db.collection("open events").document(eventName);
+
+        // Step 1️⃣: Check if the users already joined this event
+        usersDoc.get().addOnSuccessListener(snapshot -> {
+            if (snapshot.exists()) {
+                Map<String, Object> waitListedMap = (Map<String, Object>) snapshot.get("waitListedEvents");
+                if (waitListedMap != null) {
+                    List<String> events = (List<String>) waitListedMap.get("events");
+                    if (events != null && events.contains(eventName)) {
+                        Toast.makeText(getContext(), "You’ve already in this waitlist.", Toast.LENGTH_SHORT).show();
+                        return; // Stop here
+                    }
+                }
+            }
+
+            // Step 2️⃣: Proceed to add users to both places
+            usersDoc.update("waitListedEvents.events", FieldValue.arrayUnion(eventName))
+                    .addOnSuccessListener(aVoid -> {
+                        eventDoc.update("waitList.users.users", FieldValue.arrayUnion(userName))
+                                .addOnSuccessListener(aVoid2 -> {
+                                    Toast.makeText(getContext(),
+                                            "You’ve joined the waitlist for " + eventName + "!",
+                                            Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(getContext(),
+                                                "Failed to update event waitlist.",
+                                                Toast.LENGTH_SHORT).show());
+                    })
+                    .addOnFailureListener(e ->
+                            Toast.makeText(getContext(),
+                                    "Failed to update your waitlisted events.",
+                                    Toast.LENGTH_SHORT).show());
+        }).addOnFailureListener(e ->
+                Toast.makeText(getContext(),
+                        "Failed to check your current waitlists.",
+                        Toast.LENGTH_SHORT).show()
+        );
+>>>>>>> 06cdc356d81fa2b5efe80ad1e521202f7117a66e
     }
 
     /** Step 2: Load events and mark joined ones */
