@@ -48,11 +48,9 @@ public class SignupScreen extends Fragment {
 
 
         entrantUserNameArrayList = new ArrayList<>();
-        organizerUserNameArrayList = new ArrayList<>();
 
         db = FirebaseFirestore.getInstance();
         entrantsRef = db.collection("entrants");
-        organizersRef = db.collection("organizers");
 
         // Load usernames once
         loadUsernames();
@@ -67,13 +65,6 @@ public class SignupScreen extends Fragment {
                 if (name != null) entrantUserNameArrayList.add(name);
             }
         });
-
-        organizersRef.get().addOnSuccessListener(value -> {
-            for (QueryDocumentSnapshot snapshot : value) {
-                String name = snapshot.getString("userName");
-                if (name != null) organizerUserNameArrayList.add(name);
-            }
-        });
     }
 
     private void handleSignup() {
@@ -82,56 +73,16 @@ public class SignupScreen extends Fragment {
         String password = binding.etPassword.getText().toString().trim();
         String email = binding.etEmail.getText().toString().trim();
         String phoneNumber = binding.etPhoneNumber.getText().toString().trim();
-        String accountType = binding.etAccountType.getText().toString().trim();
 
-        if (name.isEmpty() || userName.isEmpty() || password.isEmpty() || email.isEmpty() || phoneNumber.isEmpty() || accountType.isEmpty()) {
+        if (name.isEmpty() || userName.isEmpty() || password.isEmpty() || email.isEmpty()) {
             Toast.makeText(getContext(), "Please fill in all fields.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         UserInfo userInfo = new UserInfo(name, password, email, phoneNumber);
 
-        //todo: implement email verification
-
-        if (accountType.equalsIgnoreCase("Entrant")) {
-            if (entrantUserNameArrayList.contains(userName) || organizerUserNameArrayList.contains(userName)) {
-                Toast.makeText(getContext(), "Username already exists!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Entrant newEntrant = new Entrant(userName, userInfo);
-            entrantsRef.document(userName).set(newEntrant)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(), "Entrant account created!", Toast.LENGTH_SHORT).show();
-                        navigateToHome(userName);
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("Firestore", "Error creating entrant", e);
-                        Toast.makeText(getContext(), "Failed to create account.", Toast.LENGTH_SHORT).show();
-                    });
-
-        } else if (accountType.equalsIgnoreCase("Organizer")) {
-            if (organizerUserNameArrayList.contains(userName) || entrantUserNameArrayList.contains(userName)) {
-                Toast.makeText(getContext(), "Username already exists!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Organizer newOrganizer = new Organizer(userName, userInfo);
-            organizersRef.document(userName).set(newOrganizer)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(), "Organizer account created!", Toast.LENGTH_SHORT).show();
-                        navigateToHome(userName);
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("Firestore", "Error creating organizer", e);
-                        Toast.makeText(getContext(), "Failed to create account.", Toast.LENGTH_SHORT).show();
-                    });
-
-        } else {
-            Toast.makeText(getContext(), "Please enter a valid account type: 'Entrant' or 'Organizer'.", Toast.LENGTH_SHORT).show();
-        }
-
     }
+
 
     private void navigateToHome(String userName) {
         SignupScreenDirections.ActionSignupScreenToHomeScreen action =
