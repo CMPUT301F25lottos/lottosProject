@@ -15,19 +15,12 @@ import com.example.lottos.databinding.FragmentSignupScreenBinding;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-
-import java.util.ArrayList;
 
 public class SignupScreen extends Fragment {
 
     private FragmentSignupScreenBinding binding;
     private FirebaseFirestore db;
-    private CollectionReference entrantsRef;
-    private CollectionReference organizersRef;
-
-    private ArrayList<String> entrantUserNameArrayList;
-    private ArrayList<String> organizerUserNameArrayList;
+    private CollectionReference usersRef;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -39,55 +32,55 @@ public class SignupScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        binding.btnBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NavHostFragment.findNavController(SignupScreen.this).navigate(SignupScreenDirections.actionSignupScreenToWelcomeScreen());
-            }
-        });
-
-
-        entrantUserNameArrayList = new ArrayList<>();
-
         db = FirebaseFirestore.getInstance();
-        entrantsRef = db.collection("entrants");
+        usersRef = db.collection("users");
 
-        // Load usernames once
-        loadUsernames();
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(SignupScreen.this)
+                        .navigate(SignupScreenDirections.actionSignupScreenToWelcomeScreen()));
 
-        binding.btnSignup.setOnClickListener(v -> handleSignup());
-    }
+        binding.btnSignup.setOnClickListener(v -> {
+            String userName = binding.etUsername.getText().toString().trim();
+            String displayName = binding.etDisplayName.getText().toString().trim();
+            String password = binding.etPassword.getText().toString().trim();
+            String email = binding.etEmail.getText().toString().trim();
+            String phoneNumber = binding.etPhoneNumber.getText().toString().trim();
 
-    private void loadUsernames() {
-        entrantsRef.get().addOnSuccessListener(value -> {
-            for (QueryDocumentSnapshot snapshot : value) {
-                String name = snapshot.getString("userName");
-                if (name != null) entrantUserNameArrayList.add(name);
+            if (userName.isEmpty() || displayName.isEmpty() || password.isEmpty() || email.isEmpty()) {
+                Toast.makeText(getContext(), "Please fill all required fields", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            createUser(userName, displayName, password, email, phoneNumber);
         });
     }
 
-    private void handleSignup() {
-        String name = binding.etName.getText().toString().trim();
-        String userName = binding.etUsername.getText().toString().trim();
-        String password = binding.etPassword.getText().toString().trim();
-        String email = binding.etEmail.getText().toString().trim();
-        String phoneNumber = binding.etPhoneNumber.getText().toString().trim();
+    private void createUser(String userName, String displayName, String password, String email, String phoneNumber) {
+        // Ensure the username is unique
+        DocumentReference userDoc = usersRef.document(userName);
+        userDoc.get().addOnSuccessListener(doc -> {
+            if (doc.exists()) {
+                Toast.makeText(getContext(), "Username already taken. Please choose another.", Toast.LENGTH_SHORT).show();
+            } else {
+                // Create the User object
+                UserInfo userInfo = new UserInfo(displayName, password, email, phoneNumber);
+                User newUser = new User(userName, userInfo);
 
-        if (name.isEmpty() || userName.isEmpty() || password.isEmpty() || email.isEmpty()) {
-            Toast.makeText(getContext(), "Please fill in all fields.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        UserInfo userInfo = new UserInfo(name, password, email, phoneNumber);
-
-    }
-
-
-    private void navigateToHome(String userName) {
-        SignupScreenDirections.ActionSignupScreenToHomeScreen action =
-                SignupScreenDirections.actionSignupScreenToHomeScreen(userName);
-        NavHostFragment.findNavController(SignupScreen.this).navigate(action);
+                userDoc.set(newUser)
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(getContext(), "Account created successfully!", Toast.LENGTH_SHORT).show();
+                            NavHostFragment.findNavController(SignupScreen.this)
+                                    .navigate(SignupScreenDirections.actionSignupScreenToHomeScreen(userName));
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("Firestore", "Error creating user", e);
+                            Toast.makeText(getContext(), "Error creating account. Please try again.", Toast.LENGTH_SHORT).show();
+                        });
+            }
+        }).addOnFailureListener(e -> {
+            Log.e("Firestore", "Error checking username", e);
+            Toast.makeText(getContext(), "Error checking username. Try again.", Toast.LENGTH_SHORT).show();
+        });
     }
 
     @Override

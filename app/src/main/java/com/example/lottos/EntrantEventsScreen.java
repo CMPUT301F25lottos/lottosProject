@@ -120,11 +120,11 @@ public class EntrantEventsScreen extends Fragment {
      */
     private void addEntrantToWaitlist(String userName, String eventName) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference entrantDoc = db.collection("entrants").document(userName);
+        DocumentReference usersDoc = db.collection("users").document(userName);
         DocumentReference eventDoc = db.collection("open events").document(eventName);
 
-        // Step 1️⃣: Check if the entrant already joined this event
-        entrantDoc.get().addOnSuccessListener(snapshot -> {
+        // Step 1️⃣: Check if the users already joined this event
+        usersDoc.get().addOnSuccessListener(snapshot -> {
             if (snapshot.exists()) {
                 Map<String, Object> waitListedMap = (Map<String, Object>) snapshot.get("waitListedEvents");
                 if (waitListedMap != null) {
@@ -136,10 +136,10 @@ public class EntrantEventsScreen extends Fragment {
                 }
             }
 
-            // Step 2️⃣: Proceed to add entrant to both places
-            entrantDoc.update("waitListedEvents.events", FieldValue.arrayUnion(eventName))
+            // Step 2️⃣: Proceed to add users to both places
+            usersDoc.update("waitListedEvents.events", FieldValue.arrayUnion(eventName))
                     .addOnSuccessListener(aVoid -> {
-                        eventDoc.update("waitList.entrants.users", FieldValue.arrayUnion(userName))
+                        eventDoc.update("waitList.users.users", FieldValue.arrayUnion(userName))
                                 .addOnSuccessListener(aVoid2 -> {
                                     Toast.makeText(getContext(),
                                             "You’ve joined the waitlist for " + eventName + "!",

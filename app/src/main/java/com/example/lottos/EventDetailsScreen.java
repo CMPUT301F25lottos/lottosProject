@@ -112,16 +112,16 @@ public class EventDetailsScreen extends Fragment {
         hideAllButtons();
 
         DocumentReference eventDoc = db.collection("open events").document(eventId);
-        DocumentReference entrantDoc = db.collection("entrants").document(userName);
+        DocumentReference usersDoc = db.collection("users").document(userName);
 
         eventDoc.get().addOnSuccessListener(eventSnapshot -> {
             Boolean isOpen = eventSnapshot.getBoolean("IsOpen");
 
-            entrantDoc.get().addOnSuccessListener(entrantSnapshot -> {
-                Map<String, Object> invitedMap = (Map<String, Object>) entrantSnapshot.get("invitedEvents");
+            usersDoc.get().addOnSuccessListener(usersSnapshot -> {
+                Map<String, Object> invitedMap = (Map<String, Object>) usersSnapshot.get("invitedEvents");
                 List<String> invitedEvents = invitedMap != null ? (List<String>) invitedMap.get("events") : new ArrayList<>();
 
-                Map<String, Object> waitlistedMap = (Map<String, Object>) entrantSnapshot.get("waitListedEvents");
+                Map<String, Object> waitlistedMap = (Map<String, Object>) usersSnapshot.get("waitListedEvents");
                 List<String> waitListedEvents = waitlistedMap != null ? (List<String>) waitlistedMap.get("events") : new ArrayList<>();
 
                 if (isOpen != null && isOpen) {
@@ -132,20 +132,20 @@ public class EventDetailsScreen extends Fragment {
                 } else {
                     // Event is closed
                     if (invitedEvents != null && invitedEvents.contains(eventName)) {
-                        // Entrant was invited
+                        // users was invited
                         binding.btnAccept.setVisibility(View.VISIBLE);
                         binding.btnDecline.setVisibility(View.VISIBLE);
                         binding.btnBack.setVisibility(View.VISIBLE);
 
                     } else if (waitListedEvents != null && waitListedEvents.contains(eventName)) {
-                        // Entrant was waitlisted but not invited
+                        // users was waitlisted but not invited
                         Toast.makeText(getContext(),
                                 "This event is closed. You were not selected.",
                                 Toast.LENGTH_SHORT).show();
                         binding.btnBack.setVisibility(View.VISIBLE);
 
                     } else {
-                        // Entrant was never in the waitlist
+                        // users was never in the waitlist
                         Toast.makeText(getContext(),
                                 "The waitlist is closed and you were not a part of it.",
                                 Toast.LENGTH_SHORT).show();
@@ -154,7 +154,7 @@ public class EventDetailsScreen extends Fragment {
                 }
 
             }).addOnFailureListener(e ->
-                    Toast.makeText(getContext(), "Failed to fetch entrant info.", Toast.LENGTH_SHORT).show());
+                    Toast.makeText(getContext(), "Failed to fetch users info.", Toast.LENGTH_SHORT).show());
         });
     }
 
@@ -163,7 +163,7 @@ public class EventDetailsScreen extends Fragment {
      */
     private void joinWaitlist(String userName) {
         DocumentReference eventDoc = db.collection("open events").document(eventId);
-        DocumentReference entrantDoc = db.collection("entrants").document(userName);
+        DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
             Boolean isOpen = transaction.get(eventDoc).getBoolean("IsOpen");
@@ -171,8 +171,8 @@ public class EventDetailsScreen extends Fragment {
                 throw new FirebaseFirestoreException("This event is closed.", FirebaseFirestoreException.Code.ABORTED);
             }
 
-            transaction.update(eventDoc, "waitList.entrants.users", FieldValue.arrayUnion(userName));
-            transaction.update(entrantDoc, "waitListedEvents.events", FieldValue.arrayUnion(eventName));
+            transaction.update(eventDoc, "waitList.users.users", FieldValue.arrayUnion(userName));
+            transaction.update(usersDoc, "waitListedEvents.events", FieldValue.arrayUnion(eventName));
             return null;
         }).addOnSuccessListener(aVoid -> {
             Toast.makeText(getContext(), "Joined waitlist successfully!", Toast.LENGTH_SHORT).show();
@@ -188,11 +188,11 @@ public class EventDetailsScreen extends Fragment {
      */
     private void leaveWaitlist(String userName) {
         DocumentReference eventDoc = db.collection("open events").document(eventId);
-        DocumentReference entrantDoc = db.collection("entrants").document(userName);
+        DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
-            transaction.update(eventDoc, "waitList.entrants.users", FieldValue.arrayRemove(userName));
-            transaction.update(entrantDoc, "waitListedEvents.events", FieldValue.arrayRemove(eventName));
+            transaction.update(eventDoc, "waitList.users.users", FieldValue.arrayRemove(userName));
+            transaction.update(usersDoc, "waitListedEvents.events", FieldValue.arrayRemove(eventName));
             return null;
         }).addOnSuccessListener(aVoid -> {
             Toast.makeText(getContext(), "Left waitlist successfully!", Toast.LENGTH_SHORT).show();
@@ -208,7 +208,7 @@ public class EventDetailsScreen extends Fragment {
      */
     private void acceptEventInvite(String userName) {
         DocumentReference eventDoc = db.collection("open events").document(eventId);
-        DocumentReference entrantDoc = db.collection("entrants").document(userName);
+        DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
             Boolean isOpen = transaction.get(eventDoc).getBoolean("IsOpen");
@@ -219,8 +219,8 @@ public class EventDetailsScreen extends Fragment {
 
             transaction.update(eventDoc, "enrolledList.users", FieldValue.arrayUnion(userName));
             transaction.update(eventDoc, "cancelledList.users", FieldValue.arrayRemove(userName));
-            transaction.update(entrantDoc, "invitedEvents.events", FieldValue.arrayRemove(eventName));
-            transaction.update(entrantDoc, "enrolledEvents.events", FieldValue.arrayUnion(eventName));
+            transaction.update(usersDoc, "invitedEvents.events", FieldValue.arrayRemove(eventName));
+            transaction.update(usersDoc, "enrolledEvents.events", FieldValue.arrayUnion(eventName));
 
             return null;
         }).addOnSuccessListener(aVoid -> {
@@ -236,7 +236,7 @@ public class EventDetailsScreen extends Fragment {
      */
     private void declineEventInvite(String userName) {
         DocumentReference eventDoc = db.collection("open events").document(eventId);
-        DocumentReference entrantDoc = db.collection("entrants").document(userName);
+        DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
             Boolean isOpen = transaction.get(eventDoc).getBoolean("IsOpen");
@@ -247,8 +247,8 @@ public class EventDetailsScreen extends Fragment {
 
             transaction.update(eventDoc, "cancelledList.users", FieldValue.arrayUnion(userName));
             transaction.update(eventDoc, "enrolledList.users", FieldValue.arrayRemove(userName));
-            transaction.update(entrantDoc, "invitedEvents.events", FieldValue.arrayRemove(eventName));
-            transaction.update(entrantDoc, "declinedEvents.events", FieldValue.arrayUnion(eventName));
+            transaction.update(usersDoc, "invitedEvents.events", FieldValue.arrayRemove(eventName));
+            transaction.update(usersDoc, "declinedEvents.events", FieldValue.arrayUnion(eventName));
 
             return null;
         }).addOnSuccessListener(aVoid -> {
