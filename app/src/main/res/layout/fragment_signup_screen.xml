@@ -36,7 +36,7 @@
             >
 
             <EditText
-                android:id="@+id/etDisplayName"
+                android:id="@+id/etName"
                 android:hint="Name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>

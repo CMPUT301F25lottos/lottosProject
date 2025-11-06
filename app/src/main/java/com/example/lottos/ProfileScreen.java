@@ -61,10 +61,10 @@ public class ProfileScreen extends Fragment {
      * Loads user info (name, email, phone) from Firestore
      */
     private void loadUserProfile() {
-        DocumentReference usersDoc = db.collection("users").document(userName);
-        //DocumentReference usersDoc = db.collection("users").document(userName);
+        DocumentReference entrantDoc = db.collection("entrants").document(userName);
+        DocumentReference organizerDoc = db.collection("organizers").document(userName);
 
-        usersDoc.get().addOnSuccessListener(snapshot -> {
+        entrantDoc.get().addOnSuccessListener(snapshot -> {
             if (snapshot.exists()) {
                 // Get userInfo map from Firestore
                 Map<String, Object> userInfo = (Map<String, Object>) snapshot.get("userInfo");
@@ -73,7 +73,7 @@ public class ProfileScreen extends Fragment {
                     String email = (String) userInfo.get("email");
                     String phone = (String) userInfo.get("phoneNumber");
 
-                    binding.tvAccountType.setText("Account Type: users");
+                    binding.tvAccountType.setText("Account Type: Entrant");
                     binding.tvUsername.setText("Username: " + userName);
                     binding.tvName.setText("Name: " + name);
                     binding.tvEmail.setText("Email: " + (email != null ? email : "N/A"));
@@ -90,31 +90,31 @@ public class ProfileScreen extends Fragment {
     }
 
     private void checkOrganizerProfile() {
-        DocumentReference usersDoc = db.collection("users").document(userName);
+        DocumentReference organizerDoc = db.collection("organizers").document(userName);
 
-        usersDoc.get().addOnSuccessListener(snapshot -> {
+        organizerDoc.get().addOnSuccessListener(snapshot -> {
             if (snapshot.exists()) {
-                // Found in users
+                // Found in organizers
                 Map<String, Object> userInfo = (Map<String, Object>) snapshot.get("userInfo");
                 if (userInfo != null) {
                     String name = (String) userInfo.get("name");
                     String email = (String) userInfo.get("email");
                     String phone = (String) userInfo.get("phoneNumber");
 
-                    binding.tvAccountType.setText("Account Type: users");
+                    binding.tvAccountType.setText("Account Type: Organizer");
                     binding.tvUsername.setText("Username: " + userName);
                     binding.tvName.setText("Name: " + name);
                     binding.tvEmail.setText("Email: " + (email != null ? email : "N/A"));
                     binding.tvPhoneNumber.setText("Phone Number: " + (phone != null ? phone : "N/A"));
                 } else {
-                    Toast.makeText(getContext(), "No profile data found for users.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "No profile data found for organizer.", Toast.LENGTH_SHORT).show();
                 }
             } else {
                 // Not found anywhere
-                Toast.makeText(getContext(), "User not found in users.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "User not found in entrants or organizers.", Toast.LENGTH_SHORT).show();
             }
         }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to load users profile.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(getContext(), "Failed to load organizer profile.", Toast.LENGTH_SHORT).show()
         );
     }
 
@@ -134,7 +134,7 @@ public class ProfileScreen extends Fragment {
      * Deletes the entrant's Firestore document
      */
     private void deleteProfile() {
-        db.collection("users").document(userName).delete()
+        db.collection("entrants").document(userName).delete()
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Profile deleted successfully.", Toast.LENGTH_SHORT).show();
                     NavHostFragment.findNavController(ProfileScreen.this)

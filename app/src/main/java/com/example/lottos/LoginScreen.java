@@ -23,7 +23,9 @@ public class LoginScreen extends Fragment {
 
     private FragmentLoginScreenBinding binding;
     private FirebaseFirestore db;
-    private CollectionReference usersRef;
+
+    private CollectionReference entrantsRef;
+    private CollectionReference organizersRef;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -35,14 +37,16 @@ public class LoginScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Back button
+        // Back button navigation
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(LoginScreen.this)
                         .navigate(LoginScreenDirections.actionLoginScreenToWelcomeScreen()));
 
         db = FirebaseFirestore.getInstance();
-        usersRef = db.collection("users");
+        entrantsRef = db.collection("entrants");
+        organizersRef = db.collection("organizers");
 
+        // Login button logic
         binding.btnLogin.setOnClickListener(v -> {
             String userName = binding.etUsername.getText().toString().trim();
             String password = binding.etPassword.getText().toString().trim();
@@ -52,41 +56,88 @@ public class LoginScreen extends Fragment {
                 return;
             }
 
-            checkUserLogin(userName, password);
+            checkEntrantLogin(userName, password);
         });
     }
 
-    private void checkUserLogin(String userName, String password) {
-        DocumentReference userDoc = usersRef.document(userName);
-        userDoc.get().addOnCompleteListener(task -> {
+    private void checkEntrantLogin(String userName, String password) {
+        DocumentReference entrantDoc = entrantsRef.document(userName);
+        entrantDoc.get().addOnCompleteListener(task -> {
             if (!task.isSuccessful()) {
-                Log.e("Firestore", "Error getting user document", task.getException());
+                Log.e("Firestore", "Error getting entrant document", task.getException());
                 Toast.makeText(getContext(), "Login failed. Try again.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             DocumentSnapshot doc = task.getResult();
             if (doc == null || !doc.exists()) {
-                Toast.makeText(getContext(), "Username not found", Toast.LENGTH_SHORT).show();
+                checkOrganizerLogin(userName, password);
                 return;
             }
 
+            // Try to read nested "userInfo" safely
+            Object userInfoObj = doc.get("userInfo");
+            if (userInfoObj == null) {
+                Toast.makeText(getContext(), "User data missing in Firestore.", Toast.LENGTH_SHORT).show();
+                Log.e("Firestore", "Entrant has no userInfo field: " + userName);
+                return;
+            }
+
+            // Manual extraction to avoid nullpointer when casting
             try {
-                Map<String, Object> userInfoMap = (Map<String, Object>) doc.get("userInfo");
-                if (userInfoMap == null || userInfoMap.get("password") == null) {
-                    Toast.makeText(getContext(), "User data missing", Toast.LENGTH_SHORT).show();
-                    return;
+                String storedPassword = doc.getString("userInfo.password");
+                if (storedPassword == null) {
+                    // fallback if nested map instead of dot path
+                    Map<String, Object> userInfoMap = (Map<String, Object>) doc.get("userInfo");
+                    if (userInfoMap != null && userInfoMap.get("password") != null) {
+                        storedPassword = userInfoMap.get("password").toString();
+                    }
                 }
 
-                String storedPassword = userInfoMap.get("password").toString();
-                if (storedPassword.equals(password)) {
+                if (storedPassword != null && storedPassword.equals(password)) {
                     navigateToHome(userName);
                 } else {
                     Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
                 }
             } catch (Exception e) {
-                Log.e("Firestore", "Error reading user data for " + userName, e);
-                Toast.makeText(getContext(), "Data format error", Toast.LENGTH_SHORT).show();
+                Log.e("Firestore", "Error parsing entrant userInfo for " + userName, e);
+                Toast.makeText(getContext(), "Data format error in Firestore", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void checkOrganizerLogin(String userName, String password) {
+        DocumentReference organizerDoc = organizersRef.document(userName);
+        organizerDoc.get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Log.e("Firestore", "Error getting organizer document", task.getException());
+                Toast.makeText(getContext(), "Login failed. Try again.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            DocumentSnapshot doc = task.getResult();
+            if (doc == null || !doc.exists()) {
+                Toast.makeText(getContext(), "Username or password invalid", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                String storedPassword = doc.getString("userInfo.password");
+                if (storedPassword == null) {
+                    Map<String, Object> userInfoMap = (Map<String, Object>) doc.get("userInfo");
+                    if (userInfoMap != null && userInfoMap.get("password") != null) {
+                        storedPassword = userInfoMap.get("password").toString();
+                    }
+                }
+
+                if (storedPassword != null && storedPassword.equals(password)) {
+                    navigateToHome(userName);
+                } else {
+                    Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e) {
+                Log.e("Firestore", "Error parsing organizer userInfo for " + userName, e);
+                Toast.makeText(getContext(), "Data format error in Firestore", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -108,3 +159,4 @@ public class LoginScreen extends Fragment {
         binding = null;
     }
 }
+
