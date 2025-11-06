@@ -14,6 +14,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.example.lottos.databinding.FragmentEventDetailsScreenBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
@@ -157,9 +158,7 @@ public class EventDetailsScreen extends Fragment {
             return null;
         }).addOnSuccessListener(aVoid -> {
             Toast.makeText(getContext(), "Left waitlist successfully!", Toast.LENGTH_SHORT).show();
-            hideAllButtons();
-            binding.btnJoin.setVisibility(View.VISIBLE);
-            binding.btnBack.setVisibility(View.VISIBLE);
+            binding.btnJoin.setText("Join Waitlist");
         }).addOnFailureListener(e ->
                 Toast.makeText(getContext(), "Failed to leave waitlist.", Toast.LENGTH_SHORT).show());
     }
@@ -168,7 +167,7 @@ public class EventDetailsScreen extends Fragment {
      * Accepts an event invite (only if closed).
      */
     private void acceptEventInvite(String userName) {
-        DocumentReference eventDoc = db.collection("open events").document(eventId);
+        DocumentReference eventDoc = db.collection("open events").document(eventName);
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
@@ -196,7 +195,7 @@ public class EventDetailsScreen extends Fragment {
      * Declines an event invite (only if closed).
      */
     private void declineEventInvite(String userName) {
-        DocumentReference eventDoc = db.collection("open events").document(eventId);
+        DocumentReference eventDoc = db.collection("open events").document(eventName);
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
