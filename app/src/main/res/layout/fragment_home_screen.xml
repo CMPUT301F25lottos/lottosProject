@@ -9,61 +9,67 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:padding="24dp">
 
         <TextView
             android:id="@+id/tvHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Home"
+            android:textStyle="bold"
             android:textSize="28sp"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="24dp"/>
+            android:layout_marginBottom="20dp"/>
 
         <LinearLayout
+            android:id="@+id/layoutButtons"
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/tvHeader"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintBottom_toTopOf="@id/btnLogout"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
+            android:gravity="center_horizontal"
+            android:spacing="8dp">
 
+            <!-- Entrant -->
             <Button
                 android:id="@+id/btnOpenEvents"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:text="Open Events"/>
-
-            <Button
-                android:id="@+id/btnOrgEvents"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:text="My Events"/>
+                android:text="View All Events" />
 
             <Button
                 android:id="@+id/btnWaitLists"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:text="My WaitLists"/>
+                android:text="My Waitlists" />
 
+            <!-- Organizer -->
+            <Button
+                android:id="@+id/btnOrgEvents"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Organizer Events" />
+
+            <!-- Common -->
             <Button
                 android:id="@+id/btnProfile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="My Profile"/>
+                android:text="My Profile" />
 
             <Button
                 android:id="@+id/btnInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Lottery Info"/>
-
+                android:text="Lottery Info" />
         </LinearLayout>
 
         <Button
@@ -74,8 +80,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="20dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </androidx.core.widget.NestedScrollView>

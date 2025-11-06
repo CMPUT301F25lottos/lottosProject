@@ -1,156 +1,169 @@
 package com.example.lottos;
 
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
 import com.example.lottos.databinding.FragmentLoginScreenBinding;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+/**
+ *
+ */
 public class LoginScreen extends Fragment {
 
     private FragmentLoginScreenBinding binding;
+
     private FirebaseFirestore db;
 
     private CollectionReference entrantsRef;
     private CollectionReference organizersRef;
 
+    private ArrayList<String> entrantUserNameArrayList;
+    private ArrayList<String> organizerUserNameArrayList;
+
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(
+            @NonNull LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState
+    ) {
         binding = FragmentLoginScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
-    @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Back button navigation
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(LoginScreen.this)
-                        .navigate(LoginScreenDirections.actionLoginScreenToWelcomeScreen()));
+        entrantUserNameArrayList = new ArrayList<>();
+        organizerUserNameArrayList = new ArrayList<>();
 
         db = FirebaseFirestore.getInstance();
         entrantsRef = db.collection("entrants");
         organizersRef = db.collection("organizers");
 
-        // Login button logic
-        binding.btnLogin.setOnClickListener(v -> {
-            String userName = binding.etUsername.getText().toString().trim();
-            String password = binding.etPassword.getText().toString().trim();
-
-            if (userName.isEmpty() || password.isEmpty()) {
-                Toast.makeText(getContext(), "Please enter both username and password", Toast.LENGTH_SHORT).show();
-                return;
+        entrantsRef.addSnapshotListener((value, error) -> {
+            if (error != null) {
+                Log.e("Firestore", error.toString());
             }
+            if (value != null && !value.isEmpty()) {
+                for (QueryDocumentSnapshot snapshot : value) {
+                    String name = snapshot.getString("userName");
 
-            checkEntrantLogin(userName, password);
-        });
-    }
-
-    private void checkEntrantLogin(String userName, String password) {
-        DocumentReference entrantDoc = entrantsRef.document(userName);
-        entrantDoc.get().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) {
-                Log.e("Firestore", "Error getting entrant document", task.getException());
-                Toast.makeText(getContext(), "Login failed. Try again.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            DocumentSnapshot doc = task.getResult();
-            if (doc == null || !doc.exists()) {
-                checkOrganizerLogin(userName, password);
-                return;
-            }
-
-            // Try to read nested "userInfo" safely
-            Object userInfoObj = doc.get("userInfo");
-            if (userInfoObj == null) {
-                Toast.makeText(getContext(), "User data missing in Firestore.", Toast.LENGTH_SHORT).show();
-                Log.e("Firestore", "Entrant has no userInfo field: " + userName);
-                return;
-            }
-
-            // Manual extraction to avoid nullpointer when casting
-            try {
-                String storedPassword = doc.getString("userInfo.password");
-                if (storedPassword == null) {
-                    // fallback if nested map instead of dot path
-                    Map<String, Object> userInfoMap = (Map<String, Object>) doc.get("userInfo");
-                    if (userInfoMap != null && userInfoMap.get("password") != null) {
-                        storedPassword = userInfoMap.get("password").toString();
-                    }
+                    entrantUserNameArrayList.add(name);
                 }
-
-                if (storedPassword != null && storedPassword.equals(password)) {
-                    navigateToHome(userName);
-                } else {
-                    Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
-                }
-            } catch (Exception e) {
-                Log.e("Firestore", "Error parsing entrant userInfo for " + userName, e);
-                Toast.makeText(getContext(), "Data format error in Firestore", Toast.LENGTH_SHORT).show();
             }
         });
-    }
 
-    private void checkOrganizerLogin(String userName, String password) {
-        DocumentReference organizerDoc = organizersRef.document(userName);
-        organizerDoc.get().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) {
-                Log.e("Firestore", "Error getting organizer document", task.getException());
-                Toast.makeText(getContext(), "Login failed. Try again.", Toast.LENGTH_SHORT).show();
-                return;
+        organizersRef.addSnapshotListener((value, error) -> {
+            if (error != null) {
+                Log.e("Firestore", error.toString());
             }
+            if (value != null && !value.isEmpty()) {
+                for (QueryDocumentSnapshot snapshot : value) {
+                    String name = snapshot.getString("userName");
 
-            DocumentSnapshot doc = task.getResult();
-            if (doc == null || !doc.exists()) {
-                Toast.makeText(getContext(), "Username or password invalid", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            try {
-                String storedPassword = doc.getString("userInfo.password");
-                if (storedPassword == null) {
-                    Map<String, Object> userInfoMap = (Map<String, Object>) doc.get("userInfo");
-                    if (userInfoMap != null && userInfoMap.get("password") != null) {
-                        storedPassword = userInfoMap.get("password").toString();
-                    }
+                    organizerUserNameArrayList.add(name);
                 }
-
-                if (storedPassword != null && storedPassword.equals(password)) {
-                    navigateToHome(userName);
-                } else {
-                    Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
-                }
-            } catch (Exception e) {
-                Log.e("Firestore", "Error parsing organizer userInfo for " + userName, e);
-                Toast.makeText(getContext(), "Data format error in Firestore", Toast.LENGTH_SHORT).show();
             }
         });
-    }
 
-    private void navigateToHome(String userName) {
-        try {
-            LoginScreenDirections.ActionLoginScreenToHomeScreen action =
-                    LoginScreenDirections.actionLoginScreenToHomeScreen(userName);
-            NavHostFragment.findNavController(LoginScreen.this).navigate(action);
-        } catch (Exception e) {
-            Log.e("Navigation", "Navigation failed", e);
-            Toast.makeText(getContext(), "Navigation error — check nav_graph argument name.", Toast.LENGTH_SHORT).show();
-        }
+
+        binding.btnLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String userName = binding.etUsername.getText().toString();
+                String password = binding.etPassword.getText().toString();
+
+                if (entrantUserNameArrayList.contains(userName)) {
+                    DocumentReference docRef = entrantsRef.document(userName);
+                    docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot snapshot = task.getResult();
+                                if (snapshot.exists()) {
+                                    Map<String,Object> checkUserInfo = (Map<String, Object>) snapshot.get("userInfo");
+                                    String checkPassword = (String) checkUserInfo.get("password");
+                                    if (checkPassword.equals(password)) {
+                                        LoginScreenDirections.ActionLoginScreenToHomeScreen action =
+                                                LoginScreenDirections.actionLoginScreenToHomeScreen(userName);
+                                        NavHostFragment.findNavController(LoginScreen.this)
+                                                .navigate(action);
+                                    }
+                                    else {
+                                        NavHostFragment.findNavController(LoginScreen.this)
+                                                .navigate(LoginScreenDirections.actionLoginScreenToWelcomeScreen());
+                                    }
+                                }
+                                else {
+                                    NavHostFragment.findNavController(LoginScreen.this)
+                                            .navigate(LoginScreenDirections.actionLoginScreenToWelcomeScreen());
+                                }
+                            }
+                            else {
+                                NavHostFragment.findNavController(LoginScreen.this)
+                                        .navigate(LoginScreenDirections.actionLoginScreenToWelcomeScreen());
+                            }
+                        }
+                    });
+                }
+
+                if (organizerUserNameArrayList.contains(userName)) {
+                    DocumentReference docRef = organizersRef.document(userName);
+                    docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot snapshot = task.getResult();
+                                if (snapshot.exists()) {
+                                    Map<String,Object> checkUserInfo = (Map<String, Object>) snapshot.get("userInfo");
+                                    String checkPassword = (String) checkUserInfo.get("password");
+                                    if (checkPassword.equals(password)) {
+                                        LoginScreenDirections.ActionLoginScreenToHomeScreen action =
+                                                LoginScreenDirections.actionLoginScreenToHomeScreen(userName);
+                                        NavHostFragment.findNavController(LoginScreen.this)
+                                                .navigate(action);
+                                    }
+                                    else {
+                                        NavHostFragment.findNavController(LoginScreen.this)
+                                                .navigate(LoginScreenDirections.actionLoginScreenToWelcomeScreen());
+                                    }
+                                }
+                                else {
+                                    NavHostFragment.findNavController(LoginScreen.this)
+                                            .navigate(LoginScreenDirections.actionLoginScreenToWelcomeScreen());
+                                }
+                            }
+                            else {
+                                NavHostFragment.findNavController(LoginScreen.this)
+                                        .navigate(LoginScreenDirections.actionLoginScreenToWelcomeScreen());
+                            }
+                        }
+                    });
+                }
+
+            }
+        });
+
+
     }
 
     @Override
@@ -159,4 +172,3 @@ public class LoginScreen extends Fragment {
         binding = null;
     }
 }
-
