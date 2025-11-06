@@ -61,6 +61,12 @@
                 android:layout_height="wrap_content"
                 android:text="Lottery Info"/>
 
+            <Button
+                android:id="@+id/btnEventHistory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Event History"/>
+
         </LinearLayout>
 
         <Button
