@@ -35,21 +35,18 @@
                 android:id="@+id/btnOpenEvents"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
                 android:text="Open Events"/>
 
             <Button
                 android:id="@+id/btnOrgEvents"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
                 android:text="My Events"/>
 
             <Button
                 android:id="@+id/btnWaitLists"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
                 android:text="My WaitLists"/>
 
             <Button
