@@ -62,7 +62,7 @@ public class EntrantEventsScreen extends Fragment {
 
     /** Step 1: Load user's existing waitlisted events before loading all events */
     private void loadUserWaitlistedEvents() {
-        db.collection("entrants").document(userName).get()
+        db.collection("users").document(userName).get()
                 .addOnSuccessListener(snapshot -> {
                     if (snapshot.exists()) {
                         List<String> waitlisted = (List<String>) snapshot.get("waitListedEvents.events");
@@ -105,25 +105,25 @@ public class EntrantEventsScreen extends Fragment {
 
     /** Step 3: Join waitlist */
     private void joinWaitlist(String eventName, EventItem event, Button button) {
-        DocumentReference entrantRef = db.collection("entrants").document(userName);
+        DocumentReference userRef = db.collection("users").document(userName);
         DocumentReference eventRef = db.collection("open events").document(eventName);
 
-        entrantRef.get().addOnSuccessListener(snapshot -> {
+        userRef.get().addOnSuccessListener(snapshot -> {
             if (!snapshot.exists()) return;
 
-            List<String> entrantWaitlist = (List<String>) snapshot.get("waitListedEvents.events");
-            if (entrantWaitlist == null) entrantWaitlist = new ArrayList<>();
+            List<String> userWaitlist = (List<String>) snapshot.get("waitListedEvents.events");
+            if (userWaitlist == null) userWaitlist = new ArrayList<>();
 
-            if (entrantWaitlist.contains(eventName)) {
+            if (userWaitlist.contains(eventName)) {
                 Toast.makeText(getContext(), "Already joined " + eventName, Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            entrantWaitlist.add(eventName);
-            Map<String, Object> entrantUpdate = new HashMap<>();
-            entrantUpdate.put("waitListedEvents.events", entrantWaitlist);
+            userWaitlist.add(eventName);
+            Map<String, Object> userUpdate = new HashMap<>();
+            userUpdate.put("waitListedEvents.events", userWaitlist);
 
-            entrantRef.update(entrantUpdate)
+            userRef.update(userUpdate)
                     .addOnSuccessListener(aVoid -> {
                         eventRef.get().addOnSuccessListener(eventSnap -> {
                             if (!eventSnap.exists()) return;
@@ -131,17 +131,17 @@ public class EntrantEventsScreen extends Fragment {
                             Map<String, Object> waitlist = (Map<String, Object>) eventSnap.get("waitList");
                             List<String> usersList = new ArrayList<>();
 
-                            if (waitlist != null && waitlist.get("entrants") instanceof Map) {
-                                Map<String, Object> entrantsMap = (Map<String, Object>) waitlist.get("entrants");
-                                if (entrantsMap.get("users") instanceof List) {
-                                    usersList = (List<String>) entrantsMap.get("users");
+                            if (waitlist != null && waitlist.get("users") instanceof Map) {
+                                Map<String, Object> usersMap = (Map<String, Object>) waitlist.get("users");
+                                if (usersMap.get("users") instanceof List) {
+                                    usersList = (List<String>) usersMap.get("users");
                                 }
                             }
 
                             if (!usersList.contains(userName)) {
                                 usersList.add(userName);
                                 Map<String, Object> updateMap = new HashMap<>();
-                                updateMap.put("waitList.entrants.users", usersList);
+                                updateMap.put("waitList.users.users", usersList);
 
                                 eventRef.update(updateMap)
                                         .addOnSuccessListener(v -> {
@@ -154,31 +154,31 @@ public class EntrantEventsScreen extends Fragment {
                             }
                         });
                     })
-                    .addOnFailureListener(e -> Log.e("Firestore", "Error updating entrant waitlist", e));
+                    .addOnFailureListener(e -> Log.e("Firestore", "Error updating user waitlist", e));
         });
     }
 
     /** Step 4: Leave waitlist */
     private void leaveWaitlist(String eventName, EventItem event, Button button) {
-        DocumentReference entrantRef = db.collection("entrants").document(userName);
+        DocumentReference userRef = db.collection("users").document(userName);
         DocumentReference eventRef = db.collection("open events").document(eventName);
 
-        entrantRef.get().addOnSuccessListener(snapshot -> {
+        userRef.get().addOnSuccessListener(snapshot -> {
             if (!snapshot.exists()) return;
 
-            List<String> entrantWaitlist = (List<String>) snapshot.get("waitListedEvents.events");
-            if (entrantWaitlist == null) entrantWaitlist = new ArrayList<>();
+            List<String> userWaitlist = (List<String>) snapshot.get("waitListedEvents.events");
+            if (userWaitlist == null) userWaitlist = new ArrayList<>();
 
-            if (!entrantWaitlist.contains(eventName)) {
+            if (!userWaitlist.contains(eventName)) {
                 Toast.makeText(getContext(), "Not on waitlist for " + eventName, Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            entrantWaitlist.remove(eventName);
-            Map<String, Object> entrantUpdate = new HashMap<>();
-            entrantUpdate.put("waitListedEvents.events", entrantWaitlist);
+            userWaitlist.remove(eventName);
+            Map<String, Object> userUpdate = new HashMap<>();
+            userUpdate.put("waitListedEvents.events", userWaitlist);
 
-            entrantRef.update(entrantUpdate)
+            userRef.update(userUpdate)
                     .addOnSuccessListener(aVoid -> {
                         eventRef.get().addOnSuccessListener(eventSnap -> {
                             if (!eventSnap.exists()) return;
@@ -186,16 +186,16 @@ public class EntrantEventsScreen extends Fragment {
                             Map<String, Object> waitlist = (Map<String, Object>) eventSnap.get("waitList");
                             List<String> usersList = new ArrayList<>();
 
-                            if (waitlist != null && waitlist.get("entrants") instanceof Map) {
-                                Map<String, Object> entrantsMap = (Map<String, Object>) waitlist.get("entrants");
-                                if (entrantsMap.get("users") instanceof List) {
-                                    usersList = (List<String>) entrantsMap.get("users");
+                            if (waitlist != null && waitlist.get("users") instanceof Map) {
+                                Map<String, Object> usersMap = (Map<String, Object>) waitlist.get("users");
+                                if (usersMap.get("users") instanceof List) {
+                                    usersList = (List<String>) usersMap.get("users");
                                 }
                             }
 
                             usersList.remove(userName);
                             Map<String, Object> updateMap = new HashMap<>();
-                            updateMap.put("waitList.entrants.users", usersList);
+                            updateMap.put("waitList.users.users", usersList);
 
                             eventRef.update(updateMap)
                                     .addOnSuccessListener(v -> {
@@ -207,7 +207,7 @@ public class EntrantEventsScreen extends Fragment {
                                     .addOnFailureListener(err -> Log.e("Firestore", "Error updating event waitlist", err));
                         });
                     })
-                    .addOnFailureListener(e -> Log.e("Firestore", "Error updating entrant waitlist", e));
+                    .addOnFailureListener(e -> Log.e("Firestore", "Error updating user waitlist", e));
         });
     }
 
