@@ -21,13 +21,13 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="24dp"/>
+            android:layout_marginTop="70dp"/>
 
         <TextView
             android:layout_width="382dp"
             android:layout_height="168dp"
             android:layout_marginTop="28dp"
-            android:text="  Each time the lottery system runs, it will resolve the user in the list based on hash function, and select the first x people in the list"
+            android:text="  Each time the lottery system runs, it will resolve the user in the list based on hash function, and select the first x people in the list."
             android:textSize="28sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
