@@ -91,6 +91,10 @@
             android:id="@+id/action_HomeScreen_to_EventHistoryScreen"
             app:destination="@+id/EventHistoryScreen"/>
 
+        <action
+            android:id="@+id/action_HomeScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
+
 
     </fragment>
 
@@ -265,5 +269,43 @@
             app:destination="@+id/HomeScreen"/>
 
     </fragment>
+
+    <fragment
+        android:id="@+id/NotificationScreen"
+        android:name="com.example.lottos.NotificationScreen"
+        android:label="NotificationScreen"
+        tools:layout="@layout/fragment_notification_screen">
+
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
+
+        <action
+            android:id="@+id/action_NotificationScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen"/>
+
+        <action
+            android:id="@+id/action_NotificationScreen_to_SendNotificationScreen"
+            app:destination="@+id/SendNotificationScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/SendNotificationScreen"
+        android:name="com.example.lottos.SendNotificationScreen"
+        android:label="SendNotificationScreen"
+        tools:layout="@layout/fragment_send_notification_screen">
+
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String"/>
+
+        <action
+            android:id="@+id/action_send_notification_screen_to_notification_screen"
+            app:destination="@+id/NotificationScreen"/>
+
+    </fragment>
+
+
 
 </navigation>
