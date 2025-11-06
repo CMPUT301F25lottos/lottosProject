@@ -45,34 +45,17 @@
                 android:hint="Enter Location"/>
 
             <EditText
-                android:id="@+id/etStartDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter Start Date"/>
-
-            <EditText
-                android:id="@+id/etEndDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter End Date"/>
-
-            <EditText
                 android:id="@+id/etStartTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter Start Time"/>
+                android:hint="Enter Start Time yyyy-MM-dd HH:mm"/>
 
             <EditText
                 android:id="@+id/etEndTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter End Time"/>
+                android:hint="Enter End Time yyyy-MM-dd HH:mm"/>
 
-            <EditText
-                android:id="@+id/etDaysRunning"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter Days Event Will Run"/>
 
             <EditText
                 android:id="@+id/etDescription"
@@ -92,17 +75,12 @@
                 android:layout_height="wrap_content"
                 android:hint="Enter WaitList Capacity (Optional)"/>
 
-            <EditText
-                android:id="@+id/etWLEndDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter WaitList Closing Date"/>
 
             <EditText
                 android:id="@+id/etWLEndTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter WaitList Closing Time"/>
+                android:hint="Enter WaitList Closing Time yyyy-MM-dd HH:mm (Optional)"/>
 
         </LinearLayout>
 
