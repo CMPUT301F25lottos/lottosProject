@@ -19,6 +19,9 @@ public class Event {
 
     private String location;
     private int selectionCap;
+    private LocalDateTime EndRegisterTime;
+    private boolean isOpen;
+
     private UserList waitList;
     private UserList selectedList;
     private int currentPointer;
@@ -29,7 +32,7 @@ public class Event {
     public Event(String eventName, String organizer,
                  LocalDateTime startTime, LocalDateTime endTime,
                  String description, String location,
-                 int selectionCap) {
+                 int selectionCap, LocalDateTime EndRegisterTime) {
         this.EventId = UUID.randomUUID().toString();
         this.eventName = eventName;
         this.organizer = organizer;
@@ -43,7 +46,8 @@ public class Event {
         this.selectedList = new UserList();
         this.cancelledList = new UserList();
         this.enrolledList = new UserList();
-
+        this.isOpen=true;
+        this.EndRegisterTime=EndRegisterTime;
     }
     public boolean isOrganizer() {
         FirebaseUser cur = FirebaseAuth.getInstance().getCurrentUser();
@@ -53,6 +57,9 @@ public class Event {
 
     public String getEventName() {
         return eventName;
+    }
+    public boolean getIsOpen() {
+        return isOpen;
     }
     public String getEventId() {
         return EventId;

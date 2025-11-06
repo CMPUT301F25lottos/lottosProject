@@ -45,10 +45,13 @@ public class CreateEventScreen extends Fragment {
                 String eventName = binding.etEventName.getText().toString().trim();
                 String location  = binding.etEventLocation.getText().toString().trim();
                 String desc      = binding.etDescription.getText().toString().trim();
+                String RegisterEndTime   = binding.etRegisterEndTime.getText().toString().trim();
+
                 String startTime = binding.etStartTime.getText().toString().trim();
                 String endTime   = binding.etEndTime.getText().toString().trim();
                 String capStr    = binding.etCapacity.getText().toString().trim();
                 String wlCapStr  = binding.etWaitListCapacity.getText().toString().trim();
+
                 if (eventName.isEmpty() || location.isEmpty() ||
                         startTime.isEmpty() || endTime.isEmpty() || capStr.isEmpty()) {
                     android.widget.Toast.makeText(requireContext(),
@@ -75,14 +78,23 @@ public class CreateEventScreen extends Fragment {
                         java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                 java.time.LocalDateTime startLdt;
                 java.time.LocalDateTime endLdt;
+                java.time.LocalDateTime RegistendLdt;
                 try {
                     startLdt = java.time.LocalDateTime.parse(startTime, formatter);
                     endLdt   = java.time.LocalDateTime.parse(endTime, formatter);
+                    RegistendLdt   = java.time.LocalDateTime.parse(RegisterEndTime, formatter);
+
                 } catch (java.time.format.DateTimeParseException e) {
                     android.widget.Toast.makeText(requireContext(),
                             "Invalid date/time. Use yyyy-MM-dd HH:mm", android.widget.Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                if (!startLdt.isAfter(RegistendLdt)){
+                    android.widget.Toast.makeText(requireContext(),
+                            "Register end time must be before start time", android.widget.Toast.LENGTH_SHORT).show();
+                }
+
                 if (!endLdt.isAfter(startLdt)) {
                     android.widget.Toast.makeText(requireContext(),
                             "End time must be after start time", android.widget.Toast.LENGTH_SHORT).show();
@@ -97,7 +109,8 @@ public class CreateEventScreen extends Fragment {
                         endLdt,
                         desc,
                         location,
-                        capacity
+                        capacity,
+                        RegistendLdt
                 );
 
                 String userName = CreateEventScreenArgs.fromBundle(getArguments()).getUserName();
@@ -106,7 +119,8 @@ public class CreateEventScreen extends Fragment {
                         startLdt.atZone(java.time.ZoneId.systemDefault()).toInstant());
                 java.util.Date endDate = java.util.Date.from(
                         endLdt.atZone(java.time.ZoneId.systemDefault()).toInstant());
-
+                java.util.Date  RegistendendData = java.util.Date.from(
+                        RegistendLdt.atZone(java.time.ZoneId.systemDefault()).toInstant());
                 com.google.firebase.auth.FirebaseUser fbUser =
                         com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
                 String organizerUid = (fbUser != null) ? fbUser.getUid() : null;
@@ -126,6 +140,10 @@ public class CreateEventScreen extends Fragment {
                 doc.put("startTime", new com.google.firebase.Timestamp(startDate));
                 doc.put("endTime", new com.google.firebase.Timestamp(endDate));
                 doc.put("createdAt", com.google.firebase.Timestamp.now());
+                doc.put("IsOpen", event.getIsOpen());
+
+                doc.put("RegisterEnd", new com.google.firebase.Timestamp(RegistendendData));
+
 
                 db.collection("open events")
                         .document(eventId)
