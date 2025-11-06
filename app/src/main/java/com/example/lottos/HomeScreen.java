@@ -80,6 +80,11 @@ public class HomeScreen extends Fragment {
                     .navigate(HomeScreenDirections.actionHomeScreenToEventHistoryScreen(userName));
         });
 
+        binding.btnNotification.setOnClickListener(v -> {
+            NavHostFragment.findNavController(HomeScreen.this)
+                    .navigate(HomeScreenDirections.actionHomeScreenToNotificationScreen(userName));
+        });
+
     }
 
     /**
