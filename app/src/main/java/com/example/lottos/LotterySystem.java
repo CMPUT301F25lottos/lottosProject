@@ -1,15 +1,14 @@
 package com.example.lottos;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class LotterySystem {
     private String seed;//can just be event name or other number
-    public LotterySystem(String seed)
-    { this.seed = seed; }
+    public LotterySystem(String eventName)
+    { this.seed = eventName + "_" + System.currentTimeMillis(); }
     private ArrayList<String> DeterministicOrder(ArrayList<String> src, String seed) {
         ArrayList<String> order = new ArrayList<String>(src);
         ArrayList<String> Keyorder = new ArrayList<String>();
@@ -28,9 +27,9 @@ public class LotterySystem {
         return Output;
 
     }
-    public ArrayList<String> Selected(WaitList waitList, UserList selectedList, int targetCount){
+    public ArrayList<String> Selected(UserList waitList, UserList selectedList, int targetCount){
         ArrayList<String> LocalselectedList=selectedList.getUsers();
-        ArrayList<String> LocalWaitList=waitList.getEntrants().getUsers();
+        ArrayList<String> LocalWaitList=waitList.getUsers();
         if (LocalselectedList.size() >= targetCount) return LocalselectedList;
         ArrayList<String> order = DeterministicOrder(LocalWaitList, seed);
         for(int i = 0; i < targetCount; i++){
