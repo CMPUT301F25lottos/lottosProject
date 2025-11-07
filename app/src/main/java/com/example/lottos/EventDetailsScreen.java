@@ -65,21 +65,32 @@ public class EventDetailsScreen extends Fragment {
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         eventDoc.get().addOnSuccessListener(eventSnapshot -> {
-            List<String> userWaitlist = new ArrayList<>();
-            userWaitlist = (List<String>) eventSnapshot.get("waitList.users");
+            ArrayList<String> userWaitlist = new ArrayList<>();
+            userWaitlist = (ArrayList<String>) eventSnapshot.get("waitList.users");
+            ArrayList<String> selectedList = new ArrayList<>();
+            selectedList = (ArrayList<String>) eventSnapshot.get("selectedList.users");
+
+
 
             Boolean isOpen = eventSnapshot.getBoolean("IsOpen");
 
             String organizer = eventSnapshot.getString("organizer");
             String location = eventSnapshot.getString("location");
             String description = eventSnapshot.getString("description");
-            Long capacity = eventSnapshot.getLong("selectionCap");
-
+            Long caplong = eventSnapshot.getLong("selectionCap");
+            int capacity = eventSnapshot.getLong("selectionCap").intValue();
             if (organizer != null) binding.tvOrganizer.setText("Organizer: " + organizer);
-            if (location != null) binding.tvLocation.setText("Location: " + location);
+            if (location != null) binding.tvLocation.setText("Location: " + userName);
+            if(organizer.equals(userName)){
+                //LotterySystem lottery = new LotterySystem(eventName);
+                //selectedList = lottery.Selected(userWaitlist, selectedList, capacity);
+                //eventDoc.update("selectedList.users", selectedList);
+            }
+            //if (organizer != null) binding.tvOrganizer.setText("Organizer: " + organizer);
+            //if (location != null) binding.tvLocation.setText("Location: " + location);
             if (description != null) binding.tvDescription.setText("Description: " + description);
-            if (capacity != null) binding.tvCapacity.setText("Capacity: " + capacity);
-            if (capacity != null) binding.tvWLCount.setText("Number of Entrants on WaitList: " + userWaitlist.size());
+            if (caplong != null) binding.tvCapacity.setText("Capacity: " + caplong);
+            //if (capacity != null) binding.tvWLCount.setText("Number of Entrants on WaitList: " + userWaitlist.size());
 
             usersDoc.get().addOnSuccessListener(usersSnapshot -> {
                 Map<String, Object> invitedMap = (Map<String, Object>) usersSnapshot.get("invitedEvents");

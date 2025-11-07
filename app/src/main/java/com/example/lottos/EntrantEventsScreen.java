@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lottos.databinding.FragmentEntrantEventsScreenBinding;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -107,6 +109,9 @@ public class EntrantEventsScreen extends Fragment {
     private void joinWaitlist(String eventName, EventItem event, Button button) {
         DocumentReference userRef = db.collection("users").document(userName);
         DocumentReference eventRef = db.collection("open events").document(eventName);
+        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        //String uid = user.getUid();
+
 
         eventRef.get().addOnSuccessListener(snapshot -> {
             if (!snapshot.exists()) return;
@@ -114,22 +119,23 @@ public class EntrantEventsScreen extends Fragment {
             List<String> userWaitlist = (List<String>) snapshot.get("waitListedEvents.events");
             if (userWaitlist == null) userWaitlist = new ArrayList<>();
 
-            if (userWaitlist.contains(eventName)) {
+            if (userWaitlist.contains(userName)) {
                 Toast.makeText(getContext(), "Already joined " + eventName, Toast.LENGTH_SHORT).show();
                 return;
             }
             final List<String> userWaitlistFinal = new ArrayList<>(userWaitlist);
 
-            eventRef.get().addOnSuccessListener(eventSnap -> {
-                if (!eventSnap.exists()) return;
 
-                Long capLong = eventSnap.getLong("waitListCapacity");
+                if (!snapshot.exists()) return;
+
+                Long capLong = snapshot.getLong("waitListCapacity");
                 int capacity = capLong != null ? capLong.intValue() : 0;
-                if (userWaitlistFinal.size() >= capacity) {
+                if (userWaitlistFinal.size()+1 >= capacity) {
                     Toast.makeText(getContext(), "This event is already full", Toast.LENGTH_SHORT).show();
                     return;
-                }
-            });
+
+
+            };
 
             userWaitlist.add(eventName);
             Map<String, Object> userUpdate = new HashMap<>();
