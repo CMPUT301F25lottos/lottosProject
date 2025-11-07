@@ -17,6 +17,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -96,38 +97,30 @@ public class HomeScreen extends Fragment {
 
         eventsRef.get().addOnSuccessListener(querySnapshot -> {
             if (querySnapshot.isEmpty()) return;
+            //just use firebase clock instead of using local time
+            com.google.firebase.Timestamp nowTs = com.google.firebase.Timestamp.now();
 
-            // Firestore stores "closeDate" and "closeTime" as strings, e.g., "25-12-25" and "12-00-00"
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yy-MM-dd HH-mm-ss", Locale.getDefault());
-            Date now = new Date();
+
 
             for (DocumentSnapshot doc : querySnapshot) {
-                try {
+                com.google.firebase.Timestamp RegisterEnd = doc.getTimestamp("RegisterEnd");
                     Map<String, Object> waitList = (Map<String, Object>) doc.get("waitList");
                     if (waitList == null) continue;
 
-                    String closeDate = (String) waitList.get("closeDate");
-                    String closeTime = (String) waitList.get("closeTime");
-                    if (closeDate == null || closeTime == null) continue;
+                    if (RegisterEnd == null) continue;
 
-                    // Combine and parse to Date
-                    String combined = closeDate + " " + closeTime;
-                    Date closeDateTime = dateFormat.parse(combined);
-                    if (closeDateTime == null) continue;
 
                     // Check whether event should be open
-                    boolean shouldBeOpen = now.before(closeDateTime);
+                    boolean shouldBeOpen = nowTs.compareTo(RegisterEnd) < 0;
                     Boolean currentIsOpen = doc.getBoolean("IsOpen");
+
 
                     // Update Firestore only if value changed
                     if (currentIsOpen == null || currentIsOpen != shouldBeOpen) {
                         doc.getReference().update("IsOpen", shouldBeOpen);
-                    }
 
-                } catch (ParseException e) {
-                    e.printStackTrace();
+                    }
                 }
-            }
 
             Toast.makeText(getContext(), "Event statuses updated.", Toast.LENGTH_SHORT).show();
 
