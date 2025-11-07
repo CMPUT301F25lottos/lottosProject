@@ -40,19 +40,36 @@ android {
 }
 
 dependencies {
-    implementation(libs.firebase.auth)
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
-
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+
+    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
+    implementation(libs.firebase.auth)
+    implementation("com.google.firebase:firebase-firestore")
+    implementation(libs.ext.junit)
+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+
     testImplementation(libs.junit)
+
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
-    implementation("com.google.firebase:firebase-firestore")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-core:5.12.0")
+
+    androidTestImplementation("androidx.fragment:fragment-testing:1.8.0")
+
+    androidTestImplementation("androidx.navigation:navigation-testing:2.7.7")
+
+    androidTestImplementation("androidx.test:rules:1.6.1")
+
+    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.6.1")
+
+
 }
