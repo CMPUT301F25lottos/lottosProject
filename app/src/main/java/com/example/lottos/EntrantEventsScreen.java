@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lottos.databinding.FragmentEntrantEventsScreenBinding;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -104,6 +106,9 @@ public class EntrantEventsScreen extends Fragment {
     private void joinWaitlist(String eventName, EventItem event, Button button) {
         DocumentReference userRef = db.collection("users").document(userName);
         DocumentReference eventRef = db.collection("open events").document(eventName);
+        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        //String uid = user.getUid();
+
 
         eventRef.get().addOnSuccessListener(eventSnap -> {
             if (!eventSnap.exists()) return;
