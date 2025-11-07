@@ -65,8 +65,11 @@ public class EventDetailsScreen extends Fragment {
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         eventDoc.get().addOnSuccessListener(eventSnapshot -> {
+            List<String> userWaitlist = new ArrayList<>();
+            userWaitlist = (List<String>) eventSnapshot.get("waitList.users");
+
             Boolean isOpen = eventSnapshot.getBoolean("IsOpen");
-            
+
             String organizer = eventSnapshot.getString("organizer");
             String location = eventSnapshot.getString("location");
             String description = eventSnapshot.getString("description");
@@ -76,6 +79,7 @@ public class EventDetailsScreen extends Fragment {
             if (location != null) binding.tvLocation.setText("Location: " + location);
             if (description != null) binding.tvDescription.setText("Description: " + description);
             if (capacity != null) binding.tvCapacity.setText("Capacity: " + capacity);
+            if (capacity != null) binding.tvWLCount.setText("Number of Entrants on WaitList: " + userWaitlist.size());
 
             usersDoc.get().addOnSuccessListener(usersSnapshot -> {
                 Map<String, Object> invitedMap = (Map<String, Object>) usersSnapshot.get("invitedEvents");
@@ -146,7 +150,7 @@ public class EventDetailsScreen extends Fragment {
                 throw new FirebaseFirestoreException("This event is closed.", FirebaseFirestoreException.Code.ABORTED);
             }
 
-            transaction.update(eventDoc, "waitList.users.users", com.google.firebase.firestore.FieldValue.arrayUnion(userName));
+            transaction.update(eventDoc, "waitList.users", com.google.firebase.firestore.FieldValue.arrayUnion(userName));
             transaction.update(usersDoc, "waitListedEvents.events", com.google.firebase.firestore.FieldValue.arrayUnion(eventName));
             return null;
         }).addOnSuccessListener(aVoid -> {
@@ -163,7 +167,7 @@ public class EventDetailsScreen extends Fragment {
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
-            transaction.update(eventDoc, "waitList.users.users", com.google.firebase.firestore.FieldValue.arrayRemove(userName));
+            transaction.update(eventDoc, "waitList.users", com.google.firebase.firestore.FieldValue.arrayRemove(userName));
             transaction.update(usersDoc, "waitListedEvents.events", com.google.firebase.firestore.FieldValue.arrayRemove(eventName));
             return null;
         }).addOnSuccessListener(aVoid -> {
