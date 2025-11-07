@@ -68,8 +68,15 @@ public class EventDetailsScreen extends Fragment {
                 return;
             }
 
-            List<String> userWaitlist = (List<String>) eventSnapshot.get("waitList.users");
-            if (userWaitlist == null) userWaitlist = new ArrayList<>();
+            // ✅ read from nested waitList.entrants.users
+            Map<String, Object> waitListMap = (Map<String, Object>) eventSnapshot.get("waitList");
+            List<String> userWaitlist = new ArrayList<>();
+            if (waitListMap != null) {
+                Map<String, Object> entrantsMap = (Map<String, Object>) waitListMap.get("entrants");
+                if (entrantsMap != null && entrantsMap.get("users") instanceof List) {
+                    userWaitlist = (List<String>) entrantsMap.get("users");
+                }
+            }
 
             List<String> selectedList = (List<String>) eventSnapshot.get("selectedList.users");
             if (selectedList == null) selectedList = new ArrayList<>();
@@ -89,20 +96,18 @@ public class EventDetailsScreen extends Fragment {
             if (capLong != null)
                 binding.tvCapacity.setText("Capacity: " + capLong);
 
-            // Show "Run Lottery" button only if current user is the organizer
+            // ✅ Only organizer sees "Run Lottery"
             if (organizer != null && organizer.equals(userName)) {
                 binding.btnLottery.setVisibility(View.VISIBLE);
-
-                List<String> finalWaitlist = new ArrayList<>(userWaitlist);
                 binding.btnLottery.setOnClickListener(v -> {
                     binding.btnLottery.setEnabled(false);
-                    Toast.makeText(getContext(), "🎲 Lottery started... please wait", Toast.LENGTH_SHORT).show();
-                    runLottery(eventDoc, finalWaitlist);
+                    Toast.makeText(getContext(), "🎲 Lottery started...", Toast.LENGTH_SHORT).show();
+                    runLottery(eventDoc);
                     binding.btnLottery.postDelayed(() -> binding.btnLottery.setEnabled(true), 2000);
                 });
             }
 
-            // Check user status for waitlist/join/etc.
+            // ✅ Entrant logic
             usersDoc.get().addOnSuccessListener(usersSnapshot -> {
                 Map<String, Object> invitedMap = (Map<String, Object>) usersSnapshot.get("invitedEvents");
                 List<String> invitedEvents = invitedMap != null ? (List<String>) invitedMap.get("events") : new ArrayList<>();
@@ -114,14 +119,8 @@ public class EventDetailsScreen extends Fragment {
                 binding.btnBack.setVisibility(View.VISIBLE);
 
                 if (isOpen != null && isOpen) {
-                    if (isAlreadyWaitlisted) {
-                        binding.btnJoin.setText("Leave Waitlist");
-                        binding.btnJoin.setVisibility(View.VISIBLE);
-                    } else {
-                        binding.btnJoin.setText("Join Waitlist");
-                        binding.btnJoin.setVisibility(View.VISIBLE);
-                    }
-
+                    binding.btnJoin.setText(isAlreadyWaitlisted ? "Leave Waitlist" : "Join Waitlist");
+                    binding.btnJoin.setVisibility(View.VISIBLE);
                     binding.btnJoin.setOnClickListener(v -> {
                         if (binding.btnJoin.getText().toString().equals("Join Waitlist")) {
                             joinWaitlist(userName);
@@ -139,70 +138,82 @@ public class EventDetailsScreen extends Fragment {
                         Toast.makeText(getContext(), "Event closed — you were not in the waitlist.", Toast.LENGTH_SHORT).show();
                     }
                 }
-
-            }).addOnFailureListener(e ->
-                    Toast.makeText(getContext(), "Failed to load user info.", Toast.LENGTH_SHORT).show());
+            });
         });
     }
 
-    /** Manual trigger for lottery by organizer */
-    private void runLottery(DocumentReference eventDoc, List<String> waitList) {
-        if (waitList.isEmpty()) {
-            Toast.makeText(getContext(), "No entrants in waitlist to run the lottery.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
+    /** ✅ Runs lottery on waitList.entrants.users */
+    private void runLottery(DocumentReference eventDoc) {
         eventDoc.get().addOnSuccessListener(snapshot -> {
-            if (!snapshot.exists()) return;
+            if (!snapshot.exists()) {
+                Toast.makeText(getContext(), "Event not found.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Map<String, Object> waitListMap = (Map<String, Object>) snapshot.get("waitList");
+            List<String> entrantsList = new ArrayList<>();
+
+            if (waitListMap != null) {
+                Map<String, Object> entrantsMap = (Map<String, Object>) waitListMap.get("entrants");
+                if (entrantsMap != null && entrantsMap.get("users") instanceof List) {
+                    entrantsList = (List<String>) entrantsMap.get("users");
+                }
+            }
+
+            if (entrantsList.isEmpty()) {
+                Toast.makeText(getContext(), "No entrants in waitlist to run the lottery.", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             Long selectionCapLong = snapshot.getLong("selectionCap");
-            int selectionCap = selectionCapLong != null ? selectionCapLong.intValue() : waitList.size();
+            int selectionCap = selectionCapLong != null
+                    ? selectionCapLong.intValue()
+                    : entrantsList.size();
 
             LotterySystem lottery = new LotterySystem(eventName);
-            ArrayList<String> selected = lottery.Selected(new ArrayList<>(waitList));
+            ArrayList<String> selected = lottery.Selected(new ArrayList<>(entrantsList));
 
             if (selected.size() > selectionCap)
                 selected = new ArrayList<>(selected.subList(0, selectionCap));
 
             eventDoc.update("selectedList.users", selected)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(),
-                                "✅ Lottery completed! Selected.",
-                                Toast.LENGTH_LONG).show();
-                    })
+                    .addOnSuccessListener(aVoid -> Toast.makeText(getContext(),
+                            "✅ Lottery completed! Selected ",
+                            Toast.LENGTH_LONG).show())
                     .addOnFailureListener(e ->
                             Log.e("Firestore", "Error updating selectedList", e));
+
+
         });
     }
 
+    /** ✅ Join nested waitList.entrants.users */
     private void joinWaitlist(String userName) {
         DocumentReference eventDoc = db.collection("open events").document(eventName);
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
             Boolean isOpen = transaction.get(eventDoc).getBoolean("IsOpen");
-            if (isOpen == null || !isOpen) {
+            if (isOpen == null || !isOpen)
                 throw new FirebaseFirestoreException("This event is closed.", FirebaseFirestoreException.Code.ABORTED);
-            }
 
-            transaction.update(eventDoc, "waitList.users", FieldValue.arrayUnion(userName));
+            transaction.update(eventDoc, "waitList.entrants.users", FieldValue.arrayUnion(userName));
             transaction.update(usersDoc, "waitListedEvents.events", FieldValue.arrayUnion(eventName));
             return null;
         }).addOnSuccessListener(aVoid -> {
             Toast.makeText(getContext(), "Joined waitlist!", Toast.LENGTH_SHORT).show();
             binding.btnJoin.setText("Leave Waitlist");
-        }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-            Log.e("Firestore", "Join waitlist failed", e);
-        });
+        }).addOnFailureListener(e ->
+                Toast.makeText(getContext(), "Join failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
+    /** ✅ Leave nested waitList.entrants.users */
     private void leaveWaitlist(String userName) {
         DocumentReference eventDoc = db.collection("open events").document(eventName);
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
-            transaction.update(eventDoc, "waitList.users", FieldValue.arrayRemove(userName));
+            transaction.update(eventDoc, "waitList.entrants.users", FieldValue.arrayRemove(userName));
             transaction.update(usersDoc, "waitListedEvents.events", FieldValue.arrayRemove(eventName));
             return null;
         }).addOnSuccessListener(aVoid -> {
