@@ -67,17 +67,15 @@ public class EventDetailsScreen extends Fragment {
                 return;
             }
 
-            // Waitlist
+            // Extract waitlist safely
             List<String> waitlistUsers = new ArrayList<>();
             Map<String, Object> waitListMap = (Map<String, Object>) eventSnapshot.get("waitList");
-            if (waitListMap != null) {
-                Map<String, Object> entrantsMap = (Map<String, Object>) waitListMap.get("entrants");
-                if (entrantsMap != null && entrantsMap.get("users") instanceof List) {
-                    waitlistUsers = (List<String>) entrantsMap.get("users");
-                }
+            if (waitListMap != null && waitListMap.get("users") instanceof List) {
+                waitlistUsers = (List<String>) waitListMap.get("users");
             }
 
             Boolean isOpen = eventSnapshot.getBoolean("IsOpen");
+            Boolean isLottery = eventSnapshot.getBoolean("IsLottery");
             String organizer = eventSnapshot.getString("organizer");
             String location = eventSnapshot.getString("location");
             String description = eventSnapshot.getString("description");
@@ -88,24 +86,26 @@ public class EventDetailsScreen extends Fragment {
             if (description != null) binding.tvDescription.setText("Description: " + description);
             if (capLong != null) binding.tvCapacity.setText("Capacity: " + capLong);
 
-            // Organizer view: show "Run Lottery"
+            // Organizer view: show "Run Lottery" only if not already run
             if (organizer != null && organizer.equals(userName)) {
-                binding.btnLottery.setVisibility(View.VISIBLE);
-                List<String> finalWaitlist = new ArrayList<>(waitlistUsers);
-                binding.btnLottery.setOnClickListener(v -> {
-                    binding.btnLottery.setEnabled(false);
-                    Toast.makeText(getContext(), "🎲 Lottery started...", Toast.LENGTH_SHORT).show();
-                    runLottery(eventDoc, finalWaitlist);
-                    binding.btnLottery.postDelayed(() -> binding.btnLottery.setEnabled(true), 1500);
-                });
-            }
+                    // Show the button if lottery not yet done
+                    binding.btnLottery.setVisibility(View.VISIBLE);
+                    List<String> finalWaitlist = new ArrayList<>(waitlistUsers);
+                    binding.btnLottery.setOnClickListener(v -> {
+                        binding.btnLottery.setEnabled(false);
+                        //Toast.makeText(getContext(), "Lottery started...", Toast.LENGTH_SHORT).show();
+                        runLottery(eventDoc, finalWaitlist);
+                        binding.btnLottery.postDelayed(() -> binding.btnLottery.setEnabled(true), 1500);
+                    });
+                }
 
-            // Entrant view: join/leave or accept/decline
+
+            // Entrant-side logic
             usersDoc.get().addOnSuccessListener(userSnapshot -> {
-                Map<String, Object> invitedMap =
-                        (Map<String, Object>) userSnapshot.get("invitedEvents");
-                List<String> invitedEvents = invitedMap != null
-                        ? (List<String>) invitedMap.get("events")
+                Map<String, Object> selectedMap =
+                        (Map<String, Object>) userSnapshot.get("selectedEvents");
+                List<String> selectedEvents = selectedMap != null
+                        ? (List<String>) selectedMap.get("events")
                         : new ArrayList<>();
 
                 Map<String, Object> waitlistedMap =
@@ -115,7 +115,7 @@ public class EventDetailsScreen extends Fragment {
                         : new ArrayList<>();
 
                 boolean isAlreadyWaitlisted = waitListedEvents.contains(eventName);
-                boolean isInvited = invitedEvents.contains(eventName);
+                boolean isselected = selectedEvents.contains(eventName);
 
                 binding.btnBack.setVisibility(View.VISIBLE);
 
@@ -130,15 +130,14 @@ public class EventDetailsScreen extends Fragment {
                         }
                     });
                 } else {
-                    if (isInvited) {
+                    if (isselected) {
                         binding.btnAccept.setVisibility(View.VISIBLE);
                         binding.btnDecline.setVisibility(View.VISIBLE);
-
                         binding.btnAccept.setOnClickListener(v -> acceptInvite(userName));
                         binding.btnDecline.setOnClickListener(v -> declineInvite(userName));
                     } else if (waitListedEvents.contains(eventName)) {
                         Toast.makeText(getContext(),
-                                "Event closed — you were not selected.",
+                                "Event closed",
                                 Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -154,16 +153,33 @@ public class EventDetailsScreen extends Fragment {
     }
 
     private void runLottery(DocumentReference eventDoc, List<String> entrantsList) {
-        if (entrantsList == null || entrantsList.isEmpty()) {
-            Toast.makeText(getContext(),
-                    "No entrants in waitlist to run the lottery.",
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         eventDoc.get().addOnSuccessListener(snapshot -> {
             if (!snapshot.exists()) {
                 Toast.makeText(getContext(), "Event not found.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Boolean isLottery = snapshot.getBoolean("IsLottery");
+            if (Boolean.TRUE.equals(isLottery)) {
+                Toast.makeText(getContext(),
+                        "Lottery already completed for this event. Cannot run again.",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            Boolean isOpen = snapshot.getBoolean("IsOpen");
+            if (Boolean.TRUE.equals(isOpen)) {
+                Toast.makeText(getContext(),
+                        "This event is still open. Cannot run the lottery yet.",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            if (entrantsList == null || entrantsList.isEmpty()) {
+                Toast.makeText(getContext(),
+                        "No entrants in waitlist to run the lottery.",
+                        Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -173,8 +189,7 @@ public class EventDetailsScreen extends Fragment {
                     : entrantsList.size();
 
             LotterySystem lottery = new LotterySystem(eventName);
-            ArrayList<String> selected =
-                    lottery.Selected(new ArrayList<>(entrantsList));
+            ArrayList<String> selected = lottery.Selected(new ArrayList<>(entrantsList));
 
             if (selected.size() > selectionCap) {
                 selected = new ArrayList<>(selected.subList(0, selectionCap));
@@ -190,33 +205,48 @@ public class EventDetailsScreen extends Fragment {
             final List<String> finalSelected = new ArrayList<>(selected);
             FirebaseFirestore dbRef = FirebaseFirestore.getInstance();
 
-            eventDoc.update("selectedList.users", finalSelected)
-                    .addOnSuccessListener(aVoid -> {
-                        for (String user : finalSelected) {
-                            eventDoc.update("waitList.entrants.users",
-                                    FieldValue.arrayRemove(user));
-                        }
-                        eventDoc.update("IsOpen", false);
+            // Compute notSelected users
+            List<String> notSelectedUsers = new ArrayList<>(entrantsList);
+            notSelectedUsers.removeAll(finalSelected);
 
-                        for (String user : finalSelected) {
-                            dbRef.collection("users").document(user)
-                                    .update("invitedEvents.events",
-                                            FieldValue.arrayUnion(eventName))
-                                    .addOnFailureListener(e ->
-                                            Log.e("Firestore",
-                                                    "Error inviting user: " + user, e));
-                        }
+            // ✅ Transaction for atomic updates
+            dbRef.runTransaction(transaction -> {
+                // Update selected & notSelected lists
+                transaction.update(eventDoc, "selectedList.users", finalSelected);
+                transaction.update(eventDoc, "notSelectedList.users", notSelectedUsers);
 
-                        Toast.makeText(getContext(),
-                                "✅ Lottery completed! Users selected.",
-                                Toast.LENGTH_LONG).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("Firestore", "Error updating selectedList", e);
-                        Toast.makeText(getContext(),
-                                "Failed to update selected users.",
-                                Toast.LENGTH_SHORT).show();
-                    });
+                // ✅ Remove both groups from waitList (so it's empty after draw)
+                for (String user : entrantsList) {
+                    transaction.update(eventDoc, "waitList.users", FieldValue.arrayRemove(user));
+                }
+
+                // Mark event closed and lottery complete
+                transaction.update(eventDoc, "IsOpen", false);
+                transaction.update(eventDoc, "IsLottery", true);
+
+                // Update each user's personal data
+                for (String user : finalSelected) {
+                    DocumentReference userDoc = dbRef.collection("users").document(user);
+                    transaction.update(userDoc, "selectedEvents.events", FieldValue.arrayUnion(eventName));
+                }
+                for (String user : notSelectedUsers) {
+                    DocumentReference userDoc = dbRef.collection("users").document(user);
+                    transaction.update(userDoc, "notSelectedEvents.events", FieldValue.arrayUnion(eventName));
+                }
+
+                return null;
+            }).addOnSuccessListener(aVoid -> {
+                Toast.makeText(getContext(),
+                        "✅ Lottery completed!\n" +
+                                finalSelected.size() + " selected, " +
+                                notSelectedUsers.size() + " not selected.",
+                        Toast.LENGTH_LONG).show();
+            }).addOnFailureListener(e -> {
+                Log.e("Firestore", "Error running lottery transaction", e);
+                Toast.makeText(getContext(),
+                        "Failed to complete lottery: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            });
 
         }).addOnFailureListener(e -> {
             Log.e("Firestore", "Error fetching event for lottery", e);
@@ -225,6 +255,8 @@ public class EventDetailsScreen extends Fragment {
                     Toast.LENGTH_SHORT).show();
         });
     }
+
+
 
     /** ACCEPT INVITE */
     private void acceptInvite(String userName) {
@@ -237,7 +269,7 @@ public class EventDetailsScreen extends Fragment {
                     FieldValue.arrayUnion(userName));
 
             transaction.update(userDoc,
-                    "invitedEvents.events",
+                    "selectedEvents.events",
                     FieldValue.arrayRemove(eventName));
 
             transaction.update(userDoc,
@@ -265,7 +297,7 @@ public class EventDetailsScreen extends Fragment {
                     FieldValue.arrayUnion(userName));
 
             transaction.update(userDoc,
-                    "invitedEvents.events",
+                    "selectedEvents.events",
                     FieldValue.arrayRemove(eventName));
 
             transaction.update(userDoc,
@@ -296,12 +328,8 @@ public class EventDetailsScreen extends Fragment {
                 );
             }
 
-            transaction.update(eventDoc,
-                    "waitList.entrants.users",
-                    FieldValue.arrayUnion(userName));
-            transaction.update(usersDoc,
-                    "waitListedEvents.events",
-                    FieldValue.arrayUnion(eventName));
+            transaction.update(eventDoc, "waitList.users", FieldValue.arrayUnion(userName));
+            transaction.update(usersDoc, "waitListedEvents.events", FieldValue.arrayUnion(eventName));
             return null;
         }).addOnSuccessListener(aVoid -> {
             Toast.makeText(getContext(),
@@ -323,7 +351,7 @@ public class EventDetailsScreen extends Fragment {
 
         db.runTransaction(transaction -> {
             transaction.update(eventDoc,
-                    "waitList.entrants.users",
+                    "waitList.users",
                     FieldValue.arrayRemove(userName));
             transaction.update(usersDoc,
                     "waitListedEvents.events",

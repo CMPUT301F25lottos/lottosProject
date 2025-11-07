@@ -4,8 +4,8 @@ public class Entrant extends User{
     private String userName;
     private UserInfo userInfo;
     private EventList waitListedEvents;
-    private EventList invitedEvents;
-    private EventList uninvitedEvents;
+    private EventList selectedEvents;
+    private EventList notSelectedEvents;
     private EventList declinedEvents;
     private EventList enrolledEvents;
 
@@ -27,19 +27,19 @@ public class Entrant extends User{
     }
 
     /**
-     * Getter method for invited events list
-     * @return The EventList object for invited events
+     * Getter method for selected events list
+     * @return The EventList object for selected events
      */
-    public EventList getInvitedEvents() {
-        return invitedEvents;
+    public EventList getselectedEvents() {
+        return selectedEvents;
     }
 
     /**
-     * Getter method for uninvited events list
-     * @return The EventList object for uninvited events
+     * Getter method for notSelected events list
+     * @return The EventList object for notSelected events
      */
-    public EventList getUninvitedEvents() {
-        return uninvitedEvents;
+    public EventList getnotSelectedEvents() {
+        return notSelectedEvents;
     }
 
     /**
@@ -67,19 +67,19 @@ public class Entrant extends User{
     }
 
     /**
-     * Setter method for invited events list
-     * @param invitedEvents The new EventList to be set
+     * Setter method for selected events list
+     * @param selectedEvents The new EventList to be set
      */
-    public void setInvitedEvents(EventList invitedEvents) {
-        this.invitedEvents = invitedEvents;
+    public void setselectedEvents(EventList selectedEvents) {
+        this.selectedEvents = selectedEvents;
     }
 
     /**
-     * Setter method for uninvited events
-     * @param uninvitedEvents The new EventList to be set
+     * Setter method for notSelected events
+     * @param notSelectedEvents The new EventList to be set
      */
-    public void setUninvitedEvents(EventList uninvitedEvents) {
-        this.uninvitedEvents = uninvitedEvents;
+    public void setnotSelectedEvents(EventList notSelectedEvents) {
+        this.notSelectedEvents = notSelectedEvents;
     }
 
     /**

@@ -83,18 +83,18 @@ public class NotificationScreen extends Fragment {
 
                     receivedNotifications.clear();
 
-                    Map<String, Object> invitedMap = (Map<String, Object>) documentSnapshot.get("invitedEvents");
-                    if (invitedMap != null && invitedMap.containsKey("events")) {
-                        List<String> invitedList = (List<String>) invitedMap.get("events");
-                        for (String event : invitedList) {
+                    Map<String, Object> selectedMap = (Map<String, Object>) documentSnapshot.get("selectedEvents");
+                    if (selectedMap != null && selectedMap.containsKey("events")) {
+                        List<String> selectedList = (List<String>) selectedMap.get("events");
+                        for (String event : selectedList) {
                             receivedNotifications.add("🎉 Congrats! You're selected for " + event);
                         }
                     }
 
-                    Map<String, Object> uninvitedMap = (Map<String, Object>) documentSnapshot.get("uninvitedEvents");
-                    if (uninvitedMap != null && uninvitedMap.containsKey("events")) {
-                        List<String> uninvitedList = (List<String>) uninvitedMap.get("events");
-                        for (String event : uninvitedList) {
+                    Map<String, Object> unselectedMap = (Map<String, Object>) documentSnapshot.get("notSelectedEvents");
+                    if (unselectedMap != null && unselectedMap.containsKey("events")) {
+                        List<String> unselectedList = (List<String>) unselectedMap.get("events");
+                        for (String event : unselectedList) {
                             receivedNotifications.add("😢 Sorry! You're not selected for " + event);
                         }
                     }
@@ -106,7 +106,7 @@ public class NotificationScreen extends Fragment {
                     receivedAdapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e ->
-                        Log.e("Firestore", "Error loading invited/uninvited", e));
+                        Log.e("Firestore", "Error loading selected/unselected", e));
     }
 
     /** pulls stored notifications where user is sender OR receiver */

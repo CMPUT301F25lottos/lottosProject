@@ -8,8 +8,8 @@ public class User {
     private EventList openEvents;
     private EventList closedEvents;
     private EventList waitListedEvents;
-    private EventList invitedEvents;
-    private EventList uninvitedEvents;
+    private EventList selectedEvents;
+    private EventList notSelectedEvents;
     private EventList declinedEvents;
     private EventList enrolledEvents;
 
@@ -31,8 +31,8 @@ public class User {
         this.openEvents = new EventList();
         this.closedEvents = new EventList();
         this.waitListedEvents = new EventList();
-        this.invitedEvents = new EventList();
-        this.uninvitedEvents = new EventList();
+        this.selectedEvents = new EventList();
+        this.notSelectedEvents = new EventList();
         this.declinedEvents = new EventList();
         this.enrolledEvents = new EventList();
     }
@@ -53,11 +53,11 @@ public class User {
     public EventList getWaitListedEvents() { return waitListedEvents; }
     public void setWaitListedEvents(EventList waitListedEvents) { this.waitListedEvents = waitListedEvents; }
 
-    public EventList getInvitedEvents() { return invitedEvents; }
-    public void setInvitedEvents(EventList invitedEvents) { this.invitedEvents = invitedEvents; }
+    public EventList getselectedEvents() { return selectedEvents; }
+    public void setselectedEvents(EventList selectedEvents) { this.selectedEvents = selectedEvents; }
 
-    public EventList getUninvitedEvents() { return uninvitedEvents; }
-    public void setUninvitedEvents(EventList uninvitedEvents) { this.uninvitedEvents = uninvitedEvents; }
+    public EventList getnotSelectedEvents() { return notSelectedEvents; }
+    public void setnotSelectedEvents(EventList notSelectedEvents) { this.notSelectedEvents = notSelectedEvents; }
 
     public EventList getDeclinedEvents() { return declinedEvents; }
     public void setDeclinedEvents(EventList declinedEvents) { this.declinedEvents = declinedEvents; }
