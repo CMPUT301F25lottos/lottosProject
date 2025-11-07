@@ -68,7 +68,7 @@ public class EventDetailsScreen extends Fragment {
                 return;
             }
 
-            // ✅ read from nested waitList.entrants.users
+            // read from nested waitList.entrants.users
             Map<String, Object> waitListMap = (Map<String, Object>) eventSnapshot.get("waitList");
             List<String> userWaitlist = new ArrayList<>();
             if (waitListMap != null) {
@@ -96,7 +96,7 @@ public class EventDetailsScreen extends Fragment {
             if (capLong != null)
                 binding.tvCapacity.setText("Capacity: " + capLong);
 
-            // ✅ Only organizer sees "Run Lottery"
+            // Only organizer sees "Run Lottery"
             if (organizer != null && organizer.equals(userName)) {
                 binding.btnLottery.setVisibility(View.VISIBLE);
                 binding.btnLottery.setOnClickListener(v -> {
@@ -107,7 +107,7 @@ public class EventDetailsScreen extends Fragment {
                 });
             }
 
-            // ✅ Entrant logic
+            // Entrant logic
             usersDoc.get().addOnSuccessListener(usersSnapshot -> {
                 Map<String, Object> invitedMap = (Map<String, Object>) usersSnapshot.get("invitedEvents");
                 List<String> invitedEvents = invitedMap != null ? (List<String>) invitedMap.get("events") : new ArrayList<>();
@@ -142,7 +142,7 @@ public class EventDetailsScreen extends Fragment {
         });
     }
 
-    /** ✅ Runs lottery on waitList.entrants.users */
+    /** Runs lottery on waitList.entrants.users */
     private void runLottery(DocumentReference eventDoc) {
         eventDoc.get().addOnSuccessListener(snapshot -> {
             if (!snapshot.exists()) {
@@ -150,6 +150,7 @@ public class EventDetailsScreen extends Fragment {
                 return;
             }
 
+            // Extract nested waitList.entrants.users
             Map<String, Object> waitListMap = (Map<String, Object>) snapshot.get("waitList");
             List<String> entrantsList = new ArrayList<>();
 
@@ -161,33 +162,66 @@ public class EventDetailsScreen extends Fragment {
             }
 
             if (entrantsList.isEmpty()) {
-                Toast.makeText(getContext(), "No entrants in waitlist to run the lottery.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(),
+                        "No entrants in waitlist to run the lottery.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
+            // Get selection cap
             Long selectionCapLong = snapshot.getLong("selectionCap");
             int selectionCap = selectionCapLong != null
                     ? selectionCapLong.intValue()
                     : entrantsList.size();
 
+            // Run the random selection
             LotterySystem lottery = new LotterySystem(eventName);
             ArrayList<String> selected = lottery.Selected(new ArrayList<>(entrantsList));
 
             if (selected.size() > selectionCap)
                 selected = new ArrayList<>(selected.subList(0, selectionCap));
 
+            // Update selectedList.users in the event doc
+            List<String> finalEntrantsList = entrantsList;
+            ArrayList<String> finalSelected = selected;
             eventDoc.update("selectedList.users", selected)
-                    .addOnSuccessListener(aVoid -> Toast.makeText(getContext(),
-                            "✅ Lottery completed! Selected ",
-                            Toast.LENGTH_LONG).show())
-                    .addOnFailureListener(e ->
-                            Log.e("Firestore", "Error updating selectedList", e));
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(getContext(),
+                                "Lottery completed!",
+                                Toast.LENGTH_LONG).show();
 
+                        // For each entrant, update their user record
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        });
+                        for (String entrant : finalEntrantsList) {
+                            DocumentReference userDoc = db.collection("users").document(entrant);
+
+                            if (finalSelected.contains(entrant)) {
+                                // Selected: add to invitedEvents
+                                userDoc.update("invitedEvents.events", FieldValue.arrayUnion(eventName))
+                                        .addOnSuccessListener(v -> Log.d("Lottery", entrant + " invited"))
+                                        .addOnFailureListener(e -> Log.e("Lottery", "Failed to update invited for " + entrant, e));
+                            } else {
+                                // Not selected: add to uninvitedEvents
+                                userDoc.update("uninvitedEvents.events", FieldValue.arrayUnion(eventName))
+                                        .addOnSuccessListener(v -> Log.d("Lottery", entrant + " not selected"))
+                                        .addOnFailureListener(e -> Log.e("Lottery", "Failed to update uninvited for " + entrant, e));
+                            }
+                        }
+
+                        // Clear the waitlist after lottery
+                        eventDoc.update("waitList.entrants.users", new ArrayList<>())
+                                .addOnSuccessListener(v -> Log.d("Lottery", "Waitlist cleared"))
+                                .addOnFailureListener(e -> Log.e("Lottery", "Failed to clear waitlist", e));
+
+                    })
+                    .addOnFailureListener(e -> Log.e("Firestore", "Error updating selectedList", e));
+
+        }).addOnFailureListener(e ->
+                Toast.makeText(getContext(), "Failed to read event data.", Toast.LENGTH_SHORT).show());
     }
 
-    /** ✅ Join nested waitList.entrants.users */
+
+    /** Join nested waitList.entrants.users */
     private void joinWaitlist(String userName) {
         DocumentReference eventDoc = db.collection("open events").document(eventName);
         DocumentReference usersDoc = db.collection("users").document(userName);
@@ -207,7 +241,7 @@ public class EventDetailsScreen extends Fragment {
                 Toast.makeText(getContext(), "Join failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    /** ✅ Leave nested waitList.entrants.users */
+    /** Leave nested waitList.entrants.users */
     private void leaveWaitlist(String userName) {
         DocumentReference eventDoc = db.collection("open events").document(eventName);
         DocumentReference usersDoc = db.collection("users").document(userName);
@@ -221,6 +255,52 @@ public class EventDetailsScreen extends Fragment {
             binding.btnJoin.setText("Join Waitlist");
         }).addOnFailureListener(e ->
                 Toast.makeText(getContext(), "Failed to leave waitlist.", Toast.LENGTH_SHORT).show());
+    }
+
+    /** Accept invite */
+    private void acceptEventInvite(String userName) {
+        DocumentReference eventDoc = db.collection("openEvents").document(eventName);
+        DocumentReference usersDoc = db.collection("users").document(userName);
+
+        db.runTransaction(transaction -> {
+            Boolean isOpen = transaction.get(eventDoc).getBoolean("IsOpen");
+            if (isOpen == null || isOpen)
+                throw new FirebaseFirestoreException("This event is still open.", FirebaseFirestoreException.Code.ABORTED);
+
+            transaction.update(eventDoc, "enrolledList.users", FieldValue.arrayUnion(userName));
+            transaction.update(eventDoc, "cancelledList.users", FieldValue.arrayRemove(userName));
+            transaction.update(usersDoc, "invitedEvents.events", FieldValue.arrayRemove(eventName));
+            transaction.update(usersDoc, "enrolledEvents.events", FieldValue.arrayUnion(eventName));
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            Toast.makeText(getContext(), "Invite accepted!", Toast.LENGTH_SHORT).show();
+            hideAllButtons();
+            binding.btnBack.setVisibility(View.VISIBLE);
+        }).addOnFailureListener(e ->
+                Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    /** Decline invite */
+    private void declineEventInvite(String userName) {
+        DocumentReference eventDoc = db.collection("openEvents").document(eventName);
+        DocumentReference usersDoc = db.collection("users").document(userName);
+
+        db.runTransaction(transaction -> {
+            Boolean isOpen = transaction.get(eventDoc).getBoolean("IsOpen");
+            if (isOpen == null || isOpen)
+                throw new FirebaseFirestoreException("This event is still open.", FirebaseFirestoreException.Code.ABORTED);
+
+            transaction.update(eventDoc, "cancelledList.users", FieldValue.arrayUnion(userName));
+            transaction.update(eventDoc, "enrolledList.users", FieldValue.arrayRemove(userName));
+            transaction.update(usersDoc, "invitedEvents.events", FieldValue.arrayRemove(eventName));
+            transaction.update(usersDoc, "declinedEvents.events", FieldValue.arrayUnion(eventName));
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            Toast.makeText(getContext(), "Invite declined.", Toast.LENGTH_SHORT).show();
+            hideAllButtons();
+            binding.btnBack.setVisibility(View.VISIBLE);
+        }).addOnFailureListener(e ->
+                Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void hideAllButtons() {
