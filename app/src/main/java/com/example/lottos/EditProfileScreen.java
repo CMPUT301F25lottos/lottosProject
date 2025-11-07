@@ -46,7 +46,7 @@ public class EditProfileScreen extends Fragment {
     }
 
     private void loadUserInfo() {
-        DocumentReference usersDoc = db.collection("userss").document(userName);
+        DocumentReference usersDoc = db.collection("users").document(userName);
         usersDoc.get().addOnSuccessListener(snapshot -> {
             if (snapshot.exists()) {
                 Map<String, Object> userInfo = (Map<String, Object>) snapshot.get("userInfo");
@@ -71,7 +71,7 @@ public class EditProfileScreen extends Fragment {
             return;
         }
 
-        DocumentReference usersDoc = db.collection("userss").document(userName);
+        DocumentReference usersDoc = db.collection("users").document(userName);
         usersDoc.update(
                 "userInfo.name", name,
                 "userInfo.email", email,

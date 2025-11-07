@@ -73,7 +73,6 @@ public class ProfileScreen extends Fragment {
                     String email = (String) userInfo.get("email");
                     String phone = (String) userInfo.get("phoneNumber");
 
-                    binding.tvAccountType.setText("Account Type: users");
                     binding.tvUsername.setText("Username: " + userName);
                     binding.tvName.setText("Name: " + name);
                     binding.tvEmail.setText("Email: " + (email != null ? email : "N/A"));
@@ -101,7 +100,6 @@ public class ProfileScreen extends Fragment {
                     String email = (String) userInfo.get("email");
                     String phone = (String) userInfo.get("phoneNumber");
 
-                    binding.tvAccountType.setText("Account Type: users");
                     binding.tvUsername.setText("Username: " + userName);
                     binding.tvName.setText("Name: " + name);
                     binding.tvEmail.setText("Email: " + (email != null ? email : "N/A"));

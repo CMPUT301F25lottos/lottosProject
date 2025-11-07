@@ -208,6 +208,7 @@
             android:name="userName"
             app:argType="java.lang.String"/>
 
+
         <action
             android:id="@+id/action_OrganizerEventsScreen_to_HomeScreen"
             app:destination="@+id/HomeScreen"/>
@@ -219,6 +220,27 @@
         <action
             android:id="@+id/action_OrganizerEventsScreen_to_CreateEventScreen"
             app:destination="@+id/CreateEventScreen"/>
+
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_EditEventScreen"
+            app:destination="@+id/EditEventScreen"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/EditEventScreen"
+        android:name="com.example.lottos.EditEventScreen"
+        android:label="Edit Event">
+        <argument
+            android:name="userName"
+            app:argType="string" />
+        <argument
+            android:name="eventName"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_EditEventScreen_to_OrganizerEventsScreen"
+            app:destination="@+id/EditEventScreen"/>
 
     </fragment>
 
