@@ -108,7 +108,7 @@ public class EntrantEventsScreen extends Fragment {
         DocumentReference userRef = db.collection("users").document(userName);
         DocumentReference eventRef = db.collection("open events").document(eventName);
 
-        userRef.get().addOnSuccessListener(snapshot -> {
+        eventRef.get().addOnSuccessListener(snapshot -> {
             if (!snapshot.exists()) return;
 
             List<String> userWaitlist = (List<String>) snapshot.get("waitListedEvents.events");

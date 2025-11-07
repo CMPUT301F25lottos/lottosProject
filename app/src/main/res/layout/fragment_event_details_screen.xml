@@ -57,7 +57,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Capacity:" />
-            <TextView android:id="@+id/tvWLCount" android:text="Entrants on WaitList:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <TextView android:id="@+id/tvWLCount" android:text="Number of Entrants on WaitList:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             <TextView android:id="@+id/tvWLSize" android:text="WaitList Capacity:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             <TextView android:id="@+id/tvWLCloseDateTime" android:text="WaitList Closes/Closed:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 
