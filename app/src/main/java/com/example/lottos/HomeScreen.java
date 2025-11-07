@@ -94,7 +94,7 @@ public class HomeScreen extends Fragment {
      * based on whether their waitlist close date/time has passed.
      */
     private void updateEventOpenStatus() {
-        CollectionReference eventsRef = db.collection("openEvents");
+        CollectionReference eventsRef = db.collection("open events");
 
         eventsRef.get().addOnSuccessListener(querySnapshot -> {
             if (querySnapshot.isEmpty()) {
