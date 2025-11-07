@@ -33,7 +33,6 @@ public class EventDetailsScreen extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentEventDetailsScreenBinding.inflate(inflater, container, false);
-
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
@@ -68,18 +67,15 @@ public class EventDetailsScreen extends Fragment {
                 return;
             }
 
-            // read from nested waitList.entrants.users
+            // Waitlist
+            List<String> waitlistUsers = new ArrayList<>();
             Map<String, Object> waitListMap = (Map<String, Object>) eventSnapshot.get("waitList");
-            List<String> userWaitlist = new ArrayList<>();
             if (waitListMap != null) {
                 Map<String, Object> entrantsMap = (Map<String, Object>) waitListMap.get("entrants");
                 if (entrantsMap != null && entrantsMap.get("users") instanceof List) {
-                    userWaitlist = (List<String>) entrantsMap.get("users");
+                    waitlistUsers = (List<String>) entrantsMap.get("users");
                 }
             }
-
-            List<String> selectedList = (List<String>) eventSnapshot.get("selectedList.users");
-            if (selectedList == null) selectedList = new ArrayList<>();
 
             Boolean isOpen = eventSnapshot.getBoolean("IsOpen");
             String organizer = eventSnapshot.getString("organizer");
@@ -87,220 +83,263 @@ public class EventDetailsScreen extends Fragment {
             String description = eventSnapshot.getString("description");
             Long capLong = eventSnapshot.getLong("selectionCap");
 
-            if (organizer != null)
-                binding.tvOrganizer.setText("Organizer: " + organizer);
-            if (location != null)
-                binding.tvLocation.setText("Location: " + location);
-            if (description != null)
-                binding.tvDescription.setText("Description: " + description);
-            if (capLong != null)
-                binding.tvCapacity.setText("Capacity: " + capLong);
+            if (organizer != null) binding.tvOrganizer.setText("Organizer: " + organizer);
+            if (location != null) binding.tvLocation.setText("Location: " + location);
+            if (description != null) binding.tvDescription.setText("Description: " + description);
+            if (capLong != null) binding.tvCapacity.setText("Capacity: " + capLong);
 
-            // Only organizer sees "Run Lottery"
+            // Organizer view: show "Run Lottery"
             if (organizer != null && organizer.equals(userName)) {
                 binding.btnLottery.setVisibility(View.VISIBLE);
+                List<String> finalWaitlist = new ArrayList<>(waitlistUsers);
                 binding.btnLottery.setOnClickListener(v -> {
                     binding.btnLottery.setEnabled(false);
                     Toast.makeText(getContext(), "🎲 Lottery started...", Toast.LENGTH_SHORT).show();
-                    runLottery(eventDoc);
-                    binding.btnLottery.postDelayed(() -> binding.btnLottery.setEnabled(true), 2000);
+                    runLottery(eventDoc, finalWaitlist);
+                    binding.btnLottery.postDelayed(() -> binding.btnLottery.setEnabled(true), 1500);
                 });
             }
 
-            // Entrant logic
-            usersDoc.get().addOnSuccessListener(usersSnapshot -> {
-                Map<String, Object> invitedMap = (Map<String, Object>) usersSnapshot.get("invitedEvents");
-                List<String> invitedEvents = invitedMap != null ? (List<String>) invitedMap.get("events") : new ArrayList<>();
+            // Entrant view: join/leave or accept/decline
+            usersDoc.get().addOnSuccessListener(userSnapshot -> {
+                Map<String, Object> invitedMap =
+                        (Map<String, Object>) userSnapshot.get("invitedEvents");
+                List<String> invitedEvents = invitedMap != null
+                        ? (List<String>) invitedMap.get("events")
+                        : new ArrayList<>();
 
-                Map<String, Object> waitlistedMap = (Map<String, Object>) usersSnapshot.get("waitListedEvents");
-                List<String> waitListedEvents = waitlistedMap != null ? (List<String>) waitlistedMap.get("events") : new ArrayList<>();
+                Map<String, Object> waitlistedMap =
+                        (Map<String, Object>) userSnapshot.get("waitListedEvents");
+                List<String> waitListedEvents = waitlistedMap != null
+                        ? (List<String>) waitlistedMap.get("events")
+                        : new ArrayList<>();
 
                 boolean isAlreadyWaitlisted = waitListedEvents.contains(eventName);
+                boolean isInvited = invitedEvents.contains(eventName);
+
                 binding.btnBack.setVisibility(View.VISIBLE);
 
                 if (isOpen != null && isOpen) {
-                    binding.btnJoin.setText(isAlreadyWaitlisted ? "Leave Waitlist" : "Join Waitlist");
                     binding.btnJoin.setVisibility(View.VISIBLE);
+                    binding.btnJoin.setText(isAlreadyWaitlisted ? "Leave Waitlist" : "Join Waitlist");
                     binding.btnJoin.setOnClickListener(v -> {
-                        if (binding.btnJoin.getText().toString().equals("Join Waitlist")) {
+                        if ("Join Waitlist".contentEquals(binding.btnJoin.getText())) {
                             joinWaitlist(userName);
                         } else {
                             leaveWaitlist(userName);
                         }
                     });
                 } else {
-                    if (invitedEvents.contains(eventName)) {
+                    if (isInvited) {
                         binding.btnAccept.setVisibility(View.VISIBLE);
                         binding.btnDecline.setVisibility(View.VISIBLE);
+
+                        binding.btnAccept.setOnClickListener(v -> acceptInvite(userName));
+                        binding.btnDecline.setOnClickListener(v -> declineInvite(userName));
                     } else if (waitListedEvents.contains(eventName)) {
-                        Toast.makeText(getContext(), "Event closed — not selected.", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(getContext(), "Event closed — you were not in the waitlist.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(),
+                                "Event closed — you were not selected.",
+                                Toast.LENGTH_SHORT).show();
                     }
                 }
-            });
+            }).addOnFailureListener(e ->
+                    Toast.makeText(getContext(),
+                            "Failed to load user info.",
+                            Toast.LENGTH_SHORT).show());
+
+        }).addOnFailureListener(e -> {
+            Log.e("Firestore", "Failed to load event details", e);
+            Toast.makeText(getContext(), "Error loading event.", Toast.LENGTH_SHORT).show();
         });
     }
 
-    /** Runs lottery on waitList.entrants.users */
-    private void runLottery(DocumentReference eventDoc) {
+    private void runLottery(DocumentReference eventDoc, List<String> entrantsList) {
+        if (entrantsList == null || entrantsList.isEmpty()) {
+            Toast.makeText(getContext(),
+                    "No entrants in waitlist to run the lottery.",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         eventDoc.get().addOnSuccessListener(snapshot -> {
             if (!snapshot.exists()) {
                 Toast.makeText(getContext(), "Event not found.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Extract nested waitList.entrants.users
-            Map<String, Object> waitListMap = (Map<String, Object>) snapshot.get("waitList");
-            List<String> entrantsList = new ArrayList<>();
-
-            if (waitListMap != null) {
-                Map<String, Object> entrantsMap = (Map<String, Object>) waitListMap.get("entrants");
-                if (entrantsMap != null && entrantsMap.get("users") instanceof List) {
-                    entrantsList = (List<String>) entrantsMap.get("users");
-                }
-            }
-
-            if (entrantsList.isEmpty()) {
-                Toast.makeText(getContext(),
-                        "No entrants in waitlist to run the lottery.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // Get selection cap
             Long selectionCapLong = snapshot.getLong("selectionCap");
-            int selectionCap = selectionCapLong != null
+            int selectionCap = (selectionCapLong != null)
                     ? selectionCapLong.intValue()
                     : entrantsList.size();
 
-            // Run the random selection
             LotterySystem lottery = new LotterySystem(eventName);
-            ArrayList<String> selected = lottery.Selected(new ArrayList<>(entrantsList));
+            ArrayList<String> selected =
+                    lottery.Selected(new ArrayList<>(entrantsList));
 
-            if (selected.size() > selectionCap)
+            if (selected.size() > selectionCap) {
                 selected = new ArrayList<>(selected.subList(0, selectionCap));
+            }
 
-            // Update selectedList.users in the event doc
-            List<String> finalEntrantsList = entrantsList;
-            ArrayList<String> finalSelected = selected;
-            eventDoc.update("selectedList.users", selected)
+            if (selected.isEmpty()) {
+                Toast.makeText(getContext(),
+                        "No users selected by lottery.",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            final List<String> finalSelected = new ArrayList<>(selected);
+            FirebaseFirestore dbRef = FirebaseFirestore.getInstance();
+
+            eventDoc.update("selectedList.users", finalSelected)
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(),
-                                "Lottery completed!",
-                                Toast.LENGTH_LONG).show();
+                        for (String user : finalSelected) {
+                            eventDoc.update("waitList.entrants.users",
+                                    FieldValue.arrayRemove(user));
+                        }
+                        eventDoc.update("IsOpen", false);
 
-                        // For each entrant, update their user record
-                        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-                        for (String entrant : finalEntrantsList) {
-                            DocumentReference userDoc = db.collection("users").document(entrant);
-
-                            if (finalSelected.contains(entrant)) {
-                                // Selected: add to invitedEvents
-                                userDoc.update("invitedEvents.events", FieldValue.arrayUnion(eventName))
-                                        .addOnSuccessListener(v -> Log.d("Lottery", entrant + " invited"))
-                                        .addOnFailureListener(e -> Log.e("Lottery", "Failed to update invited for " + entrant, e));
-                            } else {
-                                // Not selected: add to uninvitedEvents
-                                userDoc.update("uninvitedEvents.events", FieldValue.arrayUnion(eventName))
-                                        .addOnSuccessListener(v -> Log.d("Lottery", entrant + " not selected"))
-                                        .addOnFailureListener(e -> Log.e("Lottery", "Failed to update uninvited for " + entrant, e));
-                            }
+                        for (String user : finalSelected) {
+                            dbRef.collection("users").document(user)
+                                    .update("invitedEvents.events",
+                                            FieldValue.arrayUnion(eventName))
+                                    .addOnFailureListener(e ->
+                                            Log.e("Firestore",
+                                                    "Error inviting user: " + user, e));
                         }
 
-                        // Clear the waitlist after lottery
-                        eventDoc.update("waitList.entrants.users", new ArrayList<>())
-                                .addOnSuccessListener(v -> Log.d("Lottery", "Waitlist cleared"))
-                                .addOnFailureListener(e -> Log.e("Lottery", "Failed to clear waitlist", e));
-
+                        Toast.makeText(getContext(),
+                                "✅ Lottery completed! Users selected.",
+                                Toast.LENGTH_LONG).show();
                     })
-                    .addOnFailureListener(e -> Log.e("Firestore", "Error updating selectedList", e));
+                    .addOnFailureListener(e -> {
+                        Log.e("Firestore", "Error updating selectedList", e);
+                        Toast.makeText(getContext(),
+                                "Failed to update selected users.",
+                                Toast.LENGTH_SHORT).show();
+                    });
 
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to read event data.", Toast.LENGTH_SHORT).show());
+        }).addOnFailureListener(e -> {
+            Log.e("Firestore", "Error fetching event for lottery", e);
+            Toast.makeText(getContext(),
+                    "Failed to run lottery.",
+                    Toast.LENGTH_SHORT).show();
+        });
     }
 
+    /** ACCEPT INVITE */
+    private void acceptInvite(String userName) {
+        DocumentReference eventDoc = db.collection("open events").document(eventName);
+        DocumentReference userDoc = db.collection("users").document(userName);
 
-    /** Join nested waitList.entrants.users */
+        db.runTransaction(transaction -> {
+            transaction.update(eventDoc,
+                    "enrolledList.users",
+                    FieldValue.arrayUnion(userName));
+
+            transaction.update(userDoc,
+                    "invitedEvents.events",
+                    FieldValue.arrayRemove(eventName));
+
+            transaction.update(userDoc,
+                    "enrolledEvents.events",
+                    FieldValue.arrayUnion(eventName));
+
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            Toast.makeText(getContext(), "You are now enrolled!", Toast.LENGTH_SHORT).show();
+            binding.btnAccept.setVisibility(View.GONE);
+            binding.btnDecline.setVisibility(View.GONE);
+            binding.btnBack.setVisibility(View.VISIBLE);
+        }).addOnFailureListener(e ->
+                Toast.makeText(getContext(), "Failed to accept invite.", Toast.LENGTH_SHORT).show());
+    }
+
+    /** DECLINE INVITE */
+    private void declineInvite(String userName) {
+        DocumentReference eventDoc = db.collection("open events").document(eventName);
+        DocumentReference userDoc = db.collection("users").document(userName);
+
+        db.runTransaction(transaction -> {
+            transaction.update(eventDoc,
+                    "cancelledList.users",
+                    FieldValue.arrayUnion(userName));
+
+            transaction.update(userDoc,
+                    "invitedEvents.events",
+                    FieldValue.arrayRemove(eventName));
+
+            transaction.update(userDoc,
+                    "declinedEvents.events",
+                    FieldValue.arrayUnion(eventName));
+
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            Toast.makeText(getContext(), "You declined the invite.", Toast.LENGTH_SHORT).show();
+            binding.btnAccept.setVisibility(View.GONE);
+            binding.btnDecline.setVisibility(View.GONE);
+            binding.btnBack.setVisibility(View.VISIBLE);
+        }).addOnFailureListener(e ->
+                Toast.makeText(getContext(), "Failed to decline invite.", Toast.LENGTH_SHORT).show());
+    }
+
+    /** JOIN WAITLIST */
     private void joinWaitlist(String userName) {
         DocumentReference eventDoc = db.collection("open events").document(eventName);
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
             Boolean isOpen = transaction.get(eventDoc).getBoolean("IsOpen");
-            if (isOpen == null || !isOpen)
-                throw new FirebaseFirestoreException("This event is closed.", FirebaseFirestoreException.Code.ABORTED);
+            if (isOpen == null || !isOpen) {
+                throw new FirebaseFirestoreException(
+                        "This event is closed.",
+                        FirebaseFirestoreException.Code.ABORTED
+                );
+            }
 
-            transaction.update(eventDoc, "waitList.entrants.users", FieldValue.arrayUnion(userName));
-            transaction.update(usersDoc, "waitListedEvents.events", FieldValue.arrayUnion(eventName));
+            transaction.update(eventDoc,
+                    "waitList.entrants.users",
+                    FieldValue.arrayUnion(userName));
+            transaction.update(usersDoc,
+                    "waitListedEvents.events",
+                    FieldValue.arrayUnion(eventName));
             return null;
         }).addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Joined waitlist!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),
+                    "Joined waitlist!",
+                    Toast.LENGTH_SHORT).show();
             binding.btnJoin.setText("Leave Waitlist");
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Join failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(),
+                    "Join failed: " + e.getMessage(),
+                    Toast.LENGTH_SHORT).show();
+            Log.e("Firestore", "Join waitlist failed", e);
+        });
     }
 
-    /** Leave nested waitList.entrants.users */
+    /** LEAVE WAITLIST */
     private void leaveWaitlist(String userName) {
         DocumentReference eventDoc = db.collection("open events").document(eventName);
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         db.runTransaction(transaction -> {
-            transaction.update(eventDoc, "waitList.entrants.users", FieldValue.arrayRemove(userName));
-            transaction.update(usersDoc, "waitListedEvents.events", FieldValue.arrayRemove(eventName));
+            transaction.update(eventDoc,
+                    "waitList.entrants.users",
+                    FieldValue.arrayRemove(userName));
+            transaction.update(usersDoc,
+                    "waitListedEvents.events",
+                    FieldValue.arrayRemove(eventName));
             return null;
         }).addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Left waitlist successfully!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),
+                    "Left waitlist successfully!",
+                    Toast.LENGTH_SHORT).show();
             binding.btnJoin.setText("Join Waitlist");
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to leave waitlist.", Toast.LENGTH_SHORT).show());
-    }
-
-    /** Accept invite */
-    private void acceptEventInvite(String userName) {
-        DocumentReference eventDoc = db.collection("openEvents").document(eventName);
-        DocumentReference usersDoc = db.collection("users").document(userName);
-
-        db.runTransaction(transaction -> {
-            Boolean isOpen = transaction.get(eventDoc).getBoolean("IsOpen");
-            if (isOpen == null || isOpen)
-                throw new FirebaseFirestoreException("This event is still open.", FirebaseFirestoreException.Code.ABORTED);
-
-            transaction.update(eventDoc, "enrolledList.users", FieldValue.arrayUnion(userName));
-            transaction.update(eventDoc, "cancelledList.users", FieldValue.arrayRemove(userName));
-            transaction.update(usersDoc, "invitedEvents.events", FieldValue.arrayRemove(eventName));
-            transaction.update(usersDoc, "enrolledEvents.events", FieldValue.arrayUnion(eventName));
-            return null;
-        }).addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Invite accepted!", Toast.LENGTH_SHORT).show();
-            hideAllButtons();
-            binding.btnBack.setVisibility(View.VISIBLE);
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
-    }
-
-    /** Decline invite */
-    private void declineEventInvite(String userName) {
-        DocumentReference eventDoc = db.collection("openEvents").document(eventName);
-        DocumentReference usersDoc = db.collection("users").document(userName);
-
-        db.runTransaction(transaction -> {
-            Boolean isOpen = transaction.get(eventDoc).getBoolean("IsOpen");
-            if (isOpen == null || isOpen)
-                throw new FirebaseFirestoreException("This event is still open.", FirebaseFirestoreException.Code.ABORTED);
-
-            transaction.update(eventDoc, "cancelledList.users", FieldValue.arrayUnion(userName));
-            transaction.update(eventDoc, "enrolledList.users", FieldValue.arrayRemove(userName));
-            transaction.update(usersDoc, "invitedEvents.events", FieldValue.arrayRemove(eventName));
-            transaction.update(usersDoc, "declinedEvents.events", FieldValue.arrayUnion(eventName));
-            return null;
-        }).addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Invite declined.", Toast.LENGTH_SHORT).show();
-            hideAllButtons();
-            binding.btnBack.setVisibility(View.VISIBLE);
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(),
+                    "Failed to leave waitlist.",
+                    Toast.LENGTH_SHORT).show();
+            Log.e("Firestore", "Leave waitlist failed", e);
+        });
     }
 
     private void hideAllButtons() {
