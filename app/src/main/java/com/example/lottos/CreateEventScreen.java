@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -13,6 +14,7 @@ import com.example.lottos.databinding.FragmentCreateEventScreenBinding;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.time.LocalDateTime;
@@ -43,7 +45,7 @@ public class CreateEventScreen extends Fragment {
 
         String userName = CreateEventScreenArgs.fromBundle(getArguments()).getUserName();
 
-        // Cancel → back to OrganizerEventsScreen
+        // Cancel → go back to OrganizerEventsScreen
         binding.btnCancel.setOnClickListener(v ->
                 NavHostFragment.findNavController(CreateEventScreen.this)
                         .navigate(CreateEventScreenDirections
@@ -62,16 +64,15 @@ public class CreateEventScreen extends Fragment {
             String capStr = binding.etCapacity.getText().toString().trim();
             String wlCapStr = binding.etWaitListCapacity.getText().toString().trim();
 
-            // Basic required fields
+            // ✅ Basic validation
             if (eventName.isEmpty() || location.isEmpty() ||
                     startTime.isEmpty() || endTime.isEmpty() ||
                     capStr.isEmpty() || registerEndTime.isEmpty()) {
-                android.widget.Toast.makeText(requireContext(),
-                        "Please fill in all information", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),
+                        "Please fill in all required fields.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Capacity & waitlist capacity
             int capacity;
             Integer waitListCapacity = null;
             try {
@@ -80,18 +81,18 @@ public class CreateEventScreen extends Fragment {
                     waitListCapacity = Integer.parseInt(wlCapStr);
                 }
             } catch (NumberFormatException e) {
-                android.widget.Toast.makeText(requireContext(),
-                        "Please enter valid numbers for capacities", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),
+                        "Enter valid numbers for capacities.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (capacity <= 0) {
-                android.widget.Toast.makeText(requireContext(),
-                        "Capacity must be greater than 0", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),
+                        "Capacity must be greater than 0.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Parse times
+            // ✅ Parse date/time fields
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             LocalDateTime startLdt, endLdt, registerEndLdt;
             try {
@@ -99,20 +100,20 @@ public class CreateEventScreen extends Fragment {
                 endLdt = LocalDateTime.parse(endTime, formatter);
                 registerEndLdt = LocalDateTime.parse(registerEndTime, formatter);
             } catch (DateTimeParseException e) {
-                android.widget.Toast.makeText(requireContext(),
-                        "Invalid date/time. Use yyyy-MM-dd HH:mm", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),
+                        "Invalid date/time format. Use yyyy-MM-dd HH:mm", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (!endLdt.isAfter(startLdt)) {
-                android.widget.Toast.makeText(requireContext(),
-                        "End time must be after start time", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),
+                        "End time must be after start time.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (!startLdt.isAfter(registerEndLdt)) {
-                android.widget.Toast.makeText(requireContext(),
-                        "Register end time must be before event start time", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),
+                        "Register end time must be before event start time.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -128,7 +129,7 @@ public class CreateEventScreen extends Fragment {
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Use your Event class as before (keeps existing behavior)
+            // Event ID generation (from your Event class)
             Event event = new Event(
                     eventName,
                     organizer,
@@ -139,10 +140,9 @@ public class CreateEventScreen extends Fragment {
                     capacity,
                     registerEndLdt
             );
+            String eventId = event.getEventId();
 
-            String eventId = event.getEventId(); // SAME as your original working code
-
-            // Base document (same fields you already had)
+            // ✅ Event document data
             Map<String, Object> doc = new HashMap<>();
             doc.put("eventId", eventId);
             doc.put("eventName", eventName);
@@ -151,56 +151,69 @@ public class CreateEventScreen extends Fragment {
             doc.put("description", desc);
             doc.put("location", location);
             doc.put("selectionCap", capacity);
-            if (waitListCapacity != null) {
-                doc.put("waitListCapacity", waitListCapacity);
-            }
+            if (waitListCapacity != null) doc.put("waitListCapacity", waitListCapacity);
             doc.put("startTime", new Timestamp(startDate));
             doc.put("endTime", new Timestamp(endDate));
             doc.put("RegisterEnd", new Timestamp(registerEndDate));
             doc.put("createdAt", Timestamp.now());
             doc.put("IsOpen", event.getIsOpen());
+            doc.put("IsLottery", false);
 
-            // 🔹 NEW: Placeholder structures for lists (no user input required)
 
-            // waitList: closeDate/CloseTime + entrants.users[]
+            // ✅ Lists (waitlist, selected, enrolled, cancelled)
             Map<String, Object> waitList = new HashMap<>();
             waitList.put("closeDate", "");
             waitList.put("CloseTime", "");
-            Map<String, Object> waitEntrants = new HashMap<>();
-            waitEntrants.put("users", new ArrayList<String>());
-            waitList.put("entrants", waitEntrants);
+            waitList.put("users", new ArrayList<String>());
 
-            // selectedList: users[]
             Map<String, Object> selectedList = new HashMap<>();
             selectedList.put("users", new ArrayList<String>());
 
-            // enrolledList: users[]
             Map<String, Object> enrolledList = new HashMap<>();
             enrolledList.put("users", new ArrayList<String>());
 
-            // cancelledList: users[]
             Map<String, Object> cancelledList = new HashMap<>();
             cancelledList.put("users", new ArrayList<String>());
 
+            Map<String, Object> organizedList = new HashMap<>();
+            organizedList.put("users", new ArrayList<String>());
+
+            Map<String, Object> notSelectedList = new HashMap<>();
+            notSelectedList.put("users", new ArrayList<String>());
+
             doc.put("waitList", waitList);
             doc.put("selectedList", selectedList);
+            doc.put("notSelectedList", notSelectedList);
             doc.put("enrolledList", enrolledList);
             doc.put("cancelledList", cancelledList);
+            doc.put("organizedList", organizedList);
 
-            // Write to Firestore
+            // ✅ Step 1: Create event document
             db.collection("open events")
                     .document(eventId)
                     .set(doc)
                     .addOnSuccessListener(unused -> {
-                        android.widget.Toast.makeText(requireContext(),
-                                "Event created", android.widget.Toast.LENGTH_SHORT).show();
-                        NavHostFragment.findNavController(CreateEventScreen.this)
-                                .navigate(CreateEventScreenDirections
-                                        .actionCreateEventScreenToOrganizerEventsScreen(userName));
+                        // ✅ Step 2: Link event to user
+                        db.collection("users")
+                                .document(organizer)
+                                .update("organizedEvents.events", FieldValue.arrayUnion(eventId))
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(requireContext(),
+                                            "Event created and linked to your organized events!",
+                                            Toast.LENGTH_SHORT).show();
+
+                                    // ✅ Step 3: Navigate back
+                                    NavHostFragment.findNavController(CreateEventScreen.this)
+                                            .navigate(CreateEventScreenDirections
+                                                    .actionCreateEventScreenToOrganizerEventsScreen(userName));
+                                })
+                                .addOnFailureListener(e -> Toast.makeText(requireContext(),
+                                        "Event created but failed to link to user: " + e.getMessage(),
+                                        Toast.LENGTH_SHORT).show());
                     })
-                    .addOnFailureListener(e -> android.widget.Toast.makeText(requireContext(),
+                    .addOnFailureListener(e -> Toast.makeText(requireContext(),
                             "Failed to create event: " + e.getMessage(),
-                            android.widget.Toast.LENGTH_SHORT).show());
+                            Toast.LENGTH_SHORT).show());
         });
     }
 

@@ -89,8 +89,8 @@ public class SignupScreen extends Fragment {
             userData.put("closedEvents", new HashMap<>(createEventsMap));
             userData.put("declinedEvents", new HashMap<>(createEventsMap));
             userData.put("enrolledEvents", new HashMap<>(createEventsMap));
-            userData.put("invitedEvents", new HashMap<>(createEventsMap));
-            userData.put("uninvitedEvents", new HashMap<>(createEventsMap));
+            userData.put("selectedEvents", new HashMap<>(createEventsMap));
+            userData.put("notSelectedEvents", new HashMap<>(createEventsMap));
             userData.put("organizedEvents", new HashMap<>(createEventsMap));
             userData.put("waitListedEvents", new HashMap<>(createEventsMap));
 

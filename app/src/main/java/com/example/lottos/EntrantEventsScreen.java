@@ -64,7 +64,7 @@ public class EntrantEventsScreen extends Fragment {
 
     /** Load user's waitlisted events */
     private void loadUserWaitlistedEvents() {
-        db.collection("users").document(userName).get()
+        db.collection("user").document(userName).get()
                 .addOnSuccessListener(snapshot -> {
                     if (snapshot.exists()) {
                         Map<String, Object> waitMap = (Map<String, Object>) snapshot.get("waitListedEvents");
@@ -115,25 +115,25 @@ public class EntrantEventsScreen extends Fragment {
 
             // get waitlist array from event
             Map<String, Object> waitMap = (Map<String, Object>) eventSnap.get("waitList");
-            List<String> waitUsers = waitMap != null && waitMap.containsKey("user")
-                    ? (List<String>) waitMap.get("user") : new ArrayList<>();
+            List<String> waituser = waitMap != null && waitMap.containsKey("users")
+                    ? (List<String>) waitMap.get("users") : new ArrayList<>();
 
-            if (waitUsers.contains(userName)) {
+            if (waituser.contains(userName)) {
                 Toast.makeText(getContext(), "Already joined " + eventName, Toast.LENGTH_SHORT).show();
                 return;
             }
 
             Long capLong = eventSnap.getLong("waitListCapacity");
             int capacity = capLong != null ? capLong.intValue() : 0;
-            if (capacity > 0 && waitUsers.size() >= capacity) {
+            if (capacity > 0 && waituser.size() >= capacity) {
                 Toast.makeText(getContext(), "Waitlist full for " + eventName, Toast.LENGTH_SHORT).show();
                 return;
             }
 
             // add user to event waitlist
-            waitUsers.add(userName);
+            waituser.add(userName);
             Map<String, Object> updateMap = new HashMap<>();
-            updateMap.put("waitList.user", waitUsers);
+            updateMap.put("waitList.users", waituser);
 
             eventRef.update(updateMap)
                     .addOnSuccessListener(v -> {
@@ -163,17 +163,17 @@ public class EntrantEventsScreen extends Fragment {
             if (!eventSnap.exists()) return;
 
             Map<String, Object> waitMap = (Map<String, Object>) eventSnap.get("waitList");
-            List<String> waitUsers = waitMap != null && waitMap.containsKey("user")
-                    ? (List<String>) waitMap.get("user") : new ArrayList<>();
+            List<String> waituser = waitMap != null && waitMap.containsKey("users")
+                    ? (List<String>) waitMap.get("users") : new ArrayList<>();
 
-            if (!waitUsers.contains(userName)) {
+            if (!waituser.contains(userName)) {
                 Toast.makeText(getContext(), "You are not on the waitlist.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            waitUsers.remove(userName);
+            waituser.remove(userName);
             Map<String, Object> updateMap = new HashMap<>();
-            updateMap.put("waitList.user", waitUsers);
+            updateMap.put("waitList.users", waituser);
 
             eventRef.update(updateMap)
                     .addOnSuccessListener(v -> {
