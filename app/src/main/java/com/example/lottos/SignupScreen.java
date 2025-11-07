@@ -16,6 +16,10 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 public class SignupScreen extends Fragment {
 
     private FragmentSignupScreenBinding binding;
@@ -56,32 +60,58 @@ public class SignupScreen extends Fragment {
     }
 
     private void createUser(String userName, String displayName, String password, String email, String phoneNumber) {
-        // Ensure the username is unique
         DocumentReference userDoc = usersRef.document(userName);
+
         userDoc.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
                 Toast.makeText(getContext(), "Username already taken. Please choose another.", Toast.LENGTH_SHORT).show();
-            } else {
-                // Create the User object
-                UserInfo userInfo = new UserInfo(displayName, password, email, phoneNumber);
-                User newUser = new User(userName, userInfo);
-
-                userDoc.set(newUser)
-                        .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(getContext(), "Account created successfully!", Toast.LENGTH_SHORT).show();
-                            NavHostFragment.findNavController(SignupScreen.this)
-                                    .navigate(SignupScreenDirections.actionSignupScreenToHomeScreen(userName));
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e("Firestore", "Error creating user", e);
-                            Toast.makeText(getContext(), "Error creating account. Please try again.", Toast.LENGTH_SHORT).show();
-                        });
+                return;
             }
+
+            // Helper inline: create {"events": []} map
+            Map<String, Object> createEventsMap = new HashMap<>();
+            createEventsMap.put("events", new ArrayList<String>());
+
+            // userInfo
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("displayName", displayName);
+            userInfo.put("email", email);
+            userInfo.put("name", displayName);
+            userInfo.put("password", password);
+            userInfo.put("phoneNumber", phoneNumber);
+
+            // main user data map
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("userName", userName);
+            userData.put("userInfo", userInfo);
+
+            // each event map must be a new instance — clone it each time
+            userData.put("closedEvents", new HashMap<>(createEventsMap));
+            userData.put("declinedEvents", new HashMap<>(createEventsMap));
+            userData.put("enrolledEvents", new HashMap<>(createEventsMap));
+            userData.put("invitedEvents", new HashMap<>(createEventsMap));
+            userData.put("uninvitedEvents", new HashMap<>(createEventsMap));
+            userData.put("organizedEvents", new HashMap<>(createEventsMap));
+            userData.put("waitListedEvents", new HashMap<>(createEventsMap));
+
+            userDoc.set(userData)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(getContext(), "Account created successfully!", Toast.LENGTH_SHORT).show();
+                        NavHostFragment.findNavController(SignupScreen.this)
+                                .navigate(SignupScreenDirections.actionSignupScreenToHomeScreen(userName));
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("Firestore", "Error creating user: " + e.getMessage(), e);
+                        Toast.makeText(getContext(), "Error creating account. Please try again.", Toast.LENGTH_SHORT).show();
+                    });
+
         }).addOnFailureListener(e -> {
-            Log.e("Firestore", "Error checking username", e);
+            Log.e("Firestore", "Error checking username: " + e.getMessage(), e);
             Toast.makeText(getContext(), "Error checking username. Try again.", Toast.LENGTH_SHORT).show();
         });
     }
+
+
 
     @Override
     public void onDestroyView() {
