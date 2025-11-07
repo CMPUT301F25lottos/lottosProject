@@ -1,6 +1,7 @@
 package com.example.lottos;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -96,38 +97,41 @@ public class HomeScreen extends Fragment {
         CollectionReference eventsRef = db.collection("open events");
 
         eventsRef.get().addOnSuccessListener(querySnapshot -> {
-            if (querySnapshot.isEmpty()) return;
-            //just use firebase clock instead of using local time
+            if (querySnapshot.isEmpty()) {
+                Toast.makeText(getContext(), "No events found.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             com.google.firebase.Timestamp nowTs = com.google.firebase.Timestamp.now();
 
-
+            int updatedCount = 0;
 
             for (DocumentSnapshot doc : querySnapshot) {
-                com.google.firebase.Timestamp RegisterEnd = doc.getTimestamp("RegisterEnd");
-                    Map<String, Object> waitList = (Map<String, Object>) doc.get("waitList");
-                    if (waitList == null) continue;
+                com.google.firebase.Timestamp registerEnd = doc.getTimestamp("RegisterEnd");
+                if (registerEnd == null) continue;
 
-                    if (RegisterEnd == null) continue;
+                boolean shouldBeOpen = nowTs.compareTo(registerEnd) < 0;
+                Boolean currentIsOpen = doc.getBoolean("IsOpen");
 
-
-                    // Check whether event should be open
-                    boolean shouldBeOpen = nowTs.compareTo(RegisterEnd) < 0;
-                    Boolean currentIsOpen = doc.getBoolean("IsOpen");
-
-
-                    // Update Firestore only if value changed
-                    if (currentIsOpen == null || currentIsOpen != shouldBeOpen) {
-                        doc.getReference().update("IsOpen", shouldBeOpen);
-
-                    }
+                // Update only if the state changed
+                if (currentIsOpen == null || currentIsOpen != shouldBeOpen) {
+                    doc.getReference().update("IsOpen", shouldBeOpen)
+                            .addOnSuccessListener(v -> Log.d("Firestore", "Updated " + doc.getId() + " to " + shouldBeOpen))
+                            .addOnFailureListener(e -> Log.e("Firestore", "Failed to update event " + doc.getId(), e));
+                    updatedCount++;
                 }
+            }
 
-            Toast.makeText(getContext(), "Event statuses updated.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),
+                    updatedCount > 0 ? "✅ Updated " + updatedCount + " event statuses." : "No status changes.",
+                    Toast.LENGTH_SHORT).show();
 
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to update event status.", Toast.LENGTH_SHORT).show()
-        );
+        }).addOnFailureListener(e -> {
+            Log.e("Firestore", "Failed to update event statuses", e);
+            Toast.makeText(getContext(), "❌ Failed to update event statuses.", Toast.LENGTH_SHORT).show();
+        });
     }
+
 
     @Override
     public void onDestroyView() {

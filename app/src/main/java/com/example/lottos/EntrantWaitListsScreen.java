@@ -69,28 +69,7 @@ public class EntrantWaitListsScreen extends Fragment {
         binding.lvOpenWaitLists.setAdapter(openAdapter);
         binding.lvClosedWaitLists.setAdapter(closedAdapter);
 
-        // Tap to select an open event
-        binding.lvOpenWaitLists.setOnItemClickListener((parent, v1, position, id) -> {
-            selectedEvent = openWaitlists.get(position);
-            Toast.makeText(getContext(), "Selected: " + selectedEvent, Toast.LENGTH_SHORT).show();
-        });
 
-        // Delete button click → show confirmation
-        binding.btnDeleteEvent.setOnClickListener(v -> {
-            if (selectedEvent != null) {
-                showDeleteConfirmation(selectedEvent);
-            } else {
-                Toast.makeText(getContext(), "No event selected", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Tap to select a closed event → event can't be modified
-        binding.lvClosedWaitLists.setOnItemClickListener((parent, v1, position, id) -> {
-            selectedEvent = closedWaitlists.get(position);
-            Toast.makeText(getContext(),  selectedEvent + "can't be modified", Toast.LENGTH_SHORT).show();
-        });
-
-        // Load events from Firestore
         loadEntrantWaitlists(userName);
     }
 
@@ -144,41 +123,6 @@ public class EntrantWaitListsScreen extends Fragment {
         }).addOnFailureListener(e ->
                 Toast.makeText(getContext(), "Failed to load waitlists.", Toast.LENGTH_SHORT).show()
         );
-    }
-
-    /** Show confirmation popup before quitting event */
-    private void showDeleteConfirmation(String eventName) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Quit Event")
-                .setMessage("Are you sure you want to quit \"" + eventName + "\"?")
-                .setPositiveButton("Yes", (dialog, which) -> deleteEntrantFromWaitlist(userName, eventName))
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    /** Remove entrant from event’s waitlist in Firestore */
-    private void deleteEntrantFromWaitlist(String userName, String eventName) {
-        DocumentReference usersDoc = db.collection("users").document(userName);
-        usersDoc.get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                Map<String, Object> waitListedMap = (Map<String, Object>) snapshot.get("waitListedEvents");
-                if (waitListedMap != null) {
-                    List<String> events = (List<String>) waitListedMap.get("events");
-                    if (events != null && events.contains(eventName)) {
-                        events.remove(eventName);
-                        usersDoc.update("waitListedEvents.events", events)
-                                .addOnSuccessListener(aVoid -> {
-                                    openWaitlists.remove(eventName);
-                                    openAdapter.notifyDataSetChanged();
-                                    Toast.makeText(getContext(), "You quit " + eventName, Toast.LENGTH_SHORT).show();
-                                    selectedEvent = null;
-                                })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(), "Failed to update Firestore.", Toast.LENGTH_SHORT).show());
-                    }
-                }
-            }
-        });
     }
 
     /** Refresh ListView contents */
