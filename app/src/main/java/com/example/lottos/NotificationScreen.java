@@ -21,6 +21,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Fragment that displays user notifications.
+ *
+ * Role: Coordinates reading notification-related data from Firestore, formats it into
+ * user-friendly text and displays it in separate "received" and "sent" lists with
+ * navigation back to the home screen or to the send-notification screen.
+ *
+ * Responsibilities:
+ * - Displays both automatically generated event notifications (lottery results)
+ *   and manually sent messages stored in Firestore.
+ * - Separates notifications into received and sent lists.
+ * - Allows navigation to send new notifications or return to the home screen.
+ */
+
 public class NotificationScreen extends Fragment {
 
     private FragmentNotificationScreenBinding binding;

@@ -19,6 +19,15 @@ import com.example.lottos.databinding.ActivityMainBinding;
 import android.view.Menu;
 import android.view.MenuItem;
 
+/**
+ * The main activity of the application that hosts all fragments and manages navigation.
+ *
+ * Role: Application entry point and navigation controller.
+ * Acts as the central host for the app’s Navigation Component, managing the toolbar,
+ * fragment transitions and app bar configuration. It initializes the main layout using
+ * view binding and ensures seamless navigation between UI fragments.
+ */
+
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;

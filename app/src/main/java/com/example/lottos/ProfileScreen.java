@@ -17,6 +17,14 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Map;
 
+/**
+ * This fragment that displays and manages the current user's profile.
+ *
+ * Role: Loads user information from Firestore,
+ * shows it in a read-only view, and provides options to edit or delete the account. Handles
+ * navigation back to the home screen and to the edit profile screen.
+ */
+
 public class ProfileScreen extends Fragment {
 
     private FragmentProfileScreenBinding binding;

@@ -13,7 +13,11 @@ import android.view.ViewGroup;
 import com.example.lottos.databinding.FragmentWelcomeScreenBinding;
 
 /**
+ * This fragment that displays the initial welcome screen for the app.
  *
+ * Role:  Introduces the application and provides
+ * navigation to the login and signup screens, acting as the starting point
+ * for both new and returning users.
  */
 public class WelcomeScreen extends Fragment {
 

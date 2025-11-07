@@ -26,6 +26,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This fragment is the main fragment that allows organizers to create new events.
+ * Role: Collects user input for event details,
+ * validates the fields, constructs a Firestore document for the new event and
+ * links it to the organizer’s profile in the “users” collection.
+ */
+
 public class CreateEventScreen extends Fragment {
 
     private FragmentCreateEventScreenBinding binding;
@@ -45,7 +52,7 @@ public class CreateEventScreen extends Fragment {
 
         String userName = CreateEventScreenArgs.fromBundle(getArguments()).getUserName();
 
-        // Cancel → go back to OrganizerEventsScreen
+
         binding.btnCancel.setOnClickListener(v ->
                 NavHostFragment.findNavController(CreateEventScreen.this)
                         .navigate(CreateEventScreenDirections
@@ -64,7 +71,7 @@ public class CreateEventScreen extends Fragment {
             String capStr = binding.etCapacity.getText().toString().trim();
             String wlCapStr = binding.etWaitListCapacity.getText().toString().trim();
 
-            // ✅ Basic validation
+
             if (eventName.isEmpty() || location.isEmpty() ||
                     startTime.isEmpty() || endTime.isEmpty() ||
                     capStr.isEmpty() || registerEndTime.isEmpty()) {
@@ -92,7 +99,7 @@ public class CreateEventScreen extends Fragment {
                 return;
             }
 
-            // ✅ Parse date/time fields
+
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             LocalDateTime startLdt, endLdt, registerEndLdt;
             try {
@@ -117,19 +124,19 @@ public class CreateEventScreen extends Fragment {
                 return;
             }
 
-            // Organizer info
+
             String organizer = userName;
             FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
             String organizerUid = (fbUser != null) ? fbUser.getUid() : null;
 
-            // Convert to Date for Firestore
+
             Date startDate = Date.from(startLdt.atZone(ZoneId.systemDefault()).toInstant());
             Date endDate = Date.from(endLdt.atZone(ZoneId.systemDefault()).toInstant());
             Date registerEndDate = Date.from(registerEndLdt.atZone(ZoneId.systemDefault()).toInstant());
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Event ID generation (from your Event class)
+
             Event event = new Event(
                     eventName,
                     organizer,
@@ -142,7 +149,7 @@ public class CreateEventScreen extends Fragment {
             );
             String eventId = event.getEventId();
 
-            // ✅ Event document data
+
             Map<String, Object> doc = new HashMap<>();
             doc.put("eventId", eventId);
             doc.put("eventName", eventName);
@@ -160,7 +167,7 @@ public class CreateEventScreen extends Fragment {
             doc.put("IsLottery", false);
 
 
-            // ✅ Lists (waitlist, selected, enrolled, cancelled)
+
             Map<String, Object> waitList = new HashMap<>();
             waitList.put("closeDate", "");
             waitList.put("CloseTime", "");
@@ -188,12 +195,12 @@ public class CreateEventScreen extends Fragment {
             doc.put("cancelledList", cancelledList);
             doc.put("organizedList", organizedList);
 
-            // ✅ Step 1: Create event document
+
             db.collection("open events")
                     .document(eventId)
                     .set(doc)
                     .addOnSuccessListener(unused -> {
-                        // ✅ Step 2: Link event to user
+
                         db.collection("users")
                                 .document(organizer)
                                 .update("organizedEvents.events", FieldValue.arrayUnion(eventId))
@@ -202,7 +209,7 @@ public class CreateEventScreen extends Fragment {
                                             "Event created and linked to your organized events!",
                                             Toast.LENGTH_SHORT).show();
 
-                                    // ✅ Step 3: Navigate back
+
                                     NavHostFragment.findNavController(CreateEventScreen.this)
                                             .navigate(CreateEventScreenDirections
                                                     .actionCreateEventScreenToOrganizerEventsScreen(userName));

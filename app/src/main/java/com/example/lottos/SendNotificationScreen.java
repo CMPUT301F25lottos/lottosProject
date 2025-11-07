@@ -23,6 +23,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This fragment  allows organizers to send custom notifications to groups of users
+ * associated with their events.
+ *
+ * Role:
+ * This fragment provides organizers with a simple interface to select one of their
+ * organized events, choose a recipient group (e.g, waitlisted, selected, cancelled),
+ * compose a message, and broadcast it to all users in that group through Firestore.
+ * It also manages navigation back to the NotificationScreen.
+ */
+
 public class SendNotificationScreen extends Fragment {
 
     private FragmentSendNotificationScreenBinding binding;

@@ -19,6 +19,16 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Map;
 
+/**
+ * Fragment that handles user login functionality.
+ * Role: Provides the interface and logic for
+ * user authentication using Firestore-stored credentials.
+ * Responsibilities:
+ * - Authenticates users by verifying username and password stored in Firestore.
+ * - Navigates to the Home screen upon successful login.
+ * - Displays appropriate error messages for invalid or missing credentials.
+ */
+
 public class LoginScreen extends Fragment {
 
     private FragmentLoginScreenBinding binding;
