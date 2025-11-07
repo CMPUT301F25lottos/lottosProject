@@ -28,6 +28,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This fragment is the main fragment that displays all open events for entrants.
+ * Role: Loads event data from Firestore, displays them in a list
+ * and allows users to join or leave waitlists. Tracks joined events and syncs user data with Firestore.
+ */
+
 public class EntrantEventsScreen extends Fragment {
 
     private FragmentEntrantEventsScreenBinding binding;

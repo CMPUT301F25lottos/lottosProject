@@ -22,6 +22,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * Fragment that displays detailed information for a specific event.
+ * Role: Retrieves event details from Firestore, determines
+ * the user’s role (organizer or entrant), and adjusts the UI accordingly.
+ * - For organizers: allows viewing event information and running the lottery when registration closes.<br>
+ * - For entrants: allows joining/leaving the waitlist, and accepting/declining an invitation after selection.<br>
+ * Uses Firestore transactions to ensure atomic updates to both the event document and the user's event lists.
+ */
+
 public class EventDetailsScreen extends Fragment {
 
     private FragmentEventDetailsScreenBinding binding;

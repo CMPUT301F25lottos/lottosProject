@@ -15,6 +15,13 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+/**
+ * This fragment allows organizers to view, edit, and delete existing events.
+ * Role: Retrieves event details from Firestore,
+ * displays them for editing and updates or deletes the event document based on user actions.
+ * Provides navigation back to the organizer’s event list upon completion.
+ */
+
 public class EditEventScreen extends Fragment {
 
     private FragmentEditEventScreenBinding binding;

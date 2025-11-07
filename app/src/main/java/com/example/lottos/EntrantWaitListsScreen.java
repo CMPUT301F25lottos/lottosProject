@@ -22,6 +22,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This fragment is the main fragment that displays all events the entrant has joined waitlists for.
+ * Role: Retrieves a user’s waitlisted events from Firestore,
+ * categorizes them into open and closed events and displays them in two ListViews.
+ * Provides navigation to detailed event screens when a list item is selected.
+ */
+
 public class EntrantWaitListsScreen extends Fragment {
 
     private FragmentEntrantWaitListsScreenBinding binding;

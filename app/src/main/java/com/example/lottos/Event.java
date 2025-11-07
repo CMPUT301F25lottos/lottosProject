@@ -7,6 +7,15 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Represents an event within the Lottos application.
+ *
+ * Role:
+ * Stores and manages all event-related data such as organizer, timing, location,
+ * registration limits, and participant lists (waitlist, selected, cancelled, enrolled).
+ * This class encapsulates the event’s state and provides getter/setter methods
+ * to ensure structured access to event properties.
+ */
 
 public class Event {
     private String eventName;

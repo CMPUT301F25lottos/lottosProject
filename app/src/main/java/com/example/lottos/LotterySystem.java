@@ -5,6 +5,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Class that performs lottery selection based on a string seed.
+ *
+ * Role: logic class for randomization and participant ordering.
+ * Generates a list of selected participants
+ * by hashing each participant’s name with an event-specific seed (usually
+ * the event name), sorting the hash keys and returning the ordered list.
+ * This ensures fairness and repeatability without relying on true randomness.
+ */
+
 public class LotterySystem {
     private String seed;//can just be event name or other number
     public LotterySystem(String eventName)

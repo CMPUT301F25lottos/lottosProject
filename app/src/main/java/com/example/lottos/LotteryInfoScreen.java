@@ -13,8 +13,12 @@ import android.view.ViewGroup;
 import com.example.lottos.databinding.FragmentLotteryInfoScreenBinding;
 
 /**
- *
+ * Fragment that displays information about how the lottery system works.
+ * Role: Shows explanatory text to help users
+ * understand event lotteries and provides navigation back to the home screen
+ * while preserving the current user.
  */
+
 public class LotteryInfoScreen extends Fragment {
 
     private FragmentLotteryInfoScreenBinding binding;

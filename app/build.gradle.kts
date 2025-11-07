@@ -1,5 +1,6 @@
 import shadow.bundletool.com.android.tools.r8.internal.li
 
+
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
@@ -52,6 +53,9 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation("com.google.firebase:firebase-firestore")
     implementation(libs.ext.junit)
+    implementation(files("C:/Users/Dua/AppData/Local/Android/Sdk/platforms/android-36/android.jar"))
+
+
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
@@ -72,4 +76,8 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-contrib:3.6.1")
 
 
+
 }
+
+
+

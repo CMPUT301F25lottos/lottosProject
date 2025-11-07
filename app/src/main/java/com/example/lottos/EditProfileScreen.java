@@ -16,6 +16,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Map;
 
+/**
+ * This fragment is the main fragment that lets a user view and update their profile information.
+ * Role: Loads profile data from Firestore into editable fields,
+ * validates changes, updates the "users" collection and navigates back to the profile screen.
+ */
+
 public class EditProfileScreen extends Fragment {
 
     private FragmentEditProfileScreenBinding binding;

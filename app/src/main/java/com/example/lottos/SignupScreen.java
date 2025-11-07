@@ -20,6 +20,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This fragment handles new user registration.
+ *
+ * Role: Provides the interface to create a new user account.
+ * Collects signup input, validates required fields, creates a corresponding user document in Firestore
+ * with initialized event lists and navigates to the home screen on success.
+ */
+
 public class SignupScreen extends Fragment {
 
     private FragmentSignupScreenBinding binding;

@@ -18,6 +18,14 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * this fragment displays the entrant user's event history.
+ * Role: Reads historical event data from Firestore
+ * (based on the user's stored lists) and shows it in a simple list with navigation
+ * back to the home screen.
+ */
+
 public class EventHistoryScreen extends Fragment {
 
     private FragmentEventHistoryScreenBinding binding;

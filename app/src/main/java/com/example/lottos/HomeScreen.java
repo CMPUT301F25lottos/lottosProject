@@ -24,9 +24,15 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Home Screen Fragment
- * - Provides navigation to other screens
- * - Automatically updates event IsOpen status based on close date/time
+ * Fragment representing the main home screen of the app.
+ * Role: Android Fragment in the UI layer. Serves as the navigation hub for both entrants
+ * and organizers, providing access to profile, events, notifications, and information screens.
+ * Responsibilities:
+ * Provides navigation to profile, entrant, and organizer screens.
+ * Displays global app options like viewing event history and notifications.
+ * Automatically updates the IsOpen status of events in Firestore
+ * based on their registration close date.
+ *
  */
 public class HomeScreen extends Fragment {
 

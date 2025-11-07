@@ -22,6 +22,16 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This fragment that displays all events created by a specific organizer.
+ *
+ * Roles:
+ * It connects Firestore data to the RecyclerView display, allowing organizers
+ * to view, create, and edit their own events. This fragment also manages user
+ * navigation between event creation, editing, and the home screen, serving as
+ * the central hub for organizer-side interactions in the app.
+ */
+
 public class OrganizerEventsScreen extends Fragment {
 
     private FragmentOrganizerEventsScreenBinding binding;
