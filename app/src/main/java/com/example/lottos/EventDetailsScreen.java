@@ -65,11 +65,10 @@ public class EventDetailsScreen extends Fragment {
         DocumentReference usersDoc = db.collection("users").document(userName);
 
         eventDoc.get().addOnSuccessListener(eventSnapshot -> {
-            ArrayList<String> userWaitlist = new ArrayList<>();
-            userWaitlist = (ArrayList<String>) eventSnapshot.get("waitList.users");
-            ArrayList<String> selectedList = new ArrayList<>();
-            selectedList = (ArrayList<String>) eventSnapshot.get("selectedList.users");
-
+            List<String> userWaitlist = (List<String>) eventSnapshot.get("waitList.users");
+            if (userWaitlist == null) userWaitlist = new ArrayList<>();
+            List<String> selectedList = (List<String>) eventSnapshot.get("selectedList.users");
+            if (selectedList == null) selectedList = new ArrayList<>();
 
 
             Boolean isOpen = eventSnapshot.getBoolean("IsOpen");
@@ -78,13 +77,20 @@ public class EventDetailsScreen extends Fragment {
             String location = eventSnapshot.getString("location");
             String description = eventSnapshot.getString("description");
             Long caplong = eventSnapshot.getLong("selectionCap");
-            int capacity = eventSnapshot.getLong("selectionCap").intValue();
+            int selectionCap = eventSnapshot.getLong("selectionCap").intValue();
             if (organizer != null) binding.tvOrganizer.setText("Organizer: " + organizer);
             if (location != null) binding.tvLocation.setText("Location: " + userName);
-            if(organizer.equals(userName)){
-                //LotterySystem lottery = new LotterySystem(eventName);
-                //selectedList = lottery.Selected(userWaitlist, selectedList, capacity);
-                //eventDoc.update("selectedList.users", selectedList);
+            if(!isOpen && organizer.equals(userName) && selectedList.isEmpty()){
+                LotterySystem lottery = new LotterySystem(eventName);
+                ArrayList<String> result = lottery.Selected(
+                        new ArrayList<>(userWaitlist)
+                );
+
+                eventDoc.update("selectedList.users", result);
+                //selectedList = (List<String>) eventSnapshot.get("selectedList.users");
+                //for(int i = 0; i < selectionCap; i++){
+                    //sent notification to selectedList(i);
+                //}
             }
             //if (organizer != null) binding.tvOrganizer.setText("Organizer: " + organizer);
             //if (location != null) binding.tvLocation.setText("Location: " + location);
