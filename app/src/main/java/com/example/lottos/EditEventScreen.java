@@ -13,21 +13,18 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.example.lottos.databinding.FragmentEditEventScreenBinding;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 /**
- * This fragment allows organizers to view, edit, and delete existing events.
- * Role: Retrieves event details from Firestore,
- * displays them for editing and updates or deletes the event document based on user actions.
- * Provides navigation back to the organizer’s event list upon completion.
+ * UI for viewing and editing a single event.
+ * Reads data via EventRepository, updates/deletes via OrganizerEventManager.
  */
-
 public class EditEventScreen extends Fragment {
 
     private FragmentEditEventScreenBinding binding;
-    private FirebaseFirestore db;
+    private EventRepository repo;
+    private OrganizerEventManager manager;
     private String userName;
-    private String eventName;
+    private String eventId;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -42,28 +39,21 @@ public class EditEventScreen extends Fragment {
 
         EditEventScreenArgs args = EditEventScreenArgs.fromBundle(getArguments());
         userName = args.getUserName();
-        eventName = args.getEventName();
+        eventId = args.getEventId();  // requires nav_graph argument "eventId"
 
-        db = FirebaseFirestore.getInstance();
+        repo = new EventRepository();
+        manager = new OrganizerEventManager();
 
         loadEventInfo();
 
         binding.btnSave.setOnClickListener(v -> updateEventInfo());
         binding.btnDelete.setOnClickListener(v -> deleteEvent());
-        binding.btnCancel.setOnClickListener(v ->
-                NavHostFragment.findNavController(EditEventScreen.this)
-                        .navigate(EditEventScreenDirections
-                                .actionEditEventScreenToOrganizerEventsScreen(userName, eventName))
-        );
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(EditEventScreen.this)
-                        .navigate(EditEventScreenDirections
-                                .actionEditEventScreenToOrganizerEventsScreen(userName, eventName))
-        );
+        binding.btnCancel.setOnClickListener(v -> goBack());
+        binding.btnBack.setOnClickListener(v -> goBack());
     }
 
     private void loadEventInfo() {
-        DocumentReference eventDoc = db.collection("open events").document(eventName);
+        DocumentReference eventDoc = repo.getEvent(eventId);
         eventDoc.get().addOnSuccessListener(snapshot -> {
             if (snapshot.exists()) {
                 binding.etEventName.setText(snapshot.getString("eventName"));
@@ -105,34 +95,39 @@ public class EditEventScreen extends Fragment {
             return;
         }
 
-        DocumentReference eventDoc = db.collection("open events").document(eventName);
+        Integer selectionCap = selectionCapStr.isEmpty() ? null : Integer.parseInt(selectionCapStr);
+        Integer waitListCap = waitListCapStr.isEmpty() ? null : Integer.parseInt(waitListCapStr);
 
-        eventDoc.update(
-                "eventName", newEventName,
-                "location", location,
-                "description", description,
-                "selectionCap", selectionCapStr.isEmpty() ? null : Integer.parseInt(selectionCapStr),
-                "waitListCapacity", waitListCapStr.isEmpty() ? null : Integer.parseInt(waitListCapStr)
-        ).addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Event updated successfully!", Toast.LENGTH_SHORT).show();
-            NavHostFragment.findNavController(EditEventScreen.this)
-                    .navigate(EditEventScreenDirections
-                            .actionEditEventScreenToOrganizerEventsScreen(userName, eventName));
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to update event.", Toast.LENGTH_SHORT).show()
+        java.util.Map<String, Object> updates = new java.util.HashMap<>();
+        updates.put("eventName", newEventName);
+        updates.put("location", location);
+        updates.put("description", description);
+        updates.put("selectionCap", selectionCap);
+        updates.put("waitListCapacity", waitListCap);
+
+        manager.updateEvent(eventId, updates,
+                () -> {
+                    Toast.makeText(getContext(), "Event updated successfully!", Toast.LENGTH_SHORT).show();
+                    goBack();
+                },
+                e -> Toast.makeText(getContext(), "Failed to update event: " + e.getMessage(), Toast.LENGTH_SHORT).show()
         );
     }
 
     private void deleteEvent() {
-        DocumentReference eventDoc = db.collection("open events").document(eventName);
-        eventDoc.delete().addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Event deleted.", Toast.LENGTH_SHORT).show();
-            NavHostFragment.findNavController(EditEventScreen.this)
-                    .navigate(EditEventScreenDirections
-                            .actionEditEventScreenToOrganizerEventsScreen(userName, eventName));
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to delete event.", Toast.LENGTH_SHORT).show()
+        manager.deleteEvent(eventId,
+                () -> {
+                    Toast.makeText(getContext(), "Event deleted.", Toast.LENGTH_SHORT).show();
+                    goBack();
+                },
+                e -> Toast.makeText(getContext(), "Failed to delete event: " + e.getMessage(), Toast.LENGTH_SHORT).show()
         );
+    }
+
+    private void goBack() {
+        NavHostFragment.findNavController(EditEventScreen.this)
+                .navigate(EditEventScreenDirections
+                        .actionEditEventScreenToOrganizerEventsScreen(userName));
     }
 
     @Override

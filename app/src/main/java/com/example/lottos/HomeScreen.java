@@ -1,7 +1,6 @@
 package com.example.lottos;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,38 +11,19 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.databinding.FragmentHomeScreenBinding;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Map;
 
 /**
- * Fragment representing the main home screen of the app.
- * Role: Android Fragment in the UI layer. Serves as the navigation hub for both entrants
- * and organizers, providing access to profile, events, notifications, and information screens.
- * Responsibilities:
- * Provides navigation to profile, entrant, and organizer screens.
- * Displays global app options like viewing event history and notifications.
- * Automatically updates the IsOpen status of events in Firestore
- * based on their registration close date.
- *
+ * UI-only Home Screen Fragment.
+ * Delegates all business logic (event updating) to EventStatusUpdater.
  */
 public class HomeScreen extends Fragment {
 
     private FragmentHomeScreenBinding binding;
-    private FirebaseFirestore db;
+    private EventStatusUpdater eventUpdater;
 
     @Override
-    public View onCreateView(
-            @NonNull LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState
-    ) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         binding = FragmentHomeScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -53,12 +33,26 @@ public class HomeScreen extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         String userName = HomeScreenArgs.fromBundle(getArguments()).getUserName();
-        db = FirebaseFirestore.getInstance();
+        eventUpdater = new EventStatusUpdater();
 
-        // Automatically update event status
-        updateEventOpenStatus();
+        // --- Update event statuses ---
+        eventUpdater.updateEventStatuses(new EventStatusUpdater.UpdateListener() {
+            @Override
+            public void onUpdateSuccess(int updatedCount) {
+                if (updatedCount > 0) {
+                    Toast.makeText(getContext(),
+                            "Updated " + updatedCount + " event statuses.",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
 
-        // Navigation (shared)
+            @Override
+            public void onUpdateFailure(String errorMessage) {
+                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // --- Navigation buttons ---
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
                         .navigate(HomeScreenDirections.actionHomeScreenToProfileScreen(userName)));
@@ -83,61 +77,14 @@ public class HomeScreen extends Fragment {
                 NavHostFragment.findNavController(HomeScreen.this)
                         .navigate(HomeScreenDirections.actionHomeScreenToEntrantEventsScreen(userName)));
 
-        binding.btnEventHistory.setOnClickListener(v -> {
-            NavHostFragment.findNavController(HomeScreen.this)
-                    .navigate(HomeScreenDirections.actionHomeScreenToEventHistoryScreen(userName));
-        });
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(HomeScreen.this)
+                        .navigate(HomeScreenDirections.actionHomeScreenToEventHistoryScreen(userName)));
 
-        binding.btnNotification.setOnClickListener(v -> {
-            NavHostFragment.findNavController(HomeScreen.this)
-                    .navigate(HomeScreenDirections.actionHomeScreenToNotificationScreen(userName));
-        });
-
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(HomeScreen.this)
+                        .navigate(HomeScreenDirections.actionHomeScreenToNotificationScreen(userName)));
     }
-
-    /**
-     * Checks all events in "open events" and updates IsOpen field
-     * based on whether their waitlist close date/time has passed.
-     */
-    private void updateEventOpenStatus() {
-        CollectionReference eventsRef = db.collection("open events");
-
-        eventsRef.get().addOnSuccessListener(querySnapshot -> {
-            if (querySnapshot.isEmpty()) {
-                Toast.makeText(getContext(), "No events found.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            com.google.firebase.Timestamp nowTs = com.google.firebase.Timestamp.now();
-
-            int updatedCount = 0;
-
-            for (DocumentSnapshot doc : querySnapshot) {
-                com.google.firebase.Timestamp registerEnd = doc.getTimestamp("RegisterEnd");
-                if (registerEnd == null) continue;
-
-                boolean shouldBeOpen = nowTs.compareTo(registerEnd) < 0;
-                Boolean currentIsOpen = doc.getBoolean("IsOpen");
-
-                // Update only if the state changed
-                if (currentIsOpen == null || currentIsOpen != shouldBeOpen) {
-                    doc.getReference().update("IsOpen", shouldBeOpen)
-                            .addOnSuccessListener(v -> Log.d("Firestore", "Updated " + doc.getId() + " to " + shouldBeOpen))
-                            .addOnFailureListener(e -> Log.e("Firestore", "Failed to update event " + doc.getId(), e));
-                    updatedCount++;
-                }
-            }
-
-            Toast.makeText(getContext(),
-                    updatedCount > 0 ? "✅ Updated " + updatedCount + " event statuses." : "No status changes.",
-                    Toast.LENGTH_SHORT).show();
-
-        }).addOnFailureListener(e -> {
-            Log.e("Firestore", "Failed to update event statuses", e);
-            Toast.makeText(getContext(), "❌ Failed to update event statuses.", Toast.LENGTH_SHORT).show();
-        });
-    }
-
 
     @Override
     public void onDestroyView() {

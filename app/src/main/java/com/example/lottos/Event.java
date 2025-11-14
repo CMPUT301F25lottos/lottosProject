@@ -126,6 +126,16 @@ public class Event {
      * @return The EventInfo object for the event
      */
 
+    public LocalDateTime getEndRegisterTime() {
+        return EndRegisterTime;
+    }
+
+
+
+    public void setEndRegisterTime(LocalDateTime EndRegisterTime) {
+        this.EndRegisterTime = EndRegisterTime;
+    }
+
 
     /**
      * Getter method for event waitlist
