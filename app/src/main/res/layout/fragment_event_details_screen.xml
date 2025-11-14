@@ -4,19 +4,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".EventDetailsScreen"
     android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp">
+        android:layout_height="match_parent">
 
         <!-- Event title -->
         <TextView
             android:id="@+id/tvEventDetails"
-            android:text="Event Title"
-            android:textSize="28sp"
+            android:text="Event Detail"
+            android:textColor="@color/navy"
+            android:textSize="40sp"
             android:textStyle="bold"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
@@ -26,14 +27,20 @@
             android:layout_marginTop="24dp"/>
 
         <!-- Optional image -->
-        <ImageView
+
+        <!-- CIRCULAR PROFILE IMAGE -->
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivEventPoster"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="24dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_profile_placeholder"
+            android:background="@color/beige"
+            app:tint="@color/navy"
+            app:layout_constraintTop_toBottomOf="@id/tvEventDetails"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvEventDetails"
-            android:contentDescription="Event image" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <!-- Event details list -->
         <LinearLayout
@@ -41,6 +48,7 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:padding="10dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/ivEventPoster"
@@ -70,10 +78,11 @@
             android:layout_height="wrap_content"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/btnBack"
             android:gravity="center"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toTopOf="@id/navigationBar"
+
             android:padding="8dp">
 
             <Button
@@ -81,6 +90,7 @@
                 android:text="Join WaitList"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/navy"
                 android:visibility="gone" />
 
             <Button
@@ -88,6 +98,7 @@
                 android:text="Leave WaitList"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/navy"
                 android:visibility="gone" />
 
             <Button
@@ -95,6 +106,7 @@
                 android:text="Accept Invite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/navy"
                 android:visibility="gone" />
 
             <Button
@@ -102,6 +114,7 @@
                 android:text="Decline Invite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/navy"
                 android:visibility="gone" />
 
             <Button
@@ -109,6 +122,7 @@
                 android:text="View WaitList"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/navy"
                 android:visibility="gone" />
 
             <Button
@@ -116,6 +130,7 @@
                 android:text="View Selected Entrants"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/navy"
                 android:visibility="gone" />
 
             <Button
@@ -123,6 +138,7 @@
                 android:text="View Cancelled Entrants"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/navy"
                 android:visibility="gone" />
 
             <Button
@@ -130,26 +146,69 @@
                 android:text="View Enrolled Entrants"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/navy"
                 android:visibility="gone" />
 
             <Button
                 android:id="@+id/btnLottery"
                 android:text="Start Lottery System"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/navy"/>
+
+            <Button
+                android:id="@+id/btnBack"
+                android:text="Back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/navy"/>
+
 
         </LinearLayout>
 
-        <!-- Back button always visible -->
-        <Button
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Back"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="12dp"/>
+        <LinearLayout
+            android:id="@+id/navigationBar"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:orientation="horizontal"
+            android:background="@color/navy"
+            android:gravity="center"
+            android:weightSum="3"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnNotification"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_notification"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnHome"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_home"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnProfile"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_profile"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 </androidx.core.widget.NestedScrollView>

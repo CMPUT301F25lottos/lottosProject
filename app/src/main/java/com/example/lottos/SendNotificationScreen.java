@@ -65,9 +65,19 @@ public class SendNotificationScreen extends Fragment {
         setupAdapters();
         loadUserEvents();
 
-        binding.btnBack.setOnClickListener(v ->
+        binding.btnNotification.setOnClickListener(v ->
                 NavHostFragment.findNavController(SendNotificationScreen.this)
                         .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToNotificationScreen(userName))
+        );
+
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(SendNotificationScreen.this)
+                        .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToHomeScreen(userName))
+        );
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(SendNotificationScreen.this)
+                        .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToProfileScreen(userName))
         );
 
         binding.btnSendMessage.setOnClickListener(v -> sendNotification());

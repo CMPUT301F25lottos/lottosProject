@@ -32,6 +32,8 @@ public class EntrantEventsScreen extends Fragment {
     private String userName;
     private EventListAdapter adapter;
 
+    private EventListAdapter adapter;
+
     @Override
     public View onCreateView(@NonNull android.view.LayoutInflater inflater,
                              android.view.ViewGroup container,
@@ -48,6 +50,7 @@ public class EntrantEventsScreen extends Fragment {
 
         repo = new EventRepository();
         manager = new EntrantEventManager();
+        userName = EntrantEventsScreenArgs.fromBundle(getArguments()).getUserName();
         db = FirebaseFirestore.getInstance();
 
         adapter = new EventListAdapter(events, true, new EventListAdapter.Listener() {
@@ -70,17 +73,34 @@ public class EntrantEventsScreen extends Fragment {
 
         binding.recyclerEvents.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerEvents.setAdapter(adapter);
+        adapter = new EventListAdapter();
+        binding.lvEvents.setAdapter(adapter);
 
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
-                        .navigate(EntrantEventsScreenDirections
-                                .actionEntrantEventsScreenToHomeScreen(userName)));
+                        .navigate(EntrantEventsScreenDirections.actionEntrantEventsScreenToHomeScreen(userName)));
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EntrantEventsScreenDirections.actionEntrantEventsScreenToNotificationScreen(userName)));
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EntrantEventsScreenDirections.actionEntrantEventsScreenToProfileScreen(userName)));
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EntrantEventsScreenDirections.actionEntrantEventsScreenToNotificationScreen(userName)));
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EntrantEventsScreenDirections.actionEntrantEventsScreenToProfileScreen(userName)));
 
         loadUserWaitlistedEvents();
     }
 
     private void loadUserWaitlistedEvents() {
-        db.collection("users").document(userName).get()
+        db.collection("userss").document(userName).get()
                 .addOnSuccessListener(snap -> {
                     if (snap.exists()) {
                         Map<String, Object> w = (Map<String, Object>) snap.get("waitListedEvents");
@@ -91,11 +111,12 @@ public class EntrantEventsScreen extends Fragment {
                     loadEvents();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("Firestore", "Failed to load user waitlist", e);
+                    Log.e("Firestore", "Failed to load waitlist", e);
                     loadEvents();
                 });
     }
 
+    /** Load all open events */
     private void loadEvents() {
         repo.getAllEvents().get()
                 .addOnSuccessListener(query -> {

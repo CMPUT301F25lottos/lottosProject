@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".NotificationScreen"
     android:fillViewport="true">
 
@@ -17,12 +18,17 @@
             android:orientation="vertical"
             android:gravity="center">
 
+            <!-- RECEIVED HEADER -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:text="My notification"
-                android:textSize="28sp"/>
+                android:textColor="@color/navy"
+                android:textSize="30sp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:textStyle="bold"/>
 
             <ListView
                 android:id="@+id/lvReceivedNotication"
@@ -30,12 +36,17 @@
                 android:layout_height="0dp"
                 android:layout_weight="6"/>
 
+            <!-- SENT HEADER -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_weight="1"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
                 android:text="Sent Notification"
-                android:textSize="28sp"/>
+                android:textColor="@color/navy"
+                android:textSize="30sp"
+                android:textStyle="bold"/>
 
             <ListView
                 android:id="@+id/lvSentNotication"
@@ -43,28 +54,65 @@
                 android:layout_height="0dp"
                 android:layout_weight="6"/>
 
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/navigationBar"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:background="@color/navy"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:weightSum="3"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnNotification"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_notification"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_home"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnProfile"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_profile"
+                android:padding="4dp"
+                app:tint="@color/white" />
 
         </LinearLayout>
 
-        <Button
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Back"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="12dp"/>
 
         <Button
             android:id="@+id/btnSendNotification"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Send Notification"
-            app:layout_constraintBottom_toTopOf="@id/btnBack"
+            android:gravity="center"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="@color/navy"
+
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="12dp"/>
+            app:layout_constraintBottom_toTopOf="@id/navigationBar"
+            android:layout_marginBottom="12dp" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

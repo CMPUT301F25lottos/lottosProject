@@ -17,6 +17,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This fragment displays all events created by a specific organizer.
+ */
 public class OrganizerEventsScreen extends Fragment {
 
     private FragmentOrganizerEventsScreenBinding binding;
@@ -53,13 +56,39 @@ public class OrganizerEventsScreen extends Fragment {
 
         });
 
-        binding.recyclerOpenEvents.setLayoutManager(new LinearLayoutManager(getContext()));
-        binding.recyclerOpenEvents.setAdapter(adapter);
+        // ListView setup
+        ListView listView = binding.lvOpenEvents;
 
+        eventAdapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_list_item_1,
+                organizerEvents
+        );
+        listView.setAdapter(eventAdapter);
+
+        // Click handler → go to EditEvent screen
+        listView.setOnItemClickListener((parent, clickedView, position, id) -> {
+            String eventName = organizerEvents.get(position);
+            openEditEventScreen(userName, eventName);
+        });
+
+        // Navigation buttons
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(OrganizerEventsScreenDirections
                                 .actionOrganizerEventsScreenToHomeScreen(userName))
+        );
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(OrganizerEventsScreenDirections
+                                .actionOrganizerEventsScreenToNotificationScreen(userName))
+        );
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(OrganizerEventsScreenDirections
+                                .actionOrganizerEventsScreenToProfileScreen(userName))
         );
 
         binding.btnCreateEvent.setOnClickListener(v ->
@@ -68,9 +97,11 @@ public class OrganizerEventsScreen extends Fragment {
                                 .actionOrganizerEventsScreenToCreateEventScreen(userName))
         );
 
+        // Load events
         loadOrganizerEvents();
     }
 
+    /** Load all events created by this organizer from Firestore */
     private void loadOrganizerEvents() {
         repo.getEventsByOrganizer(userName).get()
                 .addOnSuccessListener(query -> {
@@ -96,7 +127,8 @@ public class OrganizerEventsScreen extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     Log.e("Firestore", "Failed to load events", e);
-                    Toast.makeText(getContext(), "Error loading events.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(),
+                            "Error loading events.", Toast.LENGTH_SHORT).show();
                 });
     }
 

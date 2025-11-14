@@ -1,9 +1,12 @@
 package com.example.lottos;
 
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -12,6 +15,7 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.databinding.FragmentCreateEventScreenBinding;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -40,12 +44,33 @@ public class CreateEventScreen extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         userName = CreateEventScreenArgs.fromBundle(getArguments()).getUserName();
+        // Make date/time fields easier to use
+        setupDateTimePickers();
 
         binding.btnCancel.setOnClickListener(v ->
                 NavHostFragment.findNavController(CreateEventScreen.this)
                         .navigate(CreateEventScreenDirections
                                 .actionCreateEventScreenToOrganizerEventsScreen(userName))
         );
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(CreateEventScreen.this)
+                        .navigate(CreateEventScreenDirections
+                                .actionCreateEventScreenToNotificationScreen(userName))
+        );
+
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(CreateEventScreen.this)
+                        .navigate(CreateEventScreenDirections
+                                .actionCreateEventScreenToHomeScreen(userName))
+        );
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(CreateEventScreen.this)
+                        .navigate(CreateEventScreenDirections
+                                .actionCreateEventScreenToProfileScreen(userName))
+        );
+
 
         binding.btnCreateEvent.setOnClickListener(v -> handleCreateEvent());
     }
@@ -131,6 +156,60 @@ public class CreateEventScreen extends Fragment {
                         "Failed to create event: " + e.getMessage(),
                         Toast.LENGTH_SHORT).show()
         );
+    }
+
+    /**
+     * Wire up the click listeners so tapping the date/time fields
+     * opens a DatePicker + TimePicker and auto-fills the text.
+     */
+    private void setupDateTimePickers() {
+        binding.etRegisterEndTime.setOnClickListener(
+                v -> showDateTimePicker(binding.etRegisterEndTime));
+
+        binding.etStartTime.setOnClickListener(
+                v -> showDateTimePicker(binding.etStartTime));
+
+        binding.etEndTime.setOnClickListener(
+                v -> showDateTimePicker(binding.etEndTime));
+    }
+
+    /**
+     * Shows a DatePicker, then a TimePicker, then formats as "yyyy-MM-dd HH:mm"
+     * and places the result into the given EditText.
+     */
+    private void showDateTimePicker(EditText targetEditText) {
+        final Calendar calendar = Calendar.getInstance();
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                requireContext(),
+                (view, year, month, dayOfMonth) -> {
+                    calendar.set(Calendar.YEAR, year);
+                    calendar.set(Calendar.MONTH, month);
+                    calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                            requireContext(),
+                            (timeView, hourOfDay, minute) -> {
+                                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                                calendar.set(Calendar.MINUTE, minute);
+
+                                SimpleDateFormat sdf =
+                                        new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+                                String formatted = sdf.format(calendar.getTime());
+                                targetEditText.setText(formatted);
+                            },
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            true // 24-hour format
+                    );
+                    timePickerDialog.show();
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+
+        datePickerDialog.show();
     }
 
     @Override

@@ -52,6 +52,7 @@ public class EditEventScreen extends Fragment {
         binding.btnBack.setOnClickListener(v -> goBack());
     }
 
+    /** Load event data from Firestore and populate UI */
     private void loadEventInfo() {
         DocumentReference eventDoc = repo.getEvent(eventId);
         eventDoc.get().addOnSuccessListener(snapshot -> {
@@ -60,38 +61,59 @@ public class EditEventScreen extends Fragment {
                 binding.etLocation.setText(snapshot.getString("location"));
                 binding.etDescription.setText(snapshot.getString("description"));
 
-                Long selectionCap = snapshot.getLong("selectionCap");
-                Long waitListCap = snapshot.getLong("waitListCapacity");
+                        Long selectionCap = snapshot.getLong("selectionCap");
+                        Long waitListCap = snapshot.getLong("waitListCapacity");
 
-                if (selectionCap != null)
-                    binding.etSelectionCap.setText(String.valueOf(selectionCap));
-                if (waitListCap != null)
-                    binding.etWaitListCap.setText(String.valueOf(waitListCap));
+                        if (selectionCap != null) {
+                            binding.etCapacity.setText(String.valueOf(selectionCap));
+                        }
+                        if (waitListCap != null) {
+                            binding.etWaitListCapacity.setText(String.valueOf(waitListCap));
+                        }
 
-                Timestamp startTime = snapshot.getTimestamp("startTime");
-                Timestamp endTime = snapshot.getTimestamp("endTime");
+                        Timestamp startTime = snapshot.getTimestamp("startTime");
+                        Timestamp endTime = snapshot.getTimestamp("endTime");
 
-                if (startTime != null)
-                    binding.tvStartTime.setText("Start: " + startTime.toDate());
-                if (endTime != null)
-                    binding.tvEndTime.setText("End: " + endTime.toDate());
-            } else {
-                Toast.makeText(getContext(), "Event not found.", Toast.LENGTH_SHORT).show();
-            }
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to load event info.", Toast.LENGTH_SHORT).show()
-        );
+                        if (startTime != null) {
+                            binding.etStartTime.setText("Start: " + startTime.toDate());
+                        }
+                        if (endTime != null) {
+                            binding.etEndTime.setText("End: " + endTime.toDate());
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Event not found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Failed to load event info.", Toast.LENGTH_SHORT).show()
+                );
     }
 
+    /** Update event fields in Firestore */
     private void updateEventInfo() {
         String newEventName = binding.etEventName.getText().toString().trim();
-        String location = binding.etLocation.getText().toString().trim();
+        String location = binding.etEventLocation.getText().toString().trim();
         String description = binding.etDescription.getText().toString().trim();
-        String selectionCapStr = binding.etSelectionCap.getText().toString().trim();
-        String waitListCapStr = binding.etWaitListCap.getText().toString().trim();
+        String selectionCapStr = binding.etCapacity.getText().toString().trim();
+        String waitListCapStr = binding.etWaitListCapacity.getText().toString().trim();
 
         if (newEventName.isEmpty() || location.isEmpty()) {
             Toast.makeText(getContext(), "Event name and location are required.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Integer selectionCap = null;
+        Integer waitListCap = null;
+
+        try {
+            if (!selectionCapStr.isEmpty()) {
+                selectionCap = Integer.parseInt(selectionCapStr);
+            }
+            if (!waitListCapStr.isEmpty()) {
+                waitListCap = Integer.parseInt(waitListCapStr);
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(getContext(), "Capacity must be a valid number.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -114,6 +136,7 @@ public class EditEventScreen extends Fragment {
         );
     }
 
+    /** Delete the event document from Firestore */
     private void deleteEvent() {
         manager.deleteEvent(eventId,
                 () -> {

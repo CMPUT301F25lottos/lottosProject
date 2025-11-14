@@ -1,78 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SendNotificationScreen"
-    android:fillViewport="true">
+    android:background="@color/white"
+    android:fillViewport="true"
+    tools:context=".SendNotificationScreen">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp">
+        android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="wrap_content"
+        <!-- ⭐ WRAPPER WITH PADDING (everything except navbar) -->
+        <LinearLayout
+            android:id="@+id/contentWrapper"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Send Notification"
-            android:textSize="26sp"
-            android:textStyle="bold"
+            android:padding="24dp"
+            android:orientation="vertical"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="24dp"/>
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Dropdown for event selection -->
-        <Spinner
-            android:id="@+id/spEventSelect"
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Send Notification"
+                android:textColor="@color/navy"
+                android:textSize="40sp"
+                android:textStyle="bold"/>
+
+            <Spinner
+                android:id="@+id/spEventSelect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"/>
+
+            <Spinner
+                android:id="@+id/spGroupSelect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"/>
+
+            <EditText
+                android:id="@+id/etMessageContent"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:layout_marginTop="16dp"
+                android:hint="Type your message here..."
+                android:gravity="top|start"
+                android:padding="12dp"
+                android:background="@android:drawable/edit_text"/>
+
+            <Button
+                android:id="@+id/btnSendMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Send Message"
+                android:backgroundTint="@color/navy"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navigationBar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/tvTitle"
-            android:layout_marginTop="24dp"/>
+            android:layout_height="70dp"
+            android:orientation="horizontal"
+            android:background="@color/navy"
+            android:gravity="center"
+            android:weightSum="3"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Dropdown for group selection -->
-        <Spinner
-            android:id="@+id/spGroupSelect"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/spEventSelect"
-            android:layout_marginTop="16dp"/>
+            <ImageButton
+                android:id="@+id/btnNotification"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_notification"
+                android:padding="4dp"
+                app:tint="@color/white" />
 
-        <!-- Message box -->
-        <EditText
-            android:id="@+id/etMessageContent"
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:hint="Type your message here..."
-            android:gravity="top|start"
-            android:background="@android:drawable/edit_text"
-            android:padding="12dp"
-            android:inputType="textMultiLine"
-            app:layout_constraintTop_toBottomOf="@id/spGroupSelect"
-            android:layout_marginTop="16dp"/>
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_home"
+                android:padding="4dp"
+                app:tint="@color/white" />
 
-        <!-- Send button -->
-        <Button
-            android:id="@+id/btnSendMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Send Message"
-            app:layout_constraintTop_toBottomOf="@id/etMessageContent"
-            android:layout_marginTop="24dp"/>
+            <ImageButton
+                android:id="@+id/btnProfile"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_profile"
+                android:padding="4dp"
+                app:tint="@color/white" />
 
-        <!-- Back button -->
-        <Button
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Back"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="16dp"/>
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>
+
