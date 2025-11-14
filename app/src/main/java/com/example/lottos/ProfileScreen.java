@@ -61,6 +61,12 @@ public class ProfileScreen extends Fragment {
                         .navigate(ProfileScreenDirections.actionProfileScreenToEditProfileScreen(userName))
         );
 
+        // notification button
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(ProfileScreen.this)
+                        .navigate(ProfileScreenDirections.actionProfileScreenToNotificationScreen(userName))
+        );
+
         // Delete Profile button
         binding.btnDelete.setOnClickListener(v -> showDeleteConfirmation());
     }

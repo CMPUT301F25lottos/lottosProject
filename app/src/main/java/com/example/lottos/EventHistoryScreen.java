@@ -49,6 +49,14 @@ public class EventHistoryScreen extends Fragment {
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToHomeScreen(userName)));
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToNotificationScreen(userName)));
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToProfileScreen(userName)));
     }
 
     private void loadHistory() {

@@ -116,6 +116,14 @@
             android:id="@+id/action_EntrantEventsScreen_to_EventDetailsScreen"
             app:destination="@+id/EventDetailsScreen"/>
 
+        <action
+            android:id="@+id/action_EntrantEventsScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
+
+        <action
+            android:id="@+id/action_EntrantEventsScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen"/>
+
     </fragment>
 
     <fragment
@@ -136,6 +144,18 @@
             android:id="@+id/action_EventDetailsScreen_to_EntrantEventsScreen"
             app:destination="@+id/EntrantEventsScreen"/>
 
+        <action
+        android:id="@+id/action_EventDetailsScreen_to_HomeScreen"
+        app:destination="@+id/HomeScreen"/>
+
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen" />
+
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
+
     </fragment>
 
     <fragment
@@ -155,6 +175,14 @@
         <action
             android:id="@+id/action_EntrantWaitListsScreen_to_EventDetailsScreen"
             app:destination="@+id/EventDetailsScreen"/>
+
+        <action
+            android:id="@+id/action_EntrantWaitListsScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen"/>
+
+        <action
+            android:id="@+id/action_EntrantWaitListsScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
 
     </fragment>
 
@@ -180,6 +208,10 @@
             android:id="@+id/action_ProfileScreen_to_WelcomeScreen"
             app:destination="@id/WelcomeScreen"/>
 
+        <action
+            android:id="@+id/action_ProfileScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
+
     </fragment>
 
     <fragment
@@ -195,6 +227,16 @@
         <action
             android:id="@+id/action_EditProfileScreen_to_ProfileScreen"
             app:destination="@+id/ProfileScreen"/>
+
+        <action
+            android:id="@+id/action_EditProfileScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
+
+        <action
+            android:id="@+id/action_EditProfileScreen_to_HomeScreen"
+            app:destination="@id/HomeScreen"/>
+
+
 
     </fragment>
 
@@ -224,6 +266,14 @@
         <action
             android:id="@+id/action_OrganizerEventsScreen_to_EditEventScreen"
             app:destination="@+id/EditEventScreen"/>
+
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
+
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen"/>
 
     </fragment>
 
@@ -258,6 +308,18 @@
             android:id="@+id/action_CreateEventScreen_to_OrganizerEventsScreen"
             app:destination="@+id/OrganizerEventsScreen"/>
 
+        <action
+            android:id="@+id/action_CreateEventScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen"/>
+
+        <action
+            android:id="@+id/action_CreateEventScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen"/>
+
+        <action
+            android:id="@+id/action_CreateEventScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
+
     </fragment>
 
     <fragment
@@ -274,6 +336,16 @@
             android:id="@+id/action_LotteryInfoScreen_to_HomeScreen"
             app:destination="@+id/HomeScreen"/>
 
+        <action
+            android:id="@+id/action_LotteryInfoScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
+
+        <action
+            android:id="@+id/action_LotteryInfoScreen_to_profileScreen"
+            app:destination="@+id/ProfileScreen"/>
+
+
+
     </fragment>
 
     <fragment
@@ -289,6 +361,14 @@
         <action
             android:id="@+id/action_event_history_screen_to_HomeScreen"
             app:destination="@+id/HomeScreen"/>
+
+        <action
+            android:id="@+id/action_event_history_screen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen"/>
+
+        <action
+            android:id="@+id/action_event_history_screen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
 
     </fragment>
 
@@ -310,6 +390,10 @@
             android:id="@+id/action_NotificationScreen_to_SendNotificationScreen"
             app:destination="@+id/SendNotificationScreen"/>
 
+        <action
+            android:id="@+id/action_NotificationScreen_to_profileScreen"
+            app:destination="@+id/ProfileScreen"/>
+
     </fragment>
 
     <fragment
@@ -323,8 +407,16 @@
             app:argType="java.lang.String"/>
 
         <action
-            android:id="@+id/action_send_notification_screen_to_notification_screen"
+            android:id="@+id/action_send_notification_screen_to_NotificationScreen"
             app:destination="@+id/NotificationScreen"/>
+
+        <action
+            android:id="@+id/action_send_notification_screen_to_HomeScreen"
+            app:destination="@+id/HomeScreen"/>
+
+        <action
+            android:id="@+id/action_send_notification_screen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen"/>
 
     </fragment>
 

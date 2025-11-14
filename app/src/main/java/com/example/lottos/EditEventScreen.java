@@ -50,16 +50,16 @@ public class EditEventScreen extends Fragment {
 
         binding.btnSave.setOnClickListener(v -> updateEventInfo());
         binding.btnDelete.setOnClickListener(v -> deleteEvent());
-        binding.btnCancel.setOnClickListener(v ->
-                NavHostFragment.findNavController(EditEventScreen.this)
-                        .navigate(EditEventScreenDirections
-                                .actionEditEventScreenToOrganizerEventsScreen(userName, eventName))
-        );
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(EditEventScreen.this)
-                        .navigate(EditEventScreenDirections
-                                .actionEditEventScreenToOrganizerEventsScreen(userName, eventName))
-        );
+//        binding.btnCancel.setOnClickListener(v ->
+//                NavHostFragment.findNavController(EditEventScreen.this)
+//                        .navigate(EditEventScreenDirections
+//                                .actionEditEventScreenToOrganizerEventsScreen(userName, eventName))
+//        );
+//        binding.btnBack.setOnClickListener(v ->
+//                NavHostFragment.findNavController(EditEventScreen.this)
+//                        .navigate(EditEventScreenDirections
+//                                .actionEditEventScreenToOrganizerEventsScreen(userName, eventName))
+//        );
     }
 
     private void loadEventInfo() {

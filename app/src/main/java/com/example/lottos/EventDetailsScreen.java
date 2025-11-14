@@ -63,6 +63,18 @@ public class EventDetailsScreen extends Fragment {
                 NavHostFragment.findNavController(this).navigateUp()
         );
 
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EventDetailsScreenDirections.actionEventDetailsScreenToNotificationScreen(userName)));
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EventDetailsScreenDirections.actionEventDetailsScreenToProfileScreen(userName)));
+
+        binding.btnHome.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EventDetailsScreenDirections.actionEventDetailsScreenToHomeScreen(userName)));
+
         hideAllButtons();
         setupEntrantUI(userName);
     }

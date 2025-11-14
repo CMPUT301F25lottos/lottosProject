@@ -49,6 +49,22 @@ public class EditProfileScreen extends Fragment {
                 NavHostFragment.findNavController(EditProfileScreen.this)
                         .navigate(EditProfileScreenDirections.actionEditProfileScreenToProfileScreen(userName))
         );
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(EditProfileScreen.this)
+                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToProfileScreen(userName))
+        );
+
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(EditProfileScreen.this)
+                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToHomeScreen(userName))
+        );
+
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(EditProfileScreen.this)
+                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToNotificationScreen(userName))
+        );
     }
 
     private void loadUserInfo() {
