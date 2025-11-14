@@ -15,7 +15,7 @@
         <TextView
             android:id="@+id/tvCreateEvent"
             android:text="Create Event"
-            android:textSize="28sp"
+            android:textSize="40sp"
             android:textStyle="bold"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"

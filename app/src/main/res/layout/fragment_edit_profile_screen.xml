@@ -12,6 +12,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <TextView
+            android:id="@+id/tvCreateEvent"
+            android:text="Edit Profile"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="24dp" />
+
         <LinearLayout
             android:id="@+id/navigationBar"
             android:layout_width="match_parent"
