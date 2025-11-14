@@ -42,6 +42,21 @@ public class LotteryInfoScreen extends Fragment {
                 NavHostFragment.findNavController(LotteryInfoScreen.this).navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToHomeScreen(userName));
             }
         });
+
+
+        binding.btnNotification.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NavHostFragment.findNavController(LotteryInfoScreen.this).navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToNotificationScreen(userName));
+            }
+        });
+
+        binding.btnProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NavHostFragment.findNavController(LotteryInfoScreen.this).navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToProfileScreen(userName));
+            }
+        });
     }
 
     @Override

@@ -53,7 +53,6 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation("com.google.firebase:firebase-firestore")
     implementation(libs.ext.junit)
-    implementation(files("C:/Users/Dua/AppData/Local/Android/Sdk/platforms/android-36/android.jar"))
 
 
 

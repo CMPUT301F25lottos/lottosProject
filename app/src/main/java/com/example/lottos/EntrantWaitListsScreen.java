@@ -67,6 +67,15 @@ public class EntrantWaitListsScreen extends Fragment {
                                 .actionEntrantWaitListsScreenToHomeScreen(userName))
         );
 
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EntrantWaitListsScreenDirections.actionEntrantWaitListsScreenToNotificationScreen(userName)));
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EntrantWaitListsScreenDirections.actionEntrantWaitListsScreenToProfileScreen(userName)));
+
+
         // Initialize adapters
         openAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_list_item_1, openWaitlists);

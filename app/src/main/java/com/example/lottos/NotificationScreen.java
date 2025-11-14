@@ -73,6 +73,11 @@ public class NotificationScreen extends Fragment {
                         .navigate(NotificationScreenDirections.actionNotificationScreenToSendNotificationScreen(userName))
         );
 
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(NotificationScreen.this)
+                        .navigate(NotificationScreenDirections.actionNotificationScreenToProfileScreen(userName))
+        );
+
         // adapters
         receivedAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_list_item_1, receivedNotifications);
