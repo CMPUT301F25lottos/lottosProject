@@ -1,7 +1,6 @@
 package com.example.lottos;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,27 +11,17 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.databinding.FragmentSignupScreenBinding;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
- * This fragment handles new user registration.
+ * Handles user registration UI.
  *
- * Role: Provides the interface to create a new user account.
- * Collects signup input, validates required fields, creates a corresponding user document in Firestore
- * with initialized event lists and navigates to the home screen on success.
+ * Role: Collects signup input fields, validates them,
+ * and delegates account creation to UserAuthenticator.
  */
-
 public class SignupScreen extends Fragment {
 
     private FragmentSignupScreenBinding binding;
-    private FirebaseFirestore db;
-    private CollectionReference usersRef;
+    private UserAuthenticator authenticator;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -44,8 +33,7 @@ public class SignupScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        db = FirebaseFirestore.getInstance();
-        usersRef = db.collection("users");
+        authenticator = new UserAuthenticator();
 
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(SignupScreen.this)
@@ -63,63 +51,21 @@ public class SignupScreen extends Fragment {
                 return;
             }
 
-            createUser(userName, displayName, password, email, phoneNumber);
+            authenticator.registerUser(userName, displayName, password, email, phoneNumber, new UserAuthenticator.AuthListener() {
+                @Override
+                public void onSuccess(String userName) {
+                    Toast.makeText(getContext(), "Account created successfully!", Toast.LENGTH_SHORT).show();
+                    NavHostFragment.findNavController(SignupScreen.this)
+                            .navigate(SignupScreenDirections.actionSignupScreenToHomeScreen(userName));
+                }
+
+                @Override
+                public void onFailure(String errorMessage) {
+                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
-
-    private void createUser(String userName, String displayName, String password, String email, String phoneNumber) {
-        DocumentReference userDoc = usersRef.document(userName);
-
-        userDoc.get().addOnSuccessListener(doc -> {
-            if (doc.exists()) {
-                Toast.makeText(getContext(), "Username already taken. Please choose another.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // Helper inline: create {"events": []} map
-            Map<String, Object> createEventsMap = new HashMap<>();
-            createEventsMap.put("events", new ArrayList<String>());
-
-            // userInfo
-            Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("displayName", displayName);
-            userInfo.put("email", email);
-            userInfo.put("name", displayName);
-            userInfo.put("password", password);
-            userInfo.put("phoneNumber", phoneNumber);
-
-            // main user data map
-            Map<String, Object> userData = new HashMap<>();
-            userData.put("userName", userName);
-            userData.put("userInfo", userInfo);
-
-            // each event map must be a new instance — clone it each time
-            userData.put("closedEvents", new HashMap<>(createEventsMap));
-            userData.put("declinedEvents", new HashMap<>(createEventsMap));
-            userData.put("enrolledEvents", new HashMap<>(createEventsMap));
-            userData.put("selectedEvents", new HashMap<>(createEventsMap));
-            userData.put("notSelectedEvents", new HashMap<>(createEventsMap));
-            userData.put("organizedEvents", new HashMap<>(createEventsMap));
-            userData.put("waitListedEvents", new HashMap<>(createEventsMap));
-
-            userDoc.set(userData)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(), "Account created successfully!", Toast.LENGTH_SHORT).show();
-                        NavHostFragment.findNavController(SignupScreen.this)
-                                .navigate(SignupScreenDirections.actionSignupScreenToHomeScreen(userName));
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("Firestore", "Error creating user: " + e.getMessage(), e);
-                        Toast.makeText(getContext(), "Error creating account. Please try again.", Toast.LENGTH_SHORT).show();
-                    });
-
-        }).addOnFailureListener(e -> {
-            Log.e("Firestore", "Error checking username: " + e.getMessage(), e);
-            Toast.makeText(getContext(), "Error checking username. Try again.", Toast.LENGTH_SHORT).show();
-        });
-    }
-
-
 
     @Override
     public void onDestroyView() {

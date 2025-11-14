@@ -25,7 +25,7 @@ import java.util.Map;
 public class EditProfileScreen extends Fragment {
 
     private FragmentEditProfileScreenBinding binding;
-    private FirebaseFirestore db;
+    private UserProfileManager profileManager;
     private String userName;
 
     @Override
@@ -40,15 +40,15 @@ public class EditProfileScreen extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         userName = EditProfileScreenArgs.fromBundle(getArguments()).getUserName();
-        db = FirebaseFirestore.getInstance();
+        profileManager = new UserProfileManager();
 
         loadUserInfo();
 
-        binding.btnSave.setOnClickListener(v -> updateUserInfo());
-        binding.btnCancel.setOnClickListener(v ->
-                NavHostFragment.findNavController(EditProfileScreen.this)
-                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToProfileScreen(userName))
-        );
+        binding.btnSave.setOnClickListener(v -> saveProfile());
+        binding.btnCancel.setOnClickListener(v -> {
+            NavHostFragment.findNavController(this)
+                    .navigate(EditProfileScreenDirections.actionEditProfileScreenToProfileScreen(userName));
+        });
 
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(EditProfileScreen.this)
@@ -68,22 +68,27 @@ public class EditProfileScreen extends Fragment {
     }
 
     private void loadUserInfo() {
-        DocumentReference usersDoc = db.collection("users").document(userName);
-        usersDoc.get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                Map<String, Object> userInfo = (Map<String, Object>) snapshot.get("userInfo");
-                if (userInfo != null) {
-                    binding.etName.setText((String) userInfo.get("name"));
-                    binding.etEmail.setText((String) userInfo.get("email"));
-                    binding.etPhone.setText((String) userInfo.get("phoneNumber"));
-                }
+        profileManager.loadUserProfile(userName, new UserProfileManager.ProfileLoadListener() {
+            @Override
+            public void onProfileLoaded(String name, String email, String phone) {
+                binding.etName.setText(name);
+                binding.etEmail.setText(email);
+                binding.etPhone.setText(phone);
             }
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to load profile info.", Toast.LENGTH_SHORT).show()
-        );
+
+            @Override
+            public void onProfileNotFound() {
+                Toast.makeText(getContext(), "Profile not found.", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private void updateUserInfo() {
+    private void saveProfile() {
         String name = binding.etName.getText().toString().trim();
         String email = binding.etEmail.getText().toString().trim();
         String phone = binding.etPhone.getText().toString().trim();
@@ -93,17 +98,21 @@ public class EditProfileScreen extends Fragment {
             return;
         }
 
-        DocumentReference usersDoc = db.collection("users").document(userName);
-        usersDoc.update(
-                "userInfo.name", name,
-                "userInfo.email", email,
-                "userInfo.phoneNumber", phone
-        ).addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Profile updated successfully!", Toast.LENGTH_SHORT).show();
-            NavHostFragment.findNavController(EditProfileScreen.this)
-                    .navigate(EditProfileScreenDirections.actionEditProfileScreenToProfileScreen(userName));
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to update profile.", Toast.LENGTH_SHORT).show()
+        profileManager.updateUserProfile(
+                userName, name, email, phone,
+                new UserProfileManager.ProfileUpdateListener() {
+                    @Override
+                    public void onUpdateSuccess() {
+                        Toast.makeText(getContext(), "Profile updated!", Toast.LENGTH_SHORT).show();
+                        NavHostFragment.findNavController(EditProfileScreen.this)
+                                .navigate(EditProfileScreenDirections.actionEditProfileScreenToProfileScreen(userName));
+                    }
+
+                    @Override
+                    public void onUpdateFailure(String errorMessage) {
+                        Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                    }
+                }
         );
     }
 

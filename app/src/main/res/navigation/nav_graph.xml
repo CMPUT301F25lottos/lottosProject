@@ -285,12 +285,12 @@
             android:name="userName"
             app:argType="string" />
         <argument
-            android:name="eventName"
+            android:name="eventId"
             app:argType="string" />
 
         <action
             android:id="@+id/action_EditEventScreen_to_OrganizerEventsScreen"
-            app:destination="@+id/EditEventScreen"/>
+            app:destination="@+id/OrganizerEventsScreen"/>
 
     </fragment>
 
