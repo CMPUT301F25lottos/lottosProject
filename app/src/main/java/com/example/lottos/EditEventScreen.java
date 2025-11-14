@@ -21,7 +21,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
  * displays them for editing and updates or deletes the event document based on user actions.
  * Provides navigation back to the organizer’s event list upon completion.
  */
-
 public class EditEventScreen extends Fragment {
 
     private FragmentEditEventScreenBinding binding;
@@ -50,89 +49,119 @@ public class EditEventScreen extends Fragment {
 
         binding.btnSave.setOnClickListener(v -> updateEventInfo());
         binding.btnDelete.setOnClickListener(v -> deleteEvent());
-//        binding.btnCancel.setOnClickListener(v ->
-//                NavHostFragment.findNavController(EditEventScreen.this)
-//                        .navigate(EditEventScreenDirections
-//                                .actionEditEventScreenToOrganizerEventsScreen(userName, eventName))
-//        );
-//        binding.btnBack.setOnClickListener(v ->
-//                NavHostFragment.findNavController(EditEventScreen.this)
-//                        .navigate(EditEventScreenDirections
-//                                .actionEditEventScreenToOrganizerEventsScreen(userName, eventName))
-//        );
-    }
 
-    private void loadEventInfo() {
-        DocumentReference eventDoc = db.collection("open events").document(eventName);
-        eventDoc.get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                binding.etEventName.setText(snapshot.getString("eventName"));
-                binding.etLocation.setText(snapshot.getString("location"));
-                binding.etDescription.setText(snapshot.getString("description"));
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(EditEventScreen.this)
+                        .navigate(EditEventScreenDirections
+                                .actionEditEventScreenToOrganizerEventsScreen(userName, eventName))
+        );
 
-                Long selectionCap = snapshot.getLong("selectionCap");
-                Long waitListCap = snapshot.getLong("waitListCapacity");
-
-                if (selectionCap != null)
-                    binding.etSelectionCap.setText(String.valueOf(selectionCap));
-                if (waitListCap != null)
-                    binding.etWaitListCap.setText(String.valueOf(waitListCap));
-
-                Timestamp startTime = snapshot.getTimestamp("startTime");
-                Timestamp endTime = snapshot.getTimestamp("endTime");
-
-                if (startTime != null)
-                    binding.tvStartTime.setText("Start: " + startTime.toDate());
-                if (endTime != null)
-                    binding.tvEndTime.setText("End: " + endTime.toDate());
-            } else {
-                Toast.makeText(getContext(), "Event not found.", Toast.LENGTH_SHORT).show();
-            }
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to load event info.", Toast.LENGTH_SHORT).show()
+        binding.btnCancel.setOnClickListener(v ->
+                NavHostFragment.findNavController(EditEventScreen.this)
+                        .navigate(EditEventScreenDirections
+                                .actionEditEventScreenToOrganizerEventsScreen(userName, eventName))
         );
     }
 
+    /** Load event data from Firestore and populate UI */
+    private void loadEventInfo() {
+        DocumentReference eventDoc = db.collection("open events").document(eventName);
+        eventDoc.get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) {
+                        binding.etEventName.setText(snapshot.getString("eventName"));
+                        binding.etEventLocation.setText(snapshot.getString("location"));
+                        binding.etDescription.setText(snapshot.getString("description"));
+
+                        Long selectionCap = snapshot.getLong("selectionCap");
+                        Long waitListCap = snapshot.getLong("waitListCapacity");
+
+                        if (selectionCap != null) {
+                            binding.etCapacity.setText(String.valueOf(selectionCap));
+                        }
+                        if (waitListCap != null) {
+                            binding.etWaitListCapacity.setText(String.valueOf(waitListCap));
+                        }
+
+                        Timestamp startTime = snapshot.getTimestamp("startTime");
+                        Timestamp endTime = snapshot.getTimestamp("endTime");
+
+                        if (startTime != null) {
+                            binding.etStartTime.setText("Start: " + startTime.toDate());
+                        }
+                        if (endTime != null) {
+                            binding.etEndTime.setText("End: " + endTime.toDate());
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Event not found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Failed to load event info.", Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    /** Update event fields in Firestore */
     private void updateEventInfo() {
         String newEventName = binding.etEventName.getText().toString().trim();
-        String location = binding.etLocation.getText().toString().trim();
+        String location = binding.etEventLocation.getText().toString().trim();
         String description = binding.etDescription.getText().toString().trim();
-        String selectionCapStr = binding.etSelectionCap.getText().toString().trim();
-        String waitListCapStr = binding.etWaitListCap.getText().toString().trim();
+        String selectionCapStr = binding.etCapacity.getText().toString().trim();
+        String waitListCapStr = binding.etWaitListCapacity.getText().toString().trim();
 
         if (newEventName.isEmpty() || location.isEmpty()) {
             Toast.makeText(getContext(), "Event name and location are required.", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        Integer selectionCap = null;
+        Integer waitListCap = null;
+
+        try {
+            if (!selectionCapStr.isEmpty()) {
+                selectionCap = Integer.parseInt(selectionCapStr);
+            }
+            if (!waitListCapStr.isEmpty()) {
+                waitListCap = Integer.parseInt(waitListCapStr);
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(getContext(), "Capacity must be a valid number.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         DocumentReference eventDoc = db.collection("open events").document(eventName);
 
         eventDoc.update(
-                "eventName", newEventName,
-                "location", location,
-                "description", description,
-                "selectionCap", selectionCapStr.isEmpty() ? null : Integer.parseInt(selectionCapStr),
-                "waitListCapacity", waitListCapStr.isEmpty() ? null : Integer.parseInt(waitListCapStr)
-        ).addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Event updated successfully!", Toast.LENGTH_SHORT).show();
-            NavHostFragment.findNavController(EditEventScreen.this)
-                    .navigate(EditEventScreenDirections
-                            .actionEditEventScreenToOrganizerEventsScreen(userName, eventName));
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to update event.", Toast.LENGTH_SHORT).show()
-        );
+                        "eventName", newEventName,
+                        "location", location,
+                        "description", description,
+                        "selectionCap", selectionCap,
+                        "waitListCapacity", waitListCap
+                )
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Event updated successfully!", Toast.LENGTH_SHORT).show();
+                    NavHostFragment.findNavController(EditEventScreen.this)
+                            .navigate(EditEventScreenDirections
+                                    .actionEditEventScreenToOrganizerEventsScreen(userName, eventName));
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Failed to update event.", Toast.LENGTH_SHORT).show()
+                );
     }
 
+    /** Delete the event document from Firestore */
     private void deleteEvent() {
         DocumentReference eventDoc = db.collection("open events").document(eventName);
-        eventDoc.delete().addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Event deleted.", Toast.LENGTH_SHORT).show();
-            NavHostFragment.findNavController(EditEventScreen.this)
-                    .navigate(EditEventScreenDirections
-                            .actionEditEventScreenToOrganizerEventsScreen(userName, eventName));
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to delete event.", Toast.LENGTH_SHORT).show()
-        );
+        eventDoc.delete()
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Event deleted.", Toast.LENGTH_SHORT).show();
+                    NavHostFragment.findNavController(EditEventScreen.this)
+                            .navigate(EditEventScreenDirections
+                                    .actionEditEventScreenToOrganizerEventsScreen(userName, eventName));
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Failed to delete event.", Toast.LENGTH_SHORT).show()
+                );
     }
 
     @Override
