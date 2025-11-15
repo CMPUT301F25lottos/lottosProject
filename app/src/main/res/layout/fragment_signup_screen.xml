@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/vertical_gradient_bg"
-    tools:context=".SignupScreen"
+    tools:context=".auth.SignupScreen"
     android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout

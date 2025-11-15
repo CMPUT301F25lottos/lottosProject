@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.home;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.lottos.home.HomeScreenArgs;
+import com.example.lottos.home.HomeScreenDirections;
 import com.example.lottos.databinding.FragmentHomeScreenBinding;
 
 /**

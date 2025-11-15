@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.entities;
 
 /**
  * model class representing a waitlist for an event.

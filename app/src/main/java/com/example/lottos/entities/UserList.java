@@ -1,6 +1,4 @@
-package com.example.lottos;
-
-import android.security.keystore.UserPresenceUnavailableException;
+package com.example.lottos.entities;
 
 import java.util.ArrayList;
 

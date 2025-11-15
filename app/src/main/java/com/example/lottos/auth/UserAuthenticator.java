@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.auth;
 
 import android.util.Log;
 

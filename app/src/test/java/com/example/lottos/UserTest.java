@@ -2,6 +2,9 @@ package com.example.lottos;
 
 import static org.junit.Assert.*;
 
+import com.example.lottos.entities.User;
+import com.example.lottos.entities.UserInfo;
+
 import org.junit.Assert;
 import org.junit.Test;
 

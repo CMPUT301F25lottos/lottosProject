@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.account;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
@@ -11,6 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.lottos.account.ProfileScreenArgs;
+import com.example.lottos.account.ProfileScreenDirections;
 import com.example.lottos.databinding.FragmentProfileScreenBinding;
 
 /**

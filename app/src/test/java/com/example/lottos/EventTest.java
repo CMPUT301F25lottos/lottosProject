@@ -1,5 +1,6 @@
 package com.example.lottos;
 
+import com.example.lottos.entities.Event;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 

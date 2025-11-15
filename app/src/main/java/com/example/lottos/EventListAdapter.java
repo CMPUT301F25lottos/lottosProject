@@ -68,8 +68,10 @@ public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> 
         layout.setPadding(16, 16, 16, 16);
 
         TextView tv = new TextView(parent.getContext());
-        tv.setLayoutParams(new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        layout.setLayoutParams(new RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
         tv.setTextSize(16);
 
         Button btn = new Button(parent.getContext());
