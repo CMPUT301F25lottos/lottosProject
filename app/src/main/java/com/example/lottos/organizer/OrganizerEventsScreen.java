@@ -1,16 +1,19 @@
-// OrganizerEventsScreen.java (refactored)
-package com.example.lottos;
+package com.example.lottos.organizer;
 
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.lottos.EventRepository;
+import com.example.lottos.organizer.OrganizerEventsScreenArgs;
+import com.example.lottos.organizer.OrganizerEventsScreenDirections;
 import com.example.lottos.databinding.FragmentOrganizerEventsScreenBinding;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -26,8 +29,10 @@ public class OrganizerEventsScreen extends Fragment {
     private EventRepository repo;
     private String userName;
 
-    private final List<EventListAdapter.EventItem> events = new ArrayList<>();
-    private EventListAdapter adapter;
+    // Use a simple list of strings for the ArrayAdapter and a corresponding list for event IDs.
+    private final List<String> eventNames = new ArrayList<>();
+    private final List<String> eventIds = new ArrayList<>();
+    private ArrayAdapter<String> adapter;
 
     @Override
     public View onCreateView(@NonNull android.view.LayoutInflater inflater,
@@ -44,32 +49,15 @@ public class OrganizerEventsScreen extends Fragment {
         userName = OrganizerEventsScreenArgs.fromBundle(getArguments()).getUserName();
         repo = new EventRepository();
 
-        adapter = new EventListAdapter(events, false, new EventListAdapter.Listener() {
-
-            @Override
-            public void onEventClick(String eventId) {
-                openEditEventScreen(eventId);
-            }
-
-            @Override public void onJoinClick(String eventId) {}
-            @Override public void onLeaveClick(String eventId) {}
-
-        });
-
-        // ListView setup
+        // 1. Setup ListView and ArrayAdapter
         ListView listView = binding.lvOpenEvents;
+        adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, eventNames);
+        listView.setAdapter(adapter);
 
-        eventAdapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_list_item_1,
-                organizerEvents
-        );
-        listView.setAdapter(eventAdapter);
-
-        // Click handler → go to EditEvent screen
-        listView.setOnItemClickListener((parent, clickedView, position, id) -> {
-            String eventName = organizerEvents.get(position);
-            openEditEventScreen(userName, eventName);
+        // 2. Set a click listener to handle item clicks
+        listView.setOnItemClickListener((parent, itemView, position, id) -> {
+            String clickedEventId = eventIds.get(position); // Get the ID using the item's position
+            openEditEventScreen(clickedEventId);
         });
 
         // Navigation buttons
@@ -94,8 +82,10 @@ public class OrganizerEventsScreen extends Fragment {
         binding.btnCreateEvent.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(OrganizerEventsScreenDirections
-                                .actionOrganizerEventsScreenToCreateEventScreen(userName))
+                                        .actionOrganizerEventsScreenToCreateEventScreen(userName))
         );
+
+
 
         // Load events
         loadOrganizerEvents();
@@ -105,22 +95,24 @@ public class OrganizerEventsScreen extends Fragment {
     private void loadOrganizerEvents() {
         repo.getEventsByOrganizer(userName).get()
                 .addOnSuccessListener(query -> {
-                    events.clear();
+                    // Clear previous data
+                    eventNames.clear();
+                    eventIds.clear();
 
                     for (QueryDocumentSnapshot doc : query) {
                         String id = doc.getId();
                         String name = doc.getString("eventName");
 
                         if (name != null) {
-                            events.add(new EventListAdapter.EventItem(
-                                    id, name, true, false
-                            ));
+                            eventNames.add(name); // Add the name to the list for the adapter
+                            eventIds.add(id);     // Add the ID to our parallel list
                         }
                     }
 
+                    // Notify the adapter that the data has changed
                     adapter.notifyDataSetChanged();
 
-                    if (events.isEmpty()) {
+                    if (eventNames.isEmpty()) {
                         Toast.makeText(getContext(), "You haven’t created any events yet.",
                                 Toast.LENGTH_SHORT).show();
                     }
@@ -137,6 +129,9 @@ public class OrganizerEventsScreen extends Fragment {
                 .navigate(OrganizerEventsScreenDirections
                         .actionOrganizerEventsScreenToEditEventScreen(userName, eventId));
     }
+
+
+
 
     @Override
     public void onDestroyView() {

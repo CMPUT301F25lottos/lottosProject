@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.home;
 
 import android.util.Log;
 

@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.account;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,11 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.lottos.account.EditProfileScreenArgs;
+import com.example.lottos.account.EditProfileScreenDirections;
 import com.example.lottos.databinding.FragmentEditProfileScreenBinding;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.Map;
 
 /**
  * This fragment is the main fragment that lets a user view and update their profile information.

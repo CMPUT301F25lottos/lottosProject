@@ -1,6 +1,6 @@
-package com.example.lottos;
+package com.example.lottos.entities;
 
-public class Entrant extends User{
+public class Entrant extends User {
     private String userName;
     private UserInfo userInfo;
     private EventList waitListedEvents;

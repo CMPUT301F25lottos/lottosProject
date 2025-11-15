@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.entities;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;

@@ -1,8 +1,6 @@
-package com.example.lottos;
+package com.example.lottos.entities;
 
-import java.util.ArrayList;
-
-public class Organizer extends User{
+public class Organizer extends User {
     private String userName;
     private UserInfo userInfo;
     private EventList openEvents = new EventList();

@@ -1,5 +1,7 @@
-package com.example.lottos;
+package com.example.lottos.organizer;
 
+import com.example.lottos.entities.Event;
+import com.example.lottos.EventRepository;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldValue;
@@ -18,9 +20,11 @@ public class OrganizerEventManager {
     private final EventRepository repo = new EventRepository();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+
+    /** Creates a new event document + links it to the organizer. */
     public void createEvent(
             Event event,
-            LocalDateTime endRegisterTime,   // registration cutoff time
+            LocalDateTime registerEndTime,
             Integer waitListCapacity,
             Runnable onSuccess,
             EventRepository.OnError onError
@@ -36,51 +40,42 @@ public class OrganizerEventManager {
         map.put("description", event.getDescription());
         map.put("location", event.getLocation());
         map.put("selectionCap", event.getSelectionCap());
-        map.put("IsOpen", event.getIsOpen());
-        map.put("IsLottery", false);
+        map.put("isOpen", event.getIsOpen());
+        map.put("isLottery", false);
 
         if (waitListCapacity != null) {
             map.put("waitListCapacity", waitListCapacity);
         }
 
-        map.put("startTime", new Timestamp(
-                Date.from(event.getStartTime()
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant())
-        ));
-
-        map.put("endTime", new Timestamp(
-                Date.from(event.getEndTime()
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant())
-        ));
-
-        map.put("EndRegisterTime", new Timestamp(
-                Date.from(endRegisterTime
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant())
-        ));
+        // Convert LocalDateTime → Timestamp cleanly
+        map.put("startTime", toTimestamp(event.getStartTime()));
+        map.put("endTime", toTimestamp(event.getEndTime()));
+        map.put("registerEndTime", toTimestamp(registerEndTime));
 
         map.put("createdAt", Timestamp.now());
 
-        // nested lists
+        // nested lists initialized consistently
         map.put("waitList", makeWaitListMap());
-        map.put("selectedList", makeEmptyUserListMap());
-        map.put("enrolledList", makeEmptyUserListMap());
-        map.put("cancelledList", makeEmptyUserListMap());
-        map.put("organizedList", makeEmptyUserListMap());
-        map.put("notSelectedList", makeEmptyUserListMap());
+        map.put("selectedList", makeUserListMap());
+        map.put("enrolledList", makeUserListMap());
+        map.put("cancelledList", makeUserListMap());
+        map.put("organizedList", makeUserListMap());
+        map.put("notSelectedList", makeUserListMap());
 
         repo.createEvent(eventId, map, () -> {
-            // link event to organizer document
+
+            // link event to organizer profile
             db.collection("users")
                     .document(event.getOrganizer())
                     .update("organizedEvents.events", FieldValue.arrayUnion(eventId))
                     .addOnSuccessListener(v -> onSuccess.run())
                     .addOnFailureListener(onError::run);
+
         }, onError);
     }
 
+
+    /** Updates event fields ‒ EditEventScreen calls this. */
     public void updateEvent(
             String eventId,
             Map<String, Object> updates,
@@ -90,6 +85,8 @@ public class OrganizerEventManager {
         repo.updateEvent(eventId, updates, onSuccess, onError);
     }
 
+
+    /** Deletes an event document. */
     public void deleteEvent(
             String eventId,
             Runnable onSuccess,
@@ -98,15 +95,32 @@ public class OrganizerEventManager {
         repo.deleteEvent(eventId, onSuccess, onError);
     }
 
+
+    // Utility: converts LocalDateTime → Firebase Timestamp
+    // --- Corrected code ---
+    private Timestamp toTimestamp(LocalDateTime ldt) {
+        if (ldt == null) {
+            return null; // Avoid NullPointerException
+        }
+        // Convert the LocalDateTime to an Instant, then to a java.util.Date
+        java.util.Date date = java.util.Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+        // Create a new Firebase Timestamp from the Date object
+        return new Timestamp(date);
+    }
+
+
+
+    /** WaitList structure */
     private Map<String, Object> makeWaitListMap() {
         Map<String, Object> m = new HashMap<>();
         m.put("closeDate", "");
-        m.put("CloseTime", "");
+        m.put("closeTime", "");
         m.put("users", new ArrayList<String>());
         return m;
     }
 
-    private Map<String, Object> makeEmptyUserListMap() {
+    /** Simple user list structure */
+    private Map<String, Object> makeUserListMap() {
         Map<String, Object> m = new HashMap<>();
         m.put("users", new ArrayList<String>());
         return m;

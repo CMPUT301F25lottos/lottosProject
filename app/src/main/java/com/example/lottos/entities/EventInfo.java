@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.entities;
 
 public class EventInfo {
     private String description;

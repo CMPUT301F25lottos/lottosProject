@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.auth;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.lottos.auth.LoginScreenDirections;
 import com.example.lottos.databinding.FragmentLoginScreenBinding;
 
 /**
