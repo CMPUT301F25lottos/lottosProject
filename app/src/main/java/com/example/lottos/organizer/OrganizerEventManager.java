@@ -40,8 +40,8 @@ public class OrganizerEventManager {
         map.put("description", event.getDescription());
         map.put("location", event.getLocation());
         map.put("selectionCap", event.getSelectionCap());
-        map.put("isOpen", event.getIsOpen());
-        map.put("isLottery", false);
+        map.put("IsOpen", event.getIsOpen());
+        map.put("IsLottery", false);
 
         if (waitListCapacity != null) {
             map.put("waitListCapacity", waitListCapacity);

@@ -6,6 +6,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.firebase.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
@@ -78,9 +84,89 @@ public class EventDetailsScreen extends Fragment {
 
     private void renderEventData(Map<String, Object> data) {
         binding.tvOrganizer.setText("Organizer: " + safe(data.get("organizer")));
-        binding.tvLocation.setText("Location: " + safe(data.get("location")));
+        binding.tvEventName.setText(safe(data.get("eventName")));
+        binding.tvLocation.setText(" | " + safe(data.get("location")));
+
+        Object startTimeObj = data.get("startTime");
+
+        if (startTimeObj instanceof Timestamp) {
+            Timestamp ts = (Timestamp) startTimeObj;
+
+            // Convert to java.util.Date
+            Date date = ts.toDate();
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault());
+            String formatted = sdf.format(date);
+
+            binding.tvStartTime.setText(formatted);
+        } else {
+            binding.tvStartTime.setText("N/A");
+        }
+
+
+        Object endTimeObj = data.get("endTime");
+
+        if (endTimeObj instanceof Timestamp) {
+            Timestamp ts = (Timestamp) endTimeObj;
+
+            // Convert to java.util.Date
+            Date date = ts.toDate();
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault());
+            String formatted = sdf.format(date);
+
+            binding.tvEndTime.setText(" ~ " + formatted);
+        } else {
+            binding.tvEndTime.setText("N/A");
+        }
+
+        Object registercloseTimeObj = data.get("registerEndTime");
+
+        if (registercloseTimeObj instanceof Timestamp) {
+            Timestamp ts = (Timestamp) registercloseTimeObj;
+
+            Date date = ts.toDate();
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault());
+            String formatted = sdf.format(date);
+
+            binding.tvWLCloseDateTime.setText("Register End Date: " + formatted);
+        } else {
+            binding.tvWLCloseDateTime.setText("Register End Date: N/A");
+        }
+
+
+        Map<String, Object> waitList = (Map<String, Object>) data.get("waitList");
+
+        if (waitList != null) {
+            List<?> users = (List<?>) waitList.get("users");
+
+            int userCount = (users != null) ? users.size() : 0;
+
+            binding.tvWLCount.setText("Number of Entrants on WaitList:" + userCount);
+        }
+
+
         binding.tvDescription.setText("Description: " + safe(data.get("description")));
-        binding.tvCapacity.setText("Capacity: " + safe(data.get("selectionCap")));
+
+        binding.tvCapacity.setText("Event Capacity: " + safe(data.get("selectionCap")));
+
+        Object wlCapacityObj = waitList.get("waitListCapacity");
+
+        String capacity = "No Restriction";  // default string
+
+        if (wlCapacityObj instanceof Integer) {
+            capacity = String.valueOf(((Number) wlCapacityObj).intValue());
+        }
+
+        binding.tvWLSize.setText("Wait List Capacity: " + capacity);
+
+
+
+
+
+
+
     }
 
     private String safe(Object o) {

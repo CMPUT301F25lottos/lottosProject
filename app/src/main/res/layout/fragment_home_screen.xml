@@ -75,7 +75,7 @@
             android:layout_height="40dp"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_lotteryinfo"
-            app:tint="@color/navy"
+            app:tint="@color/white"
 
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -101,7 +101,7 @@
                 android:layout_width="300dp"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/navy"
-                android:text="Open Events"/>
+                android:text="My Organzied Event"/>
 
             <Button
                 android:id="@+id/btnOrgEvents"
