@@ -46,7 +46,7 @@ public class EventStatusUpdater {
 
             for (DocumentSnapshot doc : querySnapshot) {
 
-                Timestamp registerEnd = doc.getTimestamp("RegisterEnd");
+                Timestamp registerEnd = doc.getTimestamp("registerEndTime");
                 if (registerEnd == null) continue;
 
                 boolean shouldBeOpen = nowTs.compareTo(registerEnd) < 0;
