@@ -4,15 +4,16 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
+import java.util.List;
 import java.util.Map;
 
-/**
- * Simple repository layer for Firestore "open events" collection.
- * No UI logic here.
- */
 public class EventRepository {
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+    // --------------------------
+    // ORIGINAL CODE (unchanged)
+    // --------------------------
 
     public DocumentReference getEvent(String eventId) {
         return db.collection("open events").document(eventId);
@@ -64,5 +65,37 @@ public class EventRepository {
 
     public interface OnError {
         void run(Exception e);
+    }
+
+    // --------------------------
+    // NEW CODE (added only)
+    // --------------------------
+
+    public interface OnNameResult {
+        void run(String eventName);
+    }
+
+    /**
+     * Gets the event name corresponding to an event ID.
+     * No assumptions, matches your actual Firestore structure.
+     */
+    public void getEventName(String eventId,
+                             OnNameResult onSuccess,
+                             OnError onError) {
+
+        db.collection("open events")
+                .document(eventId)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) {
+                        String name = snapshot.getString("eventName");
+                        if (name != null && !name.isEmpty()) {
+                            onSuccess.run(name);
+                            return;
+                        }
+                    }
+                    onSuccess.run(eventId); // fallback
+                })
+                .addOnFailureListener(onError::run);
     }
 }

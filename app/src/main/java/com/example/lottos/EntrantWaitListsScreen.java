@@ -14,27 +14,30 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.databinding.FragmentEntrantWaitListsScreenBinding;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * This fragment is the main fragment that displays all events the entrant has joined waitlists for.
- * Role: Retrieves a user’s waitlisted events from Firestore,
- * categorizes them into open and closed events and displays them in two ListViews.
- * Provides navigation to detailed event screens when a list item is selected.
+ * Displays all events the entrant is waitlisted for.
+ * Now shows event names instead of event IDs.
  */
-
 public class EntrantWaitListsScreen extends Fragment {
 
     private FragmentEntrantWaitListsScreenBinding binding;
     private FirebaseFirestore db;
-    private ArrayList<String> openWaitlists;
-    private ArrayList<String> closedWaitlists;
+
+    // Display lists (names)
+    private ArrayList<String> openWaitlistNames;
+    private ArrayList<String> closedWaitlistNames;
+
+    // Internal mapping so name → eventId for navigation
+    private Map<String, String> nameToIdMap = new HashMap<>();
+
     private ArrayAdapter<String> openAdapter;
     private ArrayAdapter<String> closedAdapter;
 
@@ -53,123 +56,147 @@ public class EntrantWaitListsScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get username passed from navigation args
         userName = EntrantWaitListsScreenArgs.fromBundle(getArguments()).getUserName();
-
         db = FirebaseFirestore.getInstance();
-        openWaitlists = new ArrayList<>();
-        closedWaitlists = new ArrayList<>();
 
-        // Back button → home screen
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(EntrantWaitListsScreen.this)
-                        .navigate(EntrantWaitListsScreenDirections
-                                .actionEntrantWaitListsScreenToHomeScreen(userName))
-        );
+        openWaitlistNames = new ArrayList<>();
+        closedWaitlistNames = new ArrayList<>();
 
-        binding.btnNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(EntrantWaitListsScreenDirections.actionEntrantWaitListsScreenToNotificationScreen(userName)));
-
-        binding.btnProfile.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(EntrantWaitListsScreenDirections.actionEntrantWaitListsScreenToProfileScreen(userName)));
-
-
-        // Initialize adapters
-        openAdapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_list_item_1, openWaitlists);
-        closedAdapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_list_item_1, closedWaitlists);
-        binding.lvOpenWaitLists.setAdapter(openAdapter);
-        binding.lvClosedWaitLists.setAdapter(closedAdapter);
-
-        // Handle clicks on open/closed events
-        binding.lvOpenWaitLists.setOnItemClickListener((parent, v1, position, id) -> {
-            String eventId = openWaitlists.get(position);
-            if (!eventId.startsWith("No ")) {
-                goToDetails(eventId);
-            }
-        });
-
-        binding.lvClosedWaitLists.setOnItemClickListener((parent, v2, position, id) -> {
-            String eventId = closedWaitlists.get(position);
-            if (!eventId.startsWith("No ")) {
-                goToDetails(eventId);
-            }
-        });
+        setupButtons();
+        setupAdapters();
+        setupClickListeners();
 
         loadEntrantWaitlists();
     }
 
-    /** Load user's waitlisted events and categorize open/closed (using document IDs like EntrantEventsScreen) */
+    private void setupButtons() {
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EntrantWaitListsScreenDirections
+                                .actionEntrantWaitListsScreenToHomeScreen(userName)));
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EntrantWaitListsScreenDirections
+                                .actionEntrantWaitListsScreenToNotificationScreen(userName)));
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EntrantWaitListsScreenDirections
+                                .actionEntrantWaitListsScreenToProfileScreen(userName)));
+    }
+
+    private void setupAdapters() {
+        openAdapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_list_item_1, openWaitlistNames);
+
+        closedAdapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_list_item_1, closedWaitlistNames);
+
+        binding.lvOpenWaitLists.setAdapter(openAdapter);
+        binding.lvClosedWaitLists.setAdapter(closedAdapter);
+    }
+
+    private void setupClickListeners() {
+        binding.lvOpenWaitLists.setOnItemClickListener((parent, v, position, id) -> {
+            String name = openWaitlistNames.get(position);
+            if (!name.startsWith("No ")) {
+                goToDetails(nameToIdMap.get(name));
+            }
+        });
+
+        binding.lvClosedWaitLists.setOnItemClickListener((parent, v, position, id) -> {
+            String name = closedWaitlistNames.get(position);
+            if (!name.startsWith("No ")) {
+                goToDetails(nameToIdMap.get(name));
+            }
+        });
+    }
+
+    /**
+     * Load user's waitlist event IDs → fetch their names → categorize open/closed.
+     */
     private void loadEntrantWaitlists() {
+
         DocumentReference userDoc = db.collection("users").document(userName);
-        openWaitlists.clear();
-        closedWaitlists.clear();
+
+        openWaitlistNames.clear();
+        closedWaitlistNames.clear();
+        nameToIdMap.clear();
 
         userDoc.get().addOnSuccessListener(snapshot -> {
+
             if (!snapshot.exists()) {
                 Toast.makeText(getContext(), "User not found.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Map<String, Object> waitListedMap = (Map<String, Object>) snapshot.get("waitListedEvents");
-            if (waitListedMap == null) {
-                openWaitlists.add("No waitlisted events found.");
+            Map<String, Object> waitMap =
+                    (Map<String, Object>) snapshot.get("waitListedEvents");
+
+            if (waitMap == null) {
+                openWaitlistNames.add("No waitlisted events.");
                 updateUI();
                 return;
             }
 
-            List<String> waitListEvents = (List<String>) waitListedMap.get("events");
-            if (waitListEvents == null || waitListEvents.isEmpty()) {
-                openWaitlists.add("No waitlisted events found.");
+            List<String> eventIds = (List<String>) waitMap.get("events");
+            if (eventIds == null || eventIds.isEmpty()) {
+                openWaitlistNames.add("No waitlisted events.");
                 updateUI();
                 return;
             }
 
-            // Now mimic EntrantEventsScreen: read from "open events" and use document IDs
-            db.collection("open events").get().addOnSuccessListener(query -> {
-                for (QueryDocumentSnapshot doc : query) {
-                    String docId = doc.getId();
-                    Boolean isOpenFlag = doc.getBoolean("IsOpen");
-                    boolean isOpen = isOpenFlag != null && isOpenFlag;
+            // Grab all open events
+            db.collection("open events")
+                    .get()
+                    .addOnSuccessListener(query -> {
 
-                    if (waitListEvents.contains(docId)) {
-                        if (isOpen) openWaitlists.add(docId);
-                        else closedWaitlists.add(docId);
-                    }
-                }
+                        for (QueryDocumentSnapshot doc : query) {
+                            String id = doc.getId();
 
-                // Sort to match EntrantEventsScreen order (open first)
-                openWaitlists.sort(String::compareToIgnoreCase);
-                closedWaitlists.sort(String::compareToIgnoreCase);
+                            // Only process events the user is in
+                            if (!eventIds.contains(id)) continue;
 
-                updateUI();
-            }).addOnFailureListener(e -> {
-                Log.e("Firestore", "Failed to load events", e);
-                Toast.makeText(getContext(), "Error loading waitlists", Toast.LENGTH_SHORT).show();
-            });
+                            String name = doc.getString("eventName");
+                            Boolean openFlag = doc.getBoolean("IsOpen");
+                            boolean isOpen = openFlag != null && openFlag;
+
+                            if (name == null) name = "(Unnamed Event)";
+
+                            nameToIdMap.put(name, id);
+
+                            if (isOpen) {
+                                openWaitlistNames.add(name);
+                            } else {
+                                closedWaitlistNames.add(name);
+                            }
+                        }
+
+                        updateUI();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("Firestore", "Error loading events", e);
+                        Toast.makeText(getContext(), "Error loading waitlists", Toast.LENGTH_SHORT).show();
+                    });
 
         }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to load user data.", Toast.LENGTH_SHORT).show()
-        );
+                Toast.makeText(getContext(), "Failed to load user.", Toast.LENGTH_SHORT).show());
     }
 
-    /** Go to Event Details (exact same navigation style as EntrantEventsScreen) */
-    private void goToDetails(String eventId) {
-        EntrantWaitListsScreenDirections.ActionEntrantWaitListsScreenToEventDetailsScreen action =
-                EntrantWaitListsScreenDirections
-                        .actionEntrantWaitListsScreenToEventDetailsScreen(userName, eventId);
-        NavHostFragment.findNavController(this).navigate(action);
-    }
-
-    /** Update list views */
     private void updateUI() {
-        if (openWaitlists.isEmpty()) openWaitlists.add("No joined open waitlists.");
-        if (closedWaitlists.isEmpty()) closedWaitlists.add("No joined closed waitlists.");
+        if (openWaitlistNames.isEmpty()) openWaitlistNames.add("No open waitlists.");
+        if (closedWaitlistNames.isEmpty()) closedWaitlistNames.add("No closed waitlists.");
+
         openAdapter.notifyDataSetChanged();
         closedAdapter.notifyDataSetChanged();
+    }
+
+    private void goToDetails(String eventId) {
+        if (eventId == null) return;
+        NavHostFragment.findNavController(this)
+                .navigate(EntrantWaitListsScreenDirections
+                        .actionEntrantWaitListsScreenToEventDetailsScreen(userName, eventId));
     }
 
     @Override
