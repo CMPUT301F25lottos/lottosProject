@@ -10,6 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.lottos.account.EditProfileScreen;
+import com.example.lottos.account.EditProfileScreenDirections;
+import com.example.lottos.account.ProfileScreen;
+import com.example.lottos.account.ProfileScreenDirections;
 import com.example.lottos.organizer.EditEventScreenArgs;
 import com.example.lottos.organizer.EditEventScreenDirections;
 import com.example.lottos.EventRepository;
@@ -56,6 +60,7 @@ public class EditEventScreen extends Fragment {
         manager = new OrganizerEventManager();
 
         loadEventInfo();
+        setupNavButtons();
 
         DateTimePickerHelper timeHelper = new DateTimePickerHelper(requireContext());
         binding.etStartTime.setOnClickListener(v -> timeHelper.showDateTimePicker(binding.etStartTime));
@@ -233,9 +238,39 @@ public class EditEventScreen extends Fragment {
     }
 
     private void goBack() {
-        NavHostFragment.findNavController(EditEventScreen.this)
+        NavHostFragment.findNavController(this)
                 .navigate(EditEventScreenDirections
                         .actionEditEventScreenToOrganizerEventsScreen(userName));
+    }
+
+    private void setupNavButtons() {
+
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EditEventScreenDirections.actionEditEventScreenToProfileScreen(userName))
+        );
+
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EditEventScreenDirections.actionEditEventScreenToHomeScreen(userName))
+        );
+
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EditEventScreenDirections.actionEditEventScreenToNotificationScreen(userName))
+        );
+
+        binding.btnOpenEvents.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EditEventScreenDirections.actionEditEventScreenToOrganizerEventsScreen(userName))
+        );
+
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EditEventScreenDirections.actionEditEventScreenToEventHistoryScreen(userName))
+        );
     }
 
     @Override

@@ -41,28 +41,9 @@ public class EditProfileScreen extends Fragment {
         profileManager = new UserProfileManager();
 
         loadUserInfo();
-
-        binding.btnSave.setOnClickListener(v -> saveProfile());
-        binding.btnCancel.setOnClickListener(v -> {
-            NavHostFragment.findNavController(this)
-                    .navigate(EditProfileScreenDirections.actionEditProfileScreenToProfileScreen(userName));
-        });
-
-        binding.btnProfile.setOnClickListener(v ->
-                NavHostFragment.findNavController(EditProfileScreen.this)
-                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToProfileScreen(userName))
-        );
-
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(EditProfileScreen.this)
-                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToHomeScreen(userName))
-        );
+        setupNavButtons();
 
 
-        binding.btnNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(EditProfileScreen.this)
-                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToNotificationScreen(userName))
-        );
     }
 
     private void loadUserInfo() {
@@ -111,6 +92,42 @@ public class EditProfileScreen extends Fragment {
                         Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
                     }
                 }
+        );
+    }
+
+    private void setupNavButtons() {
+
+        binding.btnSave.setOnClickListener(v -> saveProfile());
+
+        binding.btnCancel.setOnClickListener(v -> {
+            NavHostFragment.findNavController(this)
+                    .navigate(EditProfileScreenDirections.actionEditProfileScreenToProfileScreen(userName));
+        });
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(EditProfileScreen.this)
+                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToProfileScreen(userName))
+        );
+
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(EditProfileScreen.this)
+                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToHomeScreen(userName))
+        );
+
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(EditProfileScreen.this)
+                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToNotificationScreen(userName))
+        );
+
+        binding.btnOpenEvents.setOnClickListener(v ->
+                NavHostFragment.findNavController(EditProfileScreen.this)
+                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToOrganizerEventsScreen(userName))
+        );
+
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(EditProfileScreen.this)
+                        .navigate(EditProfileScreenDirections.actionEditProfileScreenToEventHistoryScreen(userName))
         );
     }
 

@@ -11,6 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.lottos.account.ProfileScreen;
+import com.example.lottos.account.ProfileScreenDirections;
 import com.example.lottos.databinding.FragmentEventHistoryScreenBinding;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -56,18 +58,9 @@ public class EventHistoryScreen extends Fragment {
         binding.lvEventHistory.setAdapter(historyAdapter);
 
         loadHistory();
+        setupNavButtons();
 
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToHomeScreen(userName)));
 
-        binding.btnNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToNotificationScreen(userName)));
-
-        binding.btnProfile.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToProfileScreen(userName)));
     }
 
     private void loadHistory() {
@@ -126,6 +119,27 @@ public class EventHistoryScreen extends Fragment {
 
     private interface EventNameCallback {
         void onNameResolved(String eventName);
+    }
+
+    private void setupNavButtons() {
+
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToHomeScreen(userName)));
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToNotificationScreen(userName)));
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToProfileScreen(userName)));
+
+        binding.btnOpenEvents.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToOrganizerEventsScreen(userName))
+        );
+
     }
 
     @Override

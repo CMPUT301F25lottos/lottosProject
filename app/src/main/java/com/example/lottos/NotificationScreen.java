@@ -62,20 +62,7 @@ public class NotificationScreen extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
-        // navigation
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(NotificationScreen.this)
-                        .navigate(NotificationScreenDirections.actionNotificationScreenToHomeScreen(userName))
-        );
-        binding.btnSendNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(NotificationScreen.this)
-                        .navigate(NotificationScreenDirections.actionNotificationScreenToSendNotificationScreen(userName))
-        );
-
-        binding.btnProfile.setOnClickListener(v ->
-                NavHostFragment.findNavController(NotificationScreen.this)
-                        .navigate(NotificationScreenDirections.actionNotificationScreenToProfileScreen(userName))
-        );
+        setupNavButtons();
 
         // adapters
         receivedAdapter = new ArrayAdapter<>(
@@ -90,7 +77,7 @@ public class NotificationScreen extends Fragment {
                 android.R.layout.simple_list_item_1,
                 sentNotifications
         );
-        binding.lvSentNotication.setAdapter(sentAdapter);
+        //binding.lvSentNotication.setAdapter(sentAdapter);
 
         // Clear previous data and load both sections
         receivedNotifications.clear();
@@ -206,49 +193,49 @@ public class NotificationScreen extends Fragment {
                 .addOnFailureListener(e ->
                         Log.e("Firestore", "Failed to load received notifications", e));
 
-        // sent messages
-        db.collection("notification")
-                .whereEqualTo("sender", userName)
-                .get()
-                .addOnSuccessListener(query -> {
-                    if (getActivity() == null) return;
-                    sentNotifications.clear();
-
-                    if (query.isEmpty()) {
-                        sentNotifications.add("No sent notifications.");
-                        sentAdapter.notifyDataSetChanged();
-                        return;
-                    }
-
-                    List<String> newSent = new ArrayList<>();
-                    int total = query.size();
-                    AtomicInteger counter = new AtomicInteger(0);
-
-                    for (QueryDocumentSnapshot doc : query) {
-                        String content = doc.getString("content");
-                        String eventId = doc.getString("eventName"); // actually eventId
-                        if (content == null) content = "";
-
-                        if (eventId == null || eventId.isEmpty()) {
-                            newSent.add("📤 " + content);
-                            if (counter.incrementAndGet() == total) {
-                                sentNotifications.addAll(newSent);
-                                sentAdapter.notifyDataSetChanged();
-                            }
-                        } else {
-                            final String finalContent = content;
-                            resolveEventName(eventId, eventName -> {
-                                newSent.add("📤 " + eventName + ": " + finalContent);
-                                if (counter.incrementAndGet() == total) {
-                                    sentNotifications.addAll(newSent);
-                                    sentAdapter.notifyDataSetChanged();
-                                }
-                            });
-                        }
-                    }
-                })
-                .addOnFailureListener(e ->
-                        Log.e("Firestore", "Failed to load sent notifications", e));
+//        // sent messages
+//        db.collection("notification")
+//                .whereEqualTo("sender", userName)
+//                .get()
+//                .addOnSuccessListener(query -> {
+//                    if (getActivity() == null) return;
+//                    sentNotifications.clear();
+//
+//                    if (query.isEmpty()) {
+//                        sentNotifications.add("No sent notifications.");
+//                        sentAdapter.notifyDataSetChanged();
+//                        return;
+//                    }
+//
+//                    List<String> newSent = new ArrayList<>();
+//                    int total = query.size();
+//                    AtomicInteger counter = new AtomicInteger(0);
+//
+//                    for (QueryDocumentSnapshot doc : query) {
+//                        String content = doc.getString("content");
+//                        String eventId = doc.getString("eventName"); // actually eventId
+//                        if (content == null) content = "";
+//
+//                        if (eventId == null || eventId.isEmpty()) {
+//                            newSent.add("📤 " + content);
+//                            if (counter.incrementAndGet() == total) {
+//                                sentNotifications.addAll(newSent);
+//                                sentAdapter.notifyDataSetChanged();
+//                            }
+//                        } else {
+//                            final String finalContent = content;
+//                            resolveEventName(eventId, eventName -> {
+//                                newSent.add("📤 " + eventName + ": " + finalContent);
+//                                if (counter.incrementAndGet() == total) {
+//                                    sentNotifications.addAll(newSent);
+//                                    sentAdapter.notifyDataSetChanged();
+//                                }
+//                            });
+//                        }
+//                    }
+//                })
+//                .addOnFailureListener(e ->
+//                        Log.e("Firestore", "Failed to load sent notifications", e));
     }
 
 
@@ -277,6 +264,33 @@ public class NotificationScreen extends Fragment {
         void onNameResolved(String eventName);
     }
 
+    private void setupNavButtons() {
+
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(NotificationScreen.this)
+                        .navigate(NotificationScreenDirections.actionNotificationScreenToHomeScreen(userName))
+        );
+
+        binding.btnSendNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(NotificationScreen.this)
+                        .navigate(NotificationScreenDirections.actionNotificationScreenToSendNotificationScreen(userName))
+        );
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(NotificationScreen.this)
+                        .navigate(NotificationScreenDirections.actionNotificationScreenToProfileScreen(userName))
+        );
+
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(NotificationScreen.this)
+                        .navigate(NotificationScreenDirections.actionNotificationScreenToEventHistoryScreen(userName))
+        );
+
+        binding.btnOpenEvents.setOnClickListener(v ->
+                NavHostFragment.findNavController(NotificationScreen.this)
+                        .navigate(NotificationScreenDirections.actionNotificationScreenToOrganizerEventsScreen(userName))
+        );
+    }
     @Override
     public void onDestroyView() {
         super.onDestroyView();

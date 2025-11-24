@@ -16,19 +16,19 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:padding="16dp">
 
-            <!-- RECEIVED HEADER -->
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="My notification"
+                android:id="@+id/tvTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="My Notification"
+                android:textAlignment="center"
                 android:textColor="@color/navy"
-                android:textSize="30sp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:textStyle="bold"/>
+                android:textSize="40sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp"/>
 
             <ListView
                 android:id="@+id/lvReceivedNotication"
@@ -36,23 +36,23 @@
                 android:layout_height="0dp"
                 android:layout_weight="6"/>
 
-            <!-- SENT HEADER -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:text="Sent Notification"
-                android:textColor="@color/navy"
-                android:textSize="30sp"
-                android:textStyle="bold"/>
+<!--            &lt;!&ndash; SENT HEADER &ndash;&gt;-->
+<!--            <TextView-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="0dp"-->
+<!--                android:layout_weight="1"-->
+<!--                android:paddingTop="8dp"-->
+<!--                android:paddingBottom="8dp"-->
+<!--                android:text="Sent Notification"-->
+<!--                android:textColor="@color/navy"-->
+<!--                android:textSize="30sp"-->
+<!--                android:textStyle="bold"/>-->
 
-            <ListView
-                android:id="@+id/lvSentNotication"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="6"/>
+<!--            <ListView-->
+<!--                android:id="@+id/lvSentNotication"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="0dp"-->
+<!--                android:layout_weight="6"/>-->
 
         </LinearLayout>
 
@@ -64,8 +64,28 @@
             android:background="@color/navy"
             android:orientation="horizontal"
             android:gravity="center"
-            android:weightSum="3"
+            android:weightSum="5"
             app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_home"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnOpenEvents"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_event"
+                android:padding="4dp"
+                app:tint="@color/white"/>
 
             <ImageButton
                 android:id="@+id/btnNotification"
@@ -78,12 +98,12 @@
                 app:tint="@color/white" />
 
             <ImageButton
-                android:id="@+id/btnBack"
+                android:id="@+id/btnEventHistory"
                 android:layout_width="0dp"
                 android:layout_height="50dp"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:src="@drawable/ic_home"
+                android:src="@drawable/ic_history"
                 android:padding="4dp"
                 app:tint="@color/white" />
 

@@ -14,6 +14,8 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.example.lottos.account.ProfileScreenArgs;
 import com.example.lottos.account.ProfileScreenDirections;
 import com.example.lottos.databinding.FragmentProfileScreenBinding;
+import com.example.lottos.home.HomeScreen;
+import com.example.lottos.home.HomeScreenDirections;
 
 /**
  * UI-only fragment for displaying and managing user profile.
@@ -40,30 +42,8 @@ public class ProfileScreen extends Fragment {
         profileManager = new UserProfileManager();
 
         loadProfile();
+        setupNavButtons();
 
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(ProfileScreen.this)
-                        .navigate(ProfileScreenDirections.actionProfileScreenToHomeScreen(userName))
-        );
-
-        binding.btnEdit.setOnClickListener(v ->
-                NavHostFragment.findNavController(ProfileScreen.this)
-                        .navigate(ProfileScreenDirections.actionProfileScreenToEditProfileScreen(userName))
-        );
-
-        // notification button
-        binding.btnNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(ProfileScreen.this)
-                        .navigate(ProfileScreenDirections.actionProfileScreenToNotificationScreen(userName))
-        );
-
-        // notification button
-        binding.btnNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(ProfileScreen.this)
-                        .navigate(ProfileScreenDirections.actionProfileScreenToNotificationScreen(userName))
-        );
-
-        binding.btnDelete.setOnClickListener(v -> showDeleteConfirmation());
     }
 
     private void loadProfile() {
@@ -112,6 +92,40 @@ public class ProfileScreen extends Fragment {
             }
         });
     }
+
+    private void setupNavButtons() {
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(ProfileScreen.this)
+                        .navigate(ProfileScreenDirections.actionProfileScreenToHomeScreen(userName))
+        );
+
+        binding.btnEdit.setOnClickListener(v ->
+                NavHostFragment.findNavController(ProfileScreen.this)
+                        .navigate(ProfileScreenDirections.actionProfileScreenToEditProfileScreen(userName))
+        );
+
+        binding.btnLogout.setOnClickListener(v ->
+                NavHostFragment.findNavController(ProfileScreen.this)
+                        .navigate(ProfileScreenDirections.actionProfileScreenToWelcomeScreen()));
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(ProfileScreen.this)
+                        .navigate(ProfileScreenDirections.actionProfileScreenToNotificationScreen(userName))
+        );
+
+        binding.btnOpenEvents.setOnClickListener(v ->
+                NavHostFragment.findNavController(ProfileScreen.this)
+                        .navigate(ProfileScreenDirections.actionProfileScreenToOrganizerEventsScreen(userName))
+        );
+
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(ProfileScreen.this)
+                        .navigate(ProfileScreenDirections.actionProfileScreenToEventHistoryScreen(userName))
+        );
+
+        binding.btnDelete.setOnClickListener(v -> showDeleteConfirmation());
+    }
+
 
     @Override
     public void onDestroyView() {

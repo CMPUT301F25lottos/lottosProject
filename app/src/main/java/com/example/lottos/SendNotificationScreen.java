@@ -52,21 +52,7 @@ public class SendNotificationScreen extends Fragment {
 
         setupAdapters();
         loadOrganizerEvents();
-
-        binding.btnNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToNotificationScreen(userName))
-        );
-
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToHomeScreen(userName))
-        );
-
-        binding.btnProfile.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToProfileScreen(userName))
-        );
+        setupNavButtons();
 
         binding.btnSendMessage.setOnClickListener(v -> sendNotification());
     }
@@ -193,6 +179,32 @@ public class SendNotificationScreen extends Fragment {
                 });
     }
 
+    private void setupNavButtons() {
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToNotificationScreen(userName))
+        );
+
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToHomeScreen(userName))
+        );
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToProfileScreen(userName))
+        );
+
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToEventHistoryScreen(userName))
+        );
+
+        binding.btnOpenEvents.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToOrganizerEventsScreen(userName))
+        );
+    }
     @Override
     public void onDestroyView() {
         super.onDestroyView();

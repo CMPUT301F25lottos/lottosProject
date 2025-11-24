@@ -95,6 +95,10 @@
             android:id="@+id/action_HomeScreen_to_NotificationScreen"
             app:destination="@+id/NotificationScreen"/>
 
+        <action
+            android:id="@+id/action_HomeScreen_to_EventDetailsScreen"
+            app:destination="@+id/EventDetailsScreen"/>
+
 
     </fragment>
 
@@ -123,6 +127,14 @@
         <action
             android:id="@+id/action_EntrantEventsScreen_to_ProfileScreen"
             app:destination="@+id/ProfileScreen"/>
+
+        <action
+            android:id="@+id/action_EntrantEventsScreen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen"/>
+
+        <action
+            android:id="@+id/action_EntrantEventsScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
 
     </fragment>
 
@@ -155,6 +167,14 @@
         <action
             android:id="@+id/action_EventDetailsScreen_to_NotificationScreen"
             app:destination="@+id/NotificationScreen"/>
+
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen"/>
+
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
 
     </fragment>
 
@@ -212,6 +232,15 @@
             android:id="@+id/action_ProfileScreen_to_NotificationScreen"
             app:destination="@+id/NotificationScreen"/>
 
+        <action
+            android:id="@+id/action_ProfileScreen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen"/>
+
+        <action
+            android:id="@+id/action_ProfileScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
+
+
     </fragment>
 
     <fragment
@@ -235,6 +264,14 @@
         <action
             android:id="@+id/action_EditProfileScreen_to_HomeScreen"
             app:destination="@id/HomeScreen"/>
+
+        <action
+            android:id="@+id/action_EditProfileScreen_to_OrganizerEventsScreen"
+            app:destination="@id/OrganizerEventsScreen"/>
+
+        <action
+            android:id="@+id/action_EditProfileScreen_to_EventHistoryScreen"
+            app:destination="@id/EventHistoryScreen"/>
 
 
 
@@ -275,6 +312,12 @@
             android:id="@+id/action_OrganizerEventsScreen_to_ProfileScreen"
             app:destination="@+id/ProfileScreen"/>
 
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
+
+
+
     </fragment>
 
     <fragment
@@ -291,6 +334,22 @@
         <action
             android:id="@+id/action_EditEventScreen_to_OrganizerEventsScreen"
             app:destination="@+id/OrganizerEventsScreen"/>
+
+        <action
+            android:id="@+id/action_EditEventScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen"/>
+
+        <action
+            android:id="@+id/action_EditEventScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen"/>
+
+        <action
+            android:id="@+id/action_EditEventScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
+
+        <action
+            android:id="@+id/action_EditEventScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
 
     </fragment>
 
@@ -320,6 +379,11 @@
             android:id="@+id/action_CreateEventScreen_to_NotificationScreen"
             app:destination="@+id/NotificationScreen"/>
 
+        <action
+            android:id="@+id/action_CreateEventScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
+
+
     </fragment>
 
     <fragment
@@ -344,6 +408,13 @@
             android:id="@+id/action_LotteryInfoScreen_to_profileScreen"
             app:destination="@+id/ProfileScreen"/>
 
+        <action
+            android:id="@+id/action_LotteryInfoScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
+
+        <action
+            android:id="@+id/action_LotteryInfoScreen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen"/>
 
 
     </fragment>
@@ -370,6 +441,10 @@
             android:id="@+id/action_event_history_screen_to_NotificationScreen"
             app:destination="@+id/NotificationScreen"/>
 
+        <action
+            android:id="@+id/action_event_history_screen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen"/>
+
     </fragment>
 
     <fragment
@@ -394,6 +469,14 @@
             android:id="@+id/action_NotificationScreen_to_profileScreen"
             app:destination="@+id/ProfileScreen"/>
 
+        <action
+            android:id="@+id/action_NotificationScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
+
+        <action
+            android:id="@+id/action_NotificationScreen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen"/>
+
     </fragment>
 
     <fragment
@@ -417,6 +500,15 @@
         <action
             android:id="@+id/action_send_notification_screen_to_ProfileScreen"
             app:destination="@+id/ProfileScreen"/>
+
+        <action
+            android:id="@+id/action_send_notification_screen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
+
+        <action
+            android:id="@+id/action_send_notification_screen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen"/>
+
 
     </fragment>
 
