@@ -10,6 +10,8 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.lottos.EventListAdapter;
+import com.example.lottos.account.ProfileScreen;
+import com.example.lottos.account.ProfileScreenDirections;
 import com.example.lottos.databinding.FragmentEntrantEventsScreenBinding;
 
 import java.util.ArrayList;
@@ -55,29 +57,14 @@ public class EntrantEventsScreen extends Fragment {
     private void setupRecycler() {
         adapter = new EventListAdapter(
                 eventItems,
-                true,     // show join/leave button for entrant
-                new EventListAdapter.Listener() {
-
-                    @Override
-                    public void onEventClick(String eventId) {
-                        goToDetails(eventId);
-                    }
-
-                    @Override
-                    public void onJoinClick(String eventId) {
-                        join(eventId);
-                    }
-
-                    @Override
-                    public void onLeaveClick(String eventId) {
-                        leave(eventId);
-                    }
-                }
+                eventId -> goToDetails(eventId)
         );
 
         binding.rvEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvEvents.setAdapter(adapter);
     }
+
+
 
     // -----------------------------------------------------------
     // LOAD DATA
@@ -94,14 +81,14 @@ public class EntrantEventsScreen extends Fragment {
                 eventItems.clear();
 
                 for (EntrantEventManager.EventModel evt : list) {
-                    boolean isJoined = waitlisted.contains(evt.id);
-
                     eventItems.add(
                             new EventListAdapter.EventItem(
                                     evt.id,
                                     evt.name,
                                     evt.isOpen,
-                                    isJoined
+                                    evt.location,
+                                    evt.startTime,
+                                    evt.endTime
                             )
                     );
                 }
@@ -116,36 +103,6 @@ public class EntrantEventsScreen extends Fragment {
         });
     }
 
-    // -----------------------------------------------------------
-    // ACTIONS
-    // -----------------------------------------------------------
-    private void join(String eventId) {
-        manager.joinWaitlist(
-                userName,
-                eventId,
-                () -> {
-                    Toast.makeText(getContext(), "Joined waitlist", Toast.LENGTH_SHORT).show();
-                    loadEvents();   // refresh states
-                },
-                e -> Toast
-                        .makeText(getContext(), "Join failed: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show()
-        );
-    }
-
-    private void leave(String eventId) {
-        manager.leaveWaitlist(
-                userName,
-                eventId,
-                () -> {
-                    Toast.makeText(getContext(), "Left waitlist", Toast.LENGTH_SHORT).show();
-                    loadEvents();
-                },
-                e -> Toast
-                        .makeText(getContext(), "Leave failed: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show()
-        );
-    }
 
     // -----------------------------------------------------------
     // NAVIGATION
@@ -171,6 +128,17 @@ public class EntrantEventsScreen extends Fragment {
                 NavHostFragment.findNavController(this)
                         .navigate(EntrantEventsScreenDirections
                                 .actionEntrantEventsScreenToProfileScreen(userName)));
+
+        binding.btnOpenEvents.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(ProfileScreenDirections.actionProfileScreenToOrganizerEventsScreen(userName))
+        );
+
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(ProfileScreenDirections.actionProfileScreenToEventHistoryScreen(userName))
+        );
+
     }
 
     @Override

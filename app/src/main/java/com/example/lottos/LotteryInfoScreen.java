@@ -36,27 +36,30 @@ public class LotteryInfoScreen extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         String userName = EntrantWaitListsScreenArgs.fromBundle(getArguments()).getUserName(); // pass the user info
 
-        binding.btnBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NavHostFragment.findNavController(LotteryInfoScreen.this).navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToHomeScreen(userName));
-            }
-        });
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(LotteryInfoScreen.this)
+                        .navigate(LotteryInfoScreenDirections
+                                .actionLotteryInfoScreenToHomeScreen(userName)));
 
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(LotteryInfoScreen.this)
+                        .navigate(LotteryInfoScreenDirections
+                                .actionLotteryInfoScreenToNotificationScreen(userName)));
 
-        binding.btnNotification.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NavHostFragment.findNavController(LotteryInfoScreen.this).navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToNotificationScreen(userName));
-            }
-        });
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(LotteryInfoScreen.this)
+                        .navigate(LotteryInfoScreenDirections
+                                .actionLotteryInfoScreenToProfileScreen(userName)));
 
-        binding.btnProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NavHostFragment.findNavController(LotteryInfoScreen.this).navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToProfileScreen(userName));
-            }
-        });
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(LotteryInfoScreen.this)
+                        .navigate(LotteryInfoScreenDirections
+                                .actionLotteryInfoScreenToEventHistoryScreen(userName)));
+
+        binding.btnOpenEvents.setOnClickListener(v ->
+                NavHostFragment.findNavController(LotteryInfoScreen.this)
+                        .navigate(LotteryInfoScreenDirections
+                                .actionLotteryInfoScreenToOrganizerEventsScreen(userName)));
     }
 
     @Override

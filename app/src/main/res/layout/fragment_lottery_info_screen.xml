@@ -36,13 +36,34 @@
             app:layout_constraintTop_toBottomOf="@+id/tvLotterySystem" />
 
         <LinearLayout
+            android:id="@+id/navigationBar"
             android:layout_width="match_parent"
             android:layout_height="70dp"
             android:background="@color/navy"
             android:orientation="horizontal"
             android:gravity="center"
-            android:weightSum="3"
+            android:weightSum="5"
             app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_home"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnOpenEvents"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_event"
+                android:padding="4dp"
+                app:tint="@color/white"/>
 
             <ImageButton
                 android:id="@+id/btnNotification"
@@ -55,12 +76,12 @@
                 app:tint="@color/white" />
 
             <ImageButton
-                android:id="@+id/btnBack"
+                android:id="@+id/btnEventHistory"
                 android:layout_width="0dp"
                 android:layout_height="50dp"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:src="@drawable/ic_home"
+                android:src="@drawable/ic_history"
                 android:padding="4dp"
                 app:tint="@color/white" />
 

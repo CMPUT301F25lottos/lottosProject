@@ -30,9 +30,7 @@
         android:layout_height="150dp"
         android:layout_marginTop="24dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_profile_placeholder"
-        android:background="@color/beige"
-        app:tint="@color/navy"
+        android:src="@drawable/sample_event"
         app:layout_constraintTop_toBottomOf="@id/tvEventDetails"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -257,13 +255,31 @@
         android:id="@+id/navigationBar"
         android:layout_width="match_parent"
         android:layout_height="70dp"
-        android:orientation="horizontal"
         android:background="@color/navy"
+        android:orientation="horizontal"
         android:gravity="center"
-        android:weightSum="3"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:weightSum="5"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnHome"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_home"
+            android:padding="4dp"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:id="@+id/btnOpenEvents"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_event"
+            android:padding="4dp"
+            app:tint="@color/white"/>
 
         <ImageButton
             android:id="@+id/btnNotification"
@@ -276,12 +292,12 @@
             app:tint="@color/white" />
 
         <ImageButton
-            android:id="@+id/btnHome"
+            android:id="@+id/btnEventHistory"
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:src="@drawable/ic_home"
+            android:src="@drawable/ic_history"
             android:padding="4dp"
             app:tint="@color/white" />
 

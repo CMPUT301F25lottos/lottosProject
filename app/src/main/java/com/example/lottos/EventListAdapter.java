@@ -1,8 +1,9 @@
 package com.example.lottos;
 
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -10,101 +11,108 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-/**
- * A flexible adapter used by both OrganizerEventsScreen and EntrantEventsScreen.
- * The fragment decides:
- * - whether a join/leave button is shown
- * - what click actions do
- */
 public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> {
 
+    // Simple click listener for "go to details"
     public interface Listener {
         void onEventClick(String eventId);
-        void onJoinClick(String eventId);
-        void onLeaveClick(String eventId);
     }
 
     public static class EventItem {
         public final String id;
         public final String name;
         public final boolean isOpen;
-        public boolean isJoined;
 
-        public EventItem(String id, String name, boolean isOpen, boolean isJoined) {
+        public final String location;
+        public final String startTimeText; // optional
+        public final String endTimeText;   // optional
+
+        // Old constructor: still works
+        public EventItem(String id, String name, boolean isOpen) {
+            this(id, name, isOpen, null, null, null);
+        }
+
+        // New: id + name + isOpen + location
+        public EventItem(String id, String name, boolean isOpen, String location) {
+            this(id, name, isOpen, location, null, null);
+        }
+
+        // Full constructor (if you later want times too)
+        public EventItem(String id, String name, boolean isOpen,
+                         String location,
+                         String startTimeText,
+                         String endTimeText) {
             this.id = id;
             this.name = name;
             this.isOpen = isOpen;
-            this.isJoined = isJoined;
+            this.location = location;
+            this.startTimeText = startTimeText;
+            this.endTimeText = endTimeText;
         }
+
     }
 
     private final List<EventItem> events;
-    private final boolean showJoinButton;
     private final Listener listener;
 
-    public EventListAdapter(List<EventItem> events, boolean showJoinButton, Listener listener) {
+    public EventListAdapter(List<EventItem> events, Listener listener) {
         this.events = events;
-        this.showJoinButton = showJoinButton;
         this.listener = listener;
     }
 
     static class VH extends RecyclerView.ViewHolder {
-        TextView tvName;
-        Button btnJoin;
+        TextView tvEventName;
+        TextView tvTime;
+        TextView tvLocation;
+        ImageButton btnArrow;
 
-        VH(LinearLayout layout) {
-            super(layout);
-            tvName = (TextView) layout.getChildAt(0);
-            btnJoin = (Button) layout.getChildAt(1);
+        VH(@NonNull View itemView) {
+            super(itemView);
+            tvEventName = itemView.findViewById(R.id.tvEventName);
+            tvTime = itemView.findViewById(R.id.tvTime);
+            tvLocation = itemView.findViewById(R.id.tvLocation);
+            btnArrow = itemView.findViewById(R.id.btnArrow);
         }
     }
 
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-
-        LinearLayout layout = new LinearLayout(parent.getContext());
-        layout.setOrientation(LinearLayout.HORIZONTAL);
-        layout.setPadding(16, 16, 16, 16);
-
-        TextView tv = new TextView(parent.getContext());
-        layout.setLayoutParams(new RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
-        tv.setTextSize(16);
-
-        Button btn = new Button(parent.getContext());
-        btn.setVisibility(showJoinButton ? ViewGroup.VISIBLE : ViewGroup.GONE);
-
-        layout.addView(tv);
-        layout.addView(btn);
-
-        return new VH(layout);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_event, parent, false);
+        return new VH(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
-
         EventItem evt = events.get(position);
 
-        // Text for both screens
-        holder.tvName.setText(
-                (evt.isOpen ? "🟢 Open: " : "🔴 Closed: ") + evt.name
+        holder.tvEventName.setText(evt.name);
+
+        holder.tvLocation.setText(
+                evt.location != null ? evt.location : ""
         );
 
-        // Logic only active for entrant view
-        if (showJoinButton) {
-            holder.btnJoin.setEnabled(evt.isOpen);
-            holder.btnJoin.setText(evt.isJoined ? "Leave Waitlist" : "Join Waitlist");
-
-            holder.btnJoin.setOnClickListener(v -> {
-                if (evt.isJoined) listener.onLeaveClick(evt.id);
-                else listener.onJoinClick(evt.id);
-            });
+        String timeRange = "";
+        if (evt.startTimeText != null || evt.endTimeText != null) {
+            String start = evt.startTimeText != null ? evt.startTimeText : "N/A";
+            String end = evt.endTimeText != null ? evt.endTimeText : "N/A";
+            timeRange = start + " - " + end;
         }
 
-        holder.itemView.setOnClickListener(v -> listener.onEventClick(evt.id));
+        holder.tvTime.setText(timeRange);
+
+        // click → go to details
+        View.OnClickListener clickListener = v -> {
+            if (listener != null) {
+                listener.onEventClick(evt.id);
+            }
+        };
+
+        holder.itemView.setOnClickListener(clickListener);
+        if (holder.btnArrow != null) {
+            holder.btnArrow.setOnClickListener(clickListener);
+        }
     }
 
     @Override

@@ -6,6 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.lottos.account.ProfileScreen;
+import com.example.lottos.account.ProfileScreenDirections;
 import com.google.firebase.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -161,12 +163,6 @@ public class EventDetailsScreen extends Fragment {
 
         binding.tvWLSize.setText("Wait List Capacity: " + capacity);
 
-
-
-
-
-
-
     }
 
     private String safe(Object o) {
@@ -319,6 +315,15 @@ public class EventDetailsScreen extends Fragment {
                 NavHostFragment.findNavController(this)
                         .navigate(EventDetailsScreenDirections
                                 .actionEventDetailsScreenToHomeScreen(userName)));
+
+        binding.btnOpenEvents.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EventDetailsScreenDirections.actionEventDetailsScreenToOrganizerEventsScreen(userName)));
+
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(EventDetailsScreenDirections.actionEventDetailsScreenToEventHistoryScreen(userName)));
+
     }
 
     private void hideAllButtons() {

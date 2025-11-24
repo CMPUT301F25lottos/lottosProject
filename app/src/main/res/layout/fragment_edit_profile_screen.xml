@@ -12,6 +12,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <TextView
+            android:id="@+id/tvProfile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit Profile"
+            android:textColor="@color/navy"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="24dp" />
+
         <LinearLayout
             android:id="@+id/navigationBar"
             android:layout_width="match_parent"
@@ -19,8 +32,28 @@
             android:background="@color/navy"
             android:orientation="horizontal"
             android:gravity="center"
-            android:weightSum="3"
+            android:weightSum="5"
             app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_home"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnOpenEvents"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_event"
+                android:padding="4dp"
+                app:tint="@color/white"/>
 
             <ImageButton
                 android:id="@+id/btnNotification"
@@ -33,12 +66,12 @@
                 app:tint="@color/white" />
 
             <ImageButton
-                android:id="@+id/btnBack"
+                android:id="@+id/btnEventHistory"
                 android:layout_width="0dp"
                 android:layout_height="50dp"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:src="@drawable/ic_home"
+                android:src="@drawable/ic_history"
                 android:padding="4dp"
                 app:tint="@color/white" />
 
@@ -63,7 +96,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:layout_editor_absoluteY="109dp"
-            tools:ignore="MissingConstraints">
+            app:layout_constraintTop_toBottomOf="@id/tvProfile">
 
             <EditText
                 android:id="@+id/etName"

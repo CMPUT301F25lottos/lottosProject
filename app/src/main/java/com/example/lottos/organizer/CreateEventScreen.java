@@ -49,27 +49,7 @@ public class CreateEventScreen extends Fragment {
         binding.etStartTime.setOnClickListener(v -> timeHelper.showDateTimePicker(binding.etStartTime));
         binding.etEndTime.setOnClickListener(v -> timeHelper.showDateTimePicker(binding.etEndTime));
 
-        binding.btnCancel.setOnClickListener(v ->
-                NavHostFragment.findNavController(CreateEventScreen.this)
-                        .navigate(CreateEventScreenDirections
-                                .actionCreateEventScreenToOrganizerEventsScreen(userName)));
-
-        binding.btnNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(CreateEventScreen.this)
-                        .navigate(CreateEventScreenDirections
-                                .actionCreateEventScreenToNotificationScreen(userName)));
-
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(CreateEventScreen.this)
-                        .navigate(CreateEventScreenDirections
-                                .actionCreateEventScreenToHomeScreen(userName)));
-
-        binding.btnProfile.setOnClickListener(v ->
-                NavHostFragment.findNavController(CreateEventScreen.this)
-                        .navigate(CreateEventScreenDirections
-                                .actionCreateEventScreenToProfileScreen(userName)));
-
-        binding.btnCreateEvent.setOnClickListener(v -> handleCreateEvent());
+        setupNavButtons();
     }
 
     private void handleCreateEvent() {
@@ -152,6 +132,40 @@ public class CreateEventScreen extends Fragment {
                         "Failed to create event: " + e.getMessage(),
                         Toast.LENGTH_SHORT).show()
         );
+    }
+
+    private void setupNavButtons() {
+        binding.btnCancel.setOnClickListener(v ->
+                NavHostFragment.findNavController(CreateEventScreen.this)
+                        .navigate(CreateEventScreenDirections
+                                .actionCreateEventScreenToOrganizerEventsScreen(userName)));
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(CreateEventScreen.this)
+                        .navigate(CreateEventScreenDirections
+                                .actionCreateEventScreenToNotificationScreen(userName)));
+
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(CreateEventScreen.this)
+                        .navigate(CreateEventScreenDirections
+                                .actionCreateEventScreenToHomeScreen(userName)));
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(CreateEventScreen.this)
+                        .navigate(CreateEventScreenDirections
+                                .actionCreateEventScreenToProfileScreen(userName)));
+
+        binding.btnCreateEvent.setOnClickListener(v ->
+                NavHostFragment.findNavController(CreateEventScreen.this)
+                        .navigate(CreateEventScreenDirections
+                                .actionCreateEventScreenToOrganizerEventsScreen(userName)));
+
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(CreateEventScreen.this)
+                        .navigate(CreateEventScreenDirections
+                                .actionCreateEventScreenToEventHistoryScreen(userName)));
+
+        binding.btnCreateEvent.setOnClickListener(v -> handleCreateEvent());
     }
 
     @Override

@@ -12,6 +12,8 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.EventRepository;
+import com.example.lottos.account.ProfileScreen;
+import com.example.lottos.account.ProfileScreenDirections;
 import com.example.lottos.organizer.OrganizerEventsScreenArgs;
 import com.example.lottos.organizer.OrganizerEventsScreenDirections;
 import com.example.lottos.databinding.FragmentOrganizerEventsScreenBinding;
@@ -60,35 +62,8 @@ public class OrganizerEventsScreen extends Fragment {
             openEditEventScreen(clickedEventId);
         });
 
-        // Navigation buttons
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(OrganizerEventsScreenDirections
-                                .actionOrganizerEventsScreenToHomeScreen(userName))
-        );
-
-        binding.btnNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(OrganizerEventsScreenDirections
-                                .actionOrganizerEventsScreenToNotificationScreen(userName))
-        );
-
-        binding.btnProfile.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(OrganizerEventsScreenDirections
-                                .actionOrganizerEventsScreenToProfileScreen(userName))
-        );
-
-        binding.btnCreateEvent.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(OrganizerEventsScreenDirections
-                                        .actionOrganizerEventsScreenToCreateEventScreen(userName))
-        );
-
-
-
-        // Load events
         loadOrganizerEvents();
+        setupNavButtons();
     }
 
     /** Load all events created by this organizer from Firestore */
@@ -130,7 +105,37 @@ public class OrganizerEventsScreen extends Fragment {
                         .actionOrganizerEventsScreenToEditEventScreen(userName, eventId));
     }
 
+    private void setupNavButtons() {
 
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(OrganizerEventsScreenDirections
+                                .actionOrganizerEventsScreenToHomeScreen(userName))
+        );
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(OrganizerEventsScreenDirections
+                                .actionOrganizerEventsScreenToNotificationScreen(userName))
+        );
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(OrganizerEventsScreenDirections
+                                .actionOrganizerEventsScreenToProfileScreen(userName))
+        );
+
+        binding.btnCreateEvent.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(OrganizerEventsScreenDirections
+                                .actionOrganizerEventsScreenToCreateEventScreen(userName))
+        );
+
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(OrganizerEventsScreenDirections.actionOrganizerEventsScreenToEventHistoryScreen(userName))
+        );
+    }
 
 
     @Override
