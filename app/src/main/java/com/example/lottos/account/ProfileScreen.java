@@ -1,10 +1,13 @@
 package com.example.lottos.account;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,16 +24,27 @@ import com.example.lottos.home.HomeScreenDirections;
  * UI-only fragment for displaying and managing user profile.
  * Logic is fully delegated to UserProfileManager.
  */
+
 public class ProfileScreen extends Fragment {
 
     private FragmentProfileScreenBinding binding;
+
+    private static final String ADMIN_PASSWORD = "lottos_password";
     private UserProfileManager profileManager;
     private String userName;
+
+    // To store the user's role
+    private SharedPreferences sharedPreferences;
+    private boolean isAdmin = false;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentProfileScreenBinding.inflate(inflater, container, false);
+
+        // Initialize SharedPreferences
+        sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+
         return binding.getRoot();
     }
 
@@ -44,6 +58,85 @@ public class ProfileScreen extends Fragment {
         loadProfile();
         setupNavButtons();
 
+        // Load the current role and update the UI accordingly
+        loadUserRole();
+        updateAdminButtonUI();
+
+        binding.btnSwitchToAdmin.setOnClickListener(v -> {
+            if (isAdmin) {
+                // If the user is already an admin, switch them back to a normal user
+                switchToUserMode();
+            } else {
+                // If they are a normal user, show the password dialog
+                showAdminPasswordDialog();
+            }
+        });
+    }
+
+    private void showAdminPasswordDialog() {
+        // Create an alert dialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Enter Admin Password");
+
+        // Set up the input
+        final EditText input = new EditText(requireContext());
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        builder.setView(input);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            String password = input.getText().toString();
+            checkAdminPassword(password);
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void checkAdminPassword(String password) {
+        if (password.equals(ADMIN_PASSWORD)) {
+            // Correct password, switch to admin mode
+            switchToAdminMode();
+        } else {
+            Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void loadUserRole() {
+        // Retrieve the current role from SharedPreferences, defaulting to false (not an admin)
+        isAdmin = sharedPreferences.getBoolean("isAdmin", false);
+    }
+
+    private void updateAdminButtonUI() {
+        if (isAdmin) {
+            binding.btnSwitchToAdmin.setText("Switch to User");
+            // You can also change the button color if you want
+            // binding.btnSwitchToAdmin.setBackgroundColor(getResources().getColor(R.color.your_user_color));
+        } else {
+            binding.btnSwitchToAdmin.setText("Switch to Admin");
+            // binding.btnSwitchToAdmin.setBackgroundColor(getResources().getColor(R.color.your_admin_red_color));
+        }
+        // TODO: Add logic here to change the visibility of other menu/nav buttons based on 'isAdmin'
+    }
+
+    private void switchToAdminMode() {
+        isAdmin = true;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("isAdmin", true);
+        editor.apply();
+
+        Toast.makeText(getContext(), "Admin mode activated!", Toast.LENGTH_SHORT).show();
+        updateAdminButtonUI();
+    }
+
+    private void switchToUserMode() {
+        isAdmin = false;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("isAdmin", false);
+        editor.apply();
+
+        Toast.makeText(getContext(), "Switched to user mode.", Toast.LENGTH_SHORT).show();
+        updateAdminButtonUI();
     }
 
     private void loadProfile() {

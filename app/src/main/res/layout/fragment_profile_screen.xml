@@ -41,7 +41,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-
         <!-- USER INFO FIELDS -->
         <LinearLayout
             android:id="@+id/userInfoLayout"
@@ -86,45 +85,70 @@
                 android:textSize="20sp" />
         </LinearLayout>
 
-        <!-- EDIT / DELETE BUTTONS -->
+        <!-- ACTION BUTTONS (includes new Admin button) -->
         <LinearLayout
             android:id="@+id/actionButtons"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:gravity="center"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_marginTop="24dp"
             app:layout_constraintBottom_toTopOf="@id/navigationBar"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
+            <!-- NEW: ADMIN BUTTON -->
             <Button
-                android:id="@+id/btnEdit"
-                android:layout_width="0dp"
+                android:id="@+id/btnSwitchToAdmin"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/navy"
-                android:text="Edit Profile" />
+                android:backgroundTint="#FF0000"
+                android:text="Switch to Admin"
+                android:textColor="@color/white"
+                android:layout_marginBottom="8dp"/>
 
-            <Button
-                android:id="@+id/btnLogout"
-                android:layout_width="0dp"
+            <!-- Existing Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/navy"
-                android:text="Logout" />
+                android:orientation="horizontal"
+                android:gravity="center">
 
-            <Button
-                android:id="@+id/btnDelete"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/navy"
-                android:text="Delete Profile" />
+                <Button
+                    android:id="@+id/btnEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/navy"
+                    android:text="Edit Profile"
+                    android:layout_marginEnd="4dp"/>
 
+                <Button
+                    android:id="@+id/btnLogout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/navy"
+                    android:text="Logout"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"/>
+
+                <Button
+                    android:id="@+id/btnDelete"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/navy"
+                    android:text="Delete Profile"
+                    android:layout_marginStart="4dp"/>
+
+            </LinearLayout>
 
         </LinearLayout>
 
+        <!-- NAVIGATION BAR (no changes) -->
         <LinearLayout
             android:id="@+id/navigationBar"
             android:layout_width="match_parent"
@@ -135,6 +159,7 @@
             android:weightSum="5"
             app:layout_constraintBottom_toBottomOf="parent">
 
+            <!-- ImageButtons for navigation -->
             <ImageButton
                 android:id="@+id/btnBack"
                 android:layout_width="0dp"
@@ -184,7 +209,6 @@
                 android:src="@drawable/ic_profile"
                 android:padding="4dp"
                 app:tint="@color/white" />
-
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
