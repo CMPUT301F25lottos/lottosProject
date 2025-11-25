@@ -1,84 +1,135 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".HomeScreen"
-    android:fillViewport="true">
+    android:background="@drawable/vertical_gradient_bg"
+    tools:context=".home.HomeScreen">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/tvHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Home"
-            android:textSize="28sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="24dp"/>
+    <!-- Scrollable content area -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar">
 
         <LinearLayout
-            android:orientation="vertical"
+            android:id="@+id/contentArea"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:gravity="center_horizontal">
 
-            <Button
-                android:id="@+id/btnOpenEvents"
+            <TextView
+                android:id="@+id/tvTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Open Events"/>
+                android:text="Open Events"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="40sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp"/>
 
-            <Button
-                android:id="@+id/btnOrgEvents"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvEvents"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="My Events"/>
-
-            <Button
-                android:id="@+id/btnWaitLists"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="My WaitLists"/>
-
-            <Button
-                android:id="@+id/btnProfile"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="My Profile"/>
-
-            <Button
-                android:id="@+id/btnInfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Lottery Info"/>
-
-            <Button
-                android:id="@+id/btnEventHistory"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Event History"/>
-
+                tools:listitem="@layout/item_event"
+                android:background="@android:color/white"/>
         </LinearLayout>
 
-        <Button
-            android:id="@+id/btnLogout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Log out"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="12dp"/>
+    </androidx.core.widget.NestedScrollView>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageButton
+        android:id="@+id/btnInfo"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_lotteryinfo"
+        android:padding="8dp"
+        android:contentDescription="Info"
+        app:tint="@color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp" />
 
-</androidx.core.widget.NestedScrollView>
+    <!-- Bottom navigation bar (always visible) -->
+    <LinearLayout
+        android:id="@+id/navigationBar"
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:background="@color/navy"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:weightSum="5"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnHome"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_home"
+            android:padding="4dp"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:id="@+id/btnOpenEvents"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_event"
+            android:padding="4dp"
+            app:tint="@color/white"/>
+
+        <ImageButton
+            android:id="@+id/btnNotification"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_notification"
+            android:padding="4dp"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:id="@+id/btnEventHistory"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_history"
+            android:padding="4dp"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:id="@+id/btnProfile"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_profile"
+            android:padding="4dp"
+            app:tint="@color/white" />
+
+    </LinearLayout>
+
+    <!-- Info button in top-right -->
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

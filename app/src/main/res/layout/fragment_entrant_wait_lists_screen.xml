@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".EntrantWaitListsScreen"
     android:fillViewport="true">
 
@@ -22,7 +23,9 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:text="Open WaitLists"
-                android:textSize="28sp"/>
+                android:textColor="@color/navy"
+                android:textSize="30sp"
+                android:paddingTop="8dp"/>
 
             <ListView
                 android:id="@+id/lvOpenWaitLists"
@@ -35,7 +38,9 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:text="Closed WaitLists"
-                android:textSize="28sp"/>
+                android:textColor="@color/navy"
+                android:textSize="30sp"
+                android:paddingTop="8dp"/>
 
             <ListView
                 android:id="@+id/lvClosedWaitLists"
@@ -46,25 +51,47 @@
 
         </LinearLayout>
 
-        <Button
-        android:id="@+id/btnBack"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Back"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="12dp"/>
+        <LinearLayout
+            android:id="@+id/navigationBar"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:orientation="horizontal"
+            android:background="@color/navy"
+            android:gravity="center"
+            android:weightSum="3"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-        <Button
-            android:id="@+id/btnDeleteEvent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Quit Event"
-            app:layout_constraintBottom_toTopOf="@id/btnBack"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="12dp"/>
+            <ImageButton
+                android:id="@+id/btnNotification"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_notification"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_home"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnProfile"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_profile"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+        </LinearLayout>
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

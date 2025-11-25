@@ -1,147 +1,316 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".EventDetailsScreen"
+    android:background="@color/white"
+    tools:context=".events.EventDetailsScreen"
     android:fillViewport="true">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- Event title -->
+    <TextView
+        android:id="@+id/tvEventDetails"
+        android:text="Event Detail"
+        android:textColor="@color/navy"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="24dp"/>
+
+    <!-- CIRCULAR PROFILE IMAGE -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivEventPoster"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="24dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/sample_event"
+        app:layout_constraintTop_toBottomOf="@id/tvEventDetails"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Event details list -->
+    <LinearLayout
+        android:id="@+id/llEventDetails"
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp">
+        android:layout_height="wrap_content"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ivEventPoster"
+        android:layout_marginTop="12dp">
 
-        <!-- Event title -->
         <TextView
-            android:id="@+id/tvEventDetails"
-            android:text="Event Title"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:layout_height="wrap_content"
+            android:id="@+id/tvStartTime"
+            android:textSize="15sp"
             android:layout_width="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="24dp"/>
+            android:layout_height="wrap_content"/>
 
-        <!-- Optional image -->
-        <ImageView
-            android:id="@+id/ivEventPoster"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvEventDetails"
-            android:contentDescription="Event image" />
+        <TextView
+            android:id="@+id/tvEndTime"
+            android:textSize="15sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
-        <!-- Event details list -->
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llEventDetails2"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/llEventDetails"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/tvEventName"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/tvLocation"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+    <!-- SCROLLABLE DETAILS SECTION -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/detailsScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/llEventDetails2"
+        app:layout_constraintBottom_toTopOf="@id/llButtons"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="12dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
         <LinearLayout
-            android:id="@+id/llEventDetails"
+            android:id="@+id/llEventDetails3"
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/ivEventPoster"
-            android:layout_marginTop="12dp">
+            android:layout_height="wrap_content">
 
-            <TextView android:id="@+id/tvOrganizer" android:text="Organizer:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvLocation" android:text="Location:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvStartDate" android:text="Start Date:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvEndDate" android:text="End Date:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvStartTime" android:text="Start Time:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvEndTime" android:text="End Time:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvDaysRunning" android:text="Days Running:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvDescription" android:text="Description:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvCapacity" android:text="Capacity:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvWLCount" android:text="Entrants on WaitList:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvWLCapacity" android:text="WaitList Capacity:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvWLCloseDateTime" android:text="WaitList Closes/Closed:" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/tvDescription"
+                android:textSize="20sp"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/tvOrganizer"
+                android:textSize="20sp"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/tvWLCloseDateTime"
+                android:textSize="20sp"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/tvCapacity"
+                android:textSize="20sp"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/tvWLCount"
+                android:textSize="20sp"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/tvWLSize"
+                android:textSize="20sp"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
 
         </LinearLayout>
 
-        <!-- Buttons -->
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:id="@+id/llButtons"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/detailsScroll"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:padding="8dp">
+
+        <Button
+            android:id="@+id/btnJoin"
+            android:text="Join WaitList"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/btnBack"
-            android:gravity="center"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            android:padding="8dp">
+            android:backgroundTint="@color/navy"
+            android:visibility="gone" />
 
-            <Button
-                android:id="@+id/btnJoin"
-                android:text="Join WaitList"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
+        <Button
+            android:id="@+id/btnLeave"
+            android:text="Leave WaitList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/navy"
+            android:visibility="gone" />
 
-            <Button
-                android:id="@+id/btnLeave"
-                android:text="Leave WaitList"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
+        <Button
+            android:id="@+id/btnAccept"
+            android:text="Accept Invite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/navy"
+            android:visibility="gone" />
 
-            <Button
-                android:id="@+id/btnAccept"
-                android:text="Accept Invite"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
+        <Button
+            android:id="@+id/btnDecline"
+            android:text="Decline Invite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/navy"
+            android:visibility="gone" />
 
-            <Button
-                android:id="@+id/btnDecline"
-                android:text="Decline Invite"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
+        <Button
+            android:id="@+id/btnViewWaitList"
+            android:text="View WaitList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/navy"
+            android:visibility="gone" />
 
-            <Button
-                android:id="@+id/btnViewWaitList"
-                android:text="View WaitList"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
+        <Button
+            android:id="@+id/btnViewSelected"
+            android:text="View Selected Entrants"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/navy"
+            android:visibility="gone" />
 
-            <Button
-                android:id="@+id/btnViewSelected"
-                android:text="View Selected Entrants"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
+        <Button
+            android:id="@+id/btnViewCancelled"
+            android:text="View Cancelled Entrants"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/navy"
+            android:visibility="gone" />
 
-            <Button
-                android:id="@+id/btnViewCancelled"
-                android:text="View Cancelled Entrants"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
+        <Button
+            android:id="@+id/btnViewEnrolled"
+            android:text="View Enrolled Entrants"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/navy"
+            android:visibility="gone" />
 
-            <Button
-                android:id="@+id/btnViewEnrolled"
-                android:text="View Enrolled Entrants"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
+        <Button
+            android:id="@+id/btnLottery"
+            android:text="Start Lottery System"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/navy"/>
 
-        </LinearLayout>
-
-        <!-- Back button always visible -->
         <Button
             android:id="@+id/btnBack"
+            android:text="Back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Back"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="12dp"/>
+            android:backgroundTint="@color/navy"/>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</androidx.core.widget.NestedScrollView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/navigationBar"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:background="@color/navy"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:weightSum="5"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnHome"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_home"
+            android:padding="4dp"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:id="@+id/btnOpenEvents"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_event"
+            android:padding="4dp"
+            app:tint="@color/white"/>
+
+        <ImageButton
+            android:id="@+id/btnNotification"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_notification"
+            android:padding="4dp"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:id="@+id/btnEventHistory"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_history"
+            android:padding="4dp"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:id="@+id/btnProfile"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_profile"
+            android:padding="4dp"
+            app:tint="@color/white" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

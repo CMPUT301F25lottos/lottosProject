@@ -4,7 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CreateEventScreen"
+    android:background="@color/white"
+    tools:context=".organizer.CreateEventScreen"
     android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -21,13 +22,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="24dp"/>
+            android:layout_marginTop="24dp" />
 
         <LinearLayout
             android:id="@+id/llEventCreation"
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:padding="10dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvCreateEvent">
@@ -36,73 +38,151 @@
                 android:id="@+id/etEventName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter Event Name"/>
+                android:hint="Enter Event Name" />
 
             <EditText
                 android:id="@+id/etEventLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter Location"/>
+                android:hint="Enter Location" />
+
+            <EditText
+                android:id="@+id/etRegisterEndTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Register End Time"
+                android:focusable="false"
+                android:clickable="true" />
 
             <EditText
                 android:id="@+id/etStartTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter Start Time yyyy-MM-dd HH:mm"/>
+                android:hint="Start Time"
+                android:focusable="false"
+                android:clickable="true" />
 
             <EditText
                 android:id="@+id/etEndTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter End Time yyyy-MM-dd HH:mm"/>
-
+                android:hint="End Time"
+                android:focusable="false"
+                android:clickable="true" />
 
             <EditText
                 android:id="@+id/etDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter Description"/>
+                android:hint="Enter Description" />
 
             <EditText
                 android:id="@+id/etCapacity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter Event Capacity"/>
+                android:hint="Enter Event Capacity" />
 
             <EditText
                 android:id="@+id/etWaitListCapacity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter WaitList Capacity (Optional)"/>
-
-
-            <EditText
-                android:id="@+id/etWLEndTime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter WaitList Closing Time yyyy-MM-dd HH:mm (Optional)"/>
+                android:hint="Enter WaitList Capacity (Optional)" />
 
         </LinearLayout>
 
-        <Button
-            android:id="@+id/btnCancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancel"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/btnCreateEvent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="12dp"/>
 
-        <Button
-            android:id="@+id/btnCreateEvent"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/actionButtons"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Create Event"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/btnCancel"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="12dp"/>
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="24dp"
+            app:layout_constraintBottom_toTopOf="@id/navigationBar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <Button
+                android:id="@+id/btnCreateEvent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/navy"
+                android:text="Create Event" />
+
+            <Button
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/navy"
+                android:text="Cancel" />
+
+        </LinearLayout>
+
+
+
+        <LinearLayout
+            android:id="@+id/navigationBar"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:background="@color/navy"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:weightSum="5"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_home"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnOpenEvents"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_event"
+                android:padding="4dp"
+                app:tint="@color/white"/>
+
+            <ImageButton
+                android:id="@+id/btnNotification"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_notification"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnEventHistory"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_history"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnProfile"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_profile"
+                android:padding="4dp"
+                app:tint="@color/white" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
