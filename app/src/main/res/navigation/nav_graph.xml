@@ -316,6 +316,10 @@
             android:id="@+id/action_OrganizerEventsScreen_to_EventHistoryScreen"
             app:destination="@+id/EventHistoryScreen"/>
 
+        <action
+            android:id="@+id/action_organizerEventsScreen_to_organizerEventDetailsScreen"
+            app:destination="@id/organizerEventDetailsScreen"/>
+
 
 
     </fragment>
@@ -511,5 +515,49 @@
 
 
     </fragment>
+
+    <fragment
+        android:id="@+id/organizerEventDetailsScreen"
+        android:name="com.example.lottos.organizer.OrganizerEventDetailsScreen"
+        android:label="OrganizerEventDetailsScreen"
+        tools:layout="@layout/fragment_organizer_event_details_screen">
+
+        <argument
+            android:name="userName"
+            app:argType="java.lang.String" />
+
+        <argument
+            android:name="eventId"
+            app:argType="java.lang.String" />
+
+        <!-- Optional: back to the organizer events list -->
+        <action
+            android:id="@+id/action_OrganizerEventDetailsScreen_to_OrganizerEventsScreen"
+            app:destination="@id/OrganizerEventsScreen" />
+
+        <action
+            android:id="@+id/actionOrganizerEventDetailsScreenToNotificationScreen"
+            app:destination="@+id/NotificationScreen"/>
+
+        <action
+            android:id="@+id/actionOrganizerEventDetailsScreenToHomeScreen"
+            app:destination="@+id/HomeScreen"/>
+
+        <action
+            android:id="@+id/actionOrganizerEventDetailsScreenToProfileScreen"
+            app:destination="@+id/ProfileScreen"/>
+
+        <action
+            android:id="@+id/actionOrganizerEventDetailsScreenToEventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
+
+        <action
+            android:id="@+id/action_send_notification_screen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen"/>
+
+    </fragment>
+
+
+
 
 </navigation>

@@ -12,29 +12,24 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.EventRepository;
-import com.example.lottos.account.ProfileScreen;
-import com.example.lottos.account.ProfileScreenDirections;
-import com.example.lottos.organizer.OrganizerEventsScreenArgs;
-import com.example.lottos.organizer.OrganizerEventsScreenDirections;
 import com.example.lottos.databinding.FragmentOrganizerEventsScreenBinding;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * This fragment displays all events created by a specific organizer.
- */
 public class OrganizerEventsScreen extends Fragment {
 
     private FragmentOrganizerEventsScreenBinding binding;
     private EventRepository repo;
     private String userName;
 
-    // Use a simple list of strings for the ArrayAdapter and a corresponding list for event IDs.
     private final List<String> eventNames = new ArrayList<>();
     private final List<String> eventIds = new ArrayList<>();
     private ArrayAdapter<String> adapter;
+
+    // stores the currently selected event
+    private String selectedEventId = null;
 
     @Override
     public View onCreateView(@NonNull android.view.LayoutInflater inflater,
@@ -51,26 +46,30 @@ public class OrganizerEventsScreen extends Fragment {
         userName = OrganizerEventsScreenArgs.fromBundle(getArguments()).getUserName();
         repo = new EventRepository();
 
-        // 1. Setup ListView and ArrayAdapter
         ListView listView = binding.lvOpenEvents;
         adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, eventNames);
         listView.setAdapter(adapter);
 
-        // 2. Set a click listener to handle item clicks
+        // enable single-item selection
+        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
         listView.setOnItemClickListener((parent, itemView, position, id) -> {
-            String clickedEventId = eventIds.get(position); // Get the ID using the item's position
-            openEditEventScreen(clickedEventId);
+            selectedEventId = eventIds.get(position);
+            listView.setItemChecked(position, true);
+
+            Toast.makeText(getContext(),
+                    "Selected: " + eventNames.get(position),
+                    Toast.LENGTH_SHORT
+            ).show();
         });
 
         loadOrganizerEvents();
         setupNavButtons();
     }
 
-    /** Load all events created by this organizer from Firestore */
     private void loadOrganizerEvents() {
         repo.getEventsByOrganizer(userName).get()
                 .addOnSuccessListener(query -> {
-                    // Clear previous data
                     eventNames.clear();
                     eventIds.clear();
 
@@ -79,16 +78,16 @@ public class OrganizerEventsScreen extends Fragment {
                         String name = doc.getString("eventName");
 
                         if (name != null) {
-                            eventNames.add(name); // Add the name to the list for the adapter
-                            eventIds.add(id);     // Add the ID to our parallel list
+                            eventNames.add(name);
+                            eventIds.add(id);
                         }
                     }
 
-                    // Notify the adapter that the data has changed
                     adapter.notifyDataSetChanged();
 
                     if (eventNames.isEmpty()) {
-                        Toast.makeText(getContext(), "You haven’t created any events yet.",
+                        Toast.makeText(getContext(),
+                                "You haven’t created any events yet.",
                                 Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -103,6 +102,13 @@ public class OrganizerEventsScreen extends Fragment {
         NavHostFragment.findNavController(this)
                 .navigate(OrganizerEventsScreenDirections
                         .actionOrganizerEventsScreenToEditEventScreen(userName, eventId));
+    }
+
+    // 🔹 NEW: Organizer-specific details screen
+    private void openOrganizerEventDetailsScreen(String eventId) {
+        NavHostFragment.findNavController(this)
+                .navigate(OrganizerEventsScreenDirections
+                        .actionOrganizerEventsScreenToOrganizerEventDetailsScreen(userName, eventId));
     }
 
     private void setupNavButtons() {
@@ -133,10 +139,32 @@ public class OrganizerEventsScreen extends Fragment {
 
         binding.btnEventHistory.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
-                        .navigate(OrganizerEventsScreenDirections.actionOrganizerEventsScreenToEventHistoryScreen(userName))
+                        .navigate(OrganizerEventsScreenDirections
+                                .actionOrganizerEventsScreenToEventHistoryScreen(userName))
         );
-    }
 
+        // EDIT EVENT
+        binding.btnEditEvent.setOnClickListener(v -> {
+            if (selectedEventId == null) {
+                Toast.makeText(getContext(),
+                        "Please select an event first.",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            openEditEventScreen(selectedEventId);
+        });
+
+        // VIEW DETAILS → Organizer-specific screen
+        binding.btnViewEventDetails.setOnClickListener(v -> {
+            if (selectedEventId == null) {
+                Toast.makeText(getContext(),
+                        "Please select an event first.",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            openOrganizerEventDetailsScreen(selectedEventId);
+        });
+    }
 
     @Override
     public void onDestroyView() {
