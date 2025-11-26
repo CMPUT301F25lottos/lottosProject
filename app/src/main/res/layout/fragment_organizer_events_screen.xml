@@ -35,19 +35,53 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:background="@android:color/white"
-            android:scrollbars="vertical" />
+            android:scrollbars="vertical"
+            android:listSelector="@color/navy_light_transparent"
+            android:drawSelectorOnTop="true" />
 
-        <Button
-            android:id="@+id/btnCreateEvent"
-            android:layout_width="wrap_content"
+
+        <!-- Buttons row: Create | View Details | Edit -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="Create Event"
-            android:backgroundTint="@color/navy"
+            android:orientation="horizontal"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="4dp">
+
+            <Button
+                android:id="@+id/btnCreateEvent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Create Event"
+                android:backgroundTint="@color/navy"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnViewEventDetails"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="View Details"
+                android:backgroundTint="@color/navy"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnEditEvent"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/navy"
+                android:text="Edit    Event" />
+
+        </LinearLayout>
+
 
     </LinearLayout>
+
+
 
     <LinearLayout
         android:id="@+id/navigationBar"
