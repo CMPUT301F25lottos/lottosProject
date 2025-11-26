@@ -10,6 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Handles all non-UI logic for the EventDetailsScreen.
@@ -65,6 +66,16 @@ public class EventDetailsManager {
 
         }).addOnFailureListener(cb::onError);
     }
+
+
+
+    public void deleteEvent(String eventName, Runnable onSuccess, Consumer<Exception> onError) {
+        repo.getEvent(eventName)                .delete()
+                .addOnSuccessListener(aVoid -> onSuccess.run())
+                .addOnFailureListener(onError::accept);
+    }
+
+
 
 
     // ------------------------------------------------------------------
@@ -150,6 +161,19 @@ public class EventDetailsManager {
                 }).addOnSuccessListener(v -> onSuccess.run())
                 .addOnFailureListener(e -> onError.run(e));
     }
+
+    public void getEventDetails(String eventName, Consumer<Map<String, Object>> onSuccess, Consumer<Exception> onError) {
+        repo.getEvent(eventName).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        onSuccess.accept(documentSnapshot.getData());
+                    } else {
+                        onSuccess.accept(null); // Event not found
+                    }
+                })
+                .addOnFailureListener(onError::accept);
+    }
+
 
     // ------------------------------------------------------------------
     // RUN LOTTERY

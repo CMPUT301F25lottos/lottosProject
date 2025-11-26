@@ -10,6 +10,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import android.util.Log;
+import com.google.firebase.firestore.Query;
+
 
 /**
  * Handles all business logic for entrant events.
@@ -50,6 +53,53 @@ public class EntrantEventManager {
             return name;
         }
     }
+
+
+
+    public void loadAllOpenEvents(EventsCallback callback) {
+
+        repo.getAllEvents().get().addOnSuccessListener(query -> {
+                    List<EventModel> result = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : query) {
+                        String id = doc.getId();
+                        String name = doc.getString("eventName");
+                        Boolean openFlag = doc.getBoolean("IsOpen");
+                        String location = doc.getString("location");
+                        Timestamp startTs = doc.getTimestamp("startTime");
+                        Timestamp endTs = doc.getTimestamp("endTime");
+                        String startStr = formatTimestamp(startTs);
+                        String endStr = formatTimestamp(endTs);
+
+
+                        if (name != null && openFlag != null) {
+                            result.add(new EventModel(
+                                    id,
+                                    name,
+                                    openFlag,
+                                    location,
+                                    startStr,
+                                    endStr
+                            ));
+                        }
+                    }
+
+                    result.sort((e1, e2) -> {
+
+                        return e2.endTime.compareTo(e1.endTime);
+                    });
+
+                    callback.onSuccess(result, new ArrayList<>());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EntrantEventManager", "Error loading all events for admin", e);
+                    callback.onError(e);
+                });
+    }
+
+
+
+
+
 
 
 
