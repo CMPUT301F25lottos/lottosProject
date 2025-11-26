@@ -90,7 +90,7 @@
 
     </LinearLayout>
 
-    <!-- SCROLLABLE DETAILS SECTION -->
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/detailsScroll"
         android:layout_width="0dp"
@@ -101,8 +101,10 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="12dp"
+        android:layout_marginBottom="80dp"
         android:paddingStart="20dp"
         android:paddingEnd="20dp">
+
 
         <LinearLayout
             android:id="@+id/llEventDetails3"
@@ -156,7 +158,7 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Buttons -->
+    <!-- Buttons for Regular Users -->
     <LinearLayout
         android:id="@+id/llButtons"
         android:orientation="vertical"
@@ -164,13 +166,12 @@
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/detailsScroll"
         app:layout_constraintBottom_toTopOf="@id/navigationBar"
         android:gravity="center"
-        android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp"
         android:padding="8dp">
 
+        <!-- All your user-only buttons go here -->
         <Button
             android:id="@+id/btnJoin"
             android:text="Join WaitList"
@@ -240,17 +241,48 @@
             android:text="Start Lottery System"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/navy"/>
-
-        <Button
-            android:id="@+id/btnBack"
-            android:text="Back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/navy"/>
+            android:backgroundTint="@color/navy"
+            android:visibility="gone" />
 
     </LinearLayout>
 
+    <!-- NEW: Buttons for Admin Users (Side-by-Side) -->
+    <LinearLayout
+        android:id="@+id/llAdminButtons"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp">
+
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Back"
+            android:backgroundTint="@color/navy"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/btnDeleteEvent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/holo_red_dark"
+            android:text="Delete Event"
+            android:textColor="@android:color/white"
+            android:layout_marginStart="8dp"/>
+
+    </LinearLayout>
+
+
+    <!-- Your Existing Navigation Bar -->
     <LinearLayout
         android:id="@+id/navigationBar"
         android:layout_width="match_parent"
@@ -310,7 +342,8 @@
             android:src="@drawable/ic_profile"
             android:padding="4dp"
             app:tint="@color/white" />
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

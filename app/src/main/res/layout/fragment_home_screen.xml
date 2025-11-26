@@ -9,6 +9,11 @@
     tools:context=".home.HomeScreen">
 
 
+
+
+
+
+
     <!-- Scrollable content area -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollContent"
@@ -18,7 +23,8 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/navigationBar">
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"
+        android:scrollbars="vertical" >
 
         <LinearLayout
             android:id="@+id/contentArea"
