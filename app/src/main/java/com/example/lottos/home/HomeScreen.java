@@ -77,15 +77,28 @@ public class HomeScreen extends Fragment {
             }
         });
 
-
         setupRecycler();
         setupNavButtons();
     }
 
     private void setupRecycler() {
+        // In HomeScreen, clicking an event directly navigates to its details
         adapter = new EventListAdapter(
                 eventItems,
-                this::goToDetails // Method reference for click listener
+                new EventListAdapter.Listener() {
+                    @Override
+                    public void onEventClick(String eventId) {
+                        // Navigate directly to event details (no selection, no highlight)
+                        goToDetails(eventId);
+                    }
+
+                    @Override
+                    public void onEventSelected(String eventId) {
+                        goToDetails(eventId);
+                    }
+
+
+                }
         );
         binding.rvEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvEvents.setAdapter(adapter);
@@ -127,7 +140,6 @@ public class HomeScreen extends Fragment {
      * LOADS ALL EVENTS FOR AN ADMIN
      */
     private void loadAllEventsForAdmin() {
-
         manager.loadAllOpenEvents(new EntrantEventManager.EventsCallback() {
             @Override
             public void onSuccess(List<EntrantEventManager.EventModel> list, List<String> waitlisted) {
@@ -163,7 +175,7 @@ public class HomeScreen extends Fragment {
         Log.d("HomeScreen", "Adapter updated with " + eventItems.size() + " events.");
     }
 
-    // Your existing navigation methods (no changes needed)
+    // Navigate directly to the event details
     private void goToDetails(String eventId) {
         NavHostFragment.findNavController(this)
                 .navigate(HomeScreenDirections.actionHomeScreenToEventDetailsScreen(userName, eventId));

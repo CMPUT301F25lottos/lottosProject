@@ -3,14 +3,15 @@ package com.example.lottos.organizer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.lottos.EventListAdapter;
 import com.example.lottos.EventRepository;
 import com.example.lottos.databinding.FragmentOrganizerEventsScreenBinding;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -24,11 +25,10 @@ public class OrganizerEventsScreen extends Fragment {
     private EventRepository repo;
     private String userName;
 
-    private final List<String> eventNames = new ArrayList<>();
-    private final List<String> eventIds = new ArrayList<>();
-    private ArrayAdapter<String> adapter;
+    private final List<EventListAdapter.EventItem> events = new ArrayList<>();
+    private EventListAdapter adapter;
 
-    // stores the currently selected event
+    // Tracks current selected event from RecyclerView
     private String selectedEventId = null;
 
     @Override
@@ -46,22 +46,31 @@ public class OrganizerEventsScreen extends Fragment {
         userName = OrganizerEventsScreenArgs.fromBundle(getArguments()).getUserName();
         repo = new EventRepository();
 
-        ListView listView = binding.lvOpenEvents;
-        adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, eventNames);
-        listView.setAdapter(adapter);
+        // -------------------------
+        // RecyclerView Setup
+        // -------------------------
+        RecyclerView rv = binding.rvOrganizerEvents;
+        rv.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        // enable single-item selection
-        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        adapter = new EventListAdapter(events, new EventListAdapter.Listener() {
 
-        listView.setOnItemClickListener((parent, itemView, position, id) -> {
-            selectedEventId = eventIds.get(position);
-            listView.setItemChecked(position, true);
+            @Override
+            public void onEventClick(String eventId) {
+                // Arrow click → open details instantly
+                openOrganizerEventDetailsScreen(eventId);
+            }
 
-            Toast.makeText(getContext(),
-                    "Selected: " + eventNames.get(position),
-                    Toast.LENGTH_SHORT
-            ).show();
+            @Override
+            public void onEventSelected(String eventId) {
+                // Normal click → select + highlight
+                selectedEventId = eventId;
+                Toast.makeText(getContext(),
+                        "Selected event", Toast.LENGTH_SHORT).show();
+            }
         });
+
+        rv.setAdapter(adapter);
+        // -------------------------
 
         loadOrganizerEvents();
         setupNavButtons();
@@ -70,26 +79,43 @@ public class OrganizerEventsScreen extends Fragment {
     private void loadOrganizerEvents() {
         repo.getEventsByOrganizer(userName).get()
                 .addOnSuccessListener(query -> {
-                    eventNames.clear();
-                    eventIds.clear();
+
+                    events.clear();
 
                     for (QueryDocumentSnapshot doc : query) {
+
                         String id = doc.getId();
                         String name = doc.getString("eventName");
 
+                        // SAFE conversion for timestamps/numbers/strings
+                        Object locObj = doc.get("location");
+                        Object startObj = doc.get("startTime");
+                        Object endObj = doc.get("endTime");
+
+                        String location = locObj != null ? locObj.toString() : null;
+                        String start = startObj != null ? startObj.toString() : null;
+                        String end = endObj != null ? endObj.toString() : null;
+
                         if (name != null) {
-                            eventNames.add(name);
-                            eventIds.add(id);
+                            events.add(new EventListAdapter.EventItem(
+                                    id,
+                                    name,
+                                    true,        // isOpen placeholder
+                                    location,
+                                    start,
+                                    end
+                            ));
                         }
                     }
 
                     adapter.notifyDataSetChanged();
 
-                    if (eventNames.isEmpty()) {
+                    if (events.isEmpty()) {
                         Toast.makeText(getContext(),
                                 "You haven’t created any events yet.",
                                 Toast.LENGTH_SHORT).show();
                     }
+
                 })
                 .addOnFailureListener(e -> {
                     Log.e("Firestore", "Failed to load events", e);
@@ -104,7 +130,6 @@ public class OrganizerEventsScreen extends Fragment {
                         .actionOrganizerEventsScreenToEditEventScreen(userName, eventId));
     }
 
-    // 🔹 NEW: Organizer-specific details screen
     private void openOrganizerEventDetailsScreen(String eventId) {
         NavHostFragment.findNavController(this)
                 .navigate(OrganizerEventsScreenDirections
@@ -143,7 +168,6 @@ public class OrganizerEventsScreen extends Fragment {
                                 .actionOrganizerEventsScreenToEventHistoryScreen(userName))
         );
 
-        // EDIT EVENT
         binding.btnEditEvent.setOnClickListener(v -> {
             if (selectedEventId == null) {
                 Toast.makeText(getContext(),
@@ -154,7 +178,6 @@ public class OrganizerEventsScreen extends Fragment {
             openEditEventScreen(selectedEventId);
         });
 
-        // VIEW DETAILS → Organizer-specific screen
         binding.btnViewEventDetails.setOnClickListener(v -> {
             if (selectedEventId == null) {
                 Toast.makeText(getContext(),
