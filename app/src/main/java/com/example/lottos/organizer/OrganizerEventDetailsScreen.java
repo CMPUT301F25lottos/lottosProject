@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,8 +55,8 @@ public class OrganizerEventDetailsScreen extends Fragment {
                               Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        setupNavButtons();
         loadEvent();
+        setupNavButtons();
     }
 
     private void loadEvent() {
@@ -70,20 +69,25 @@ public class OrganizerEventDetailsScreen extends Fragment {
                                   List<String> enrolledUsers,
                                   List<String> cancelledUsers) {
 
+                // Header info
                 renderHeader(eventData);
 
+                // Section headers with counts
                 binding.tvWaitlistHeader.setText("Waitlist (" + waitlistUsers.size() + ")");
                 binding.tvSelectedHeader.setText("Selected (" + selectedUsers.size() + ")");
                 binding.tvNotSelectedHeader.setText("Not Selected (" + notSelectedUsers.size() + ")");
                 binding.tvEnrolledHeader.setText("Enrolled (" + enrolledUsers.size() + ")");
                 binding.tvCancelledHeader.setText("Cancelled (" + cancelledUsers.size() + ")");
 
-                renderListSection(binding.containerWaitlist, binding.tvWaitlistEmpty, waitlistUsers);
-                renderListSection(binding.containerSelected, binding.tvSelectedEmpty, selectedUsers);
-                renderListSection(binding.containerNotSelected, binding.tvNotSelectedEmpty, notSelectedUsers);
-                renderListSection(binding.containerEnrolled, binding.tvEnrolledEmpty, enrolledUsers);
-                renderListSection(binding.containerCancelled, binding.tvCancelledEmpty, cancelledUsers);
+                // Section bodies
+                renderListSection(binding.tvWaitlistEmpty,  waitlistUsers,  "No users on waitlist.");
+                renderListSection(binding.tvSelectedEmpty,  selectedUsers,  "No selected users yet.");
+                renderListSection(binding.tvNotSelectedEmpty, notSelectedUsers, "No not-selected users yet.");
+                renderListSection(binding.tvEnrolledEmpty,  enrolledUsers,  "No enrolled users yet.");
+                renderListSection(binding.tvCancelledEmpty, cancelledUsers, "No cancelled users yet.");
 
+                // Setup lottery button based on this event + waitlist
+                updateUI(eventData, waitlistUsers);
             }
 
             @Override
@@ -126,35 +130,78 @@ public class OrganizerEventDetailsScreen extends Fragment {
     }
 
     /**
-     * Populates one section:
-     * - If users list is empty: show the "empty" label
-     * - If not empty: hide "empty" label and show "• username" rows
+     * Populates one section text view:
+     * - If users list is empty: show the "empty" message
+     * - If not empty: show bullet list of usernames
      */
-    private void renderListSection(LinearLayout container,
-                                   TextView emptyView,
-                                   List<String> users) {
+    private void renderListSection(TextView contentView,
+                                   List<String> users,
+                                   String emptyMessage) {
 
-        container.removeAllViews();
+        if (contentView == null) return;
 
         if (users == null || users.isEmpty()) {
-            if (emptyView != null) emptyView.setVisibility(View.VISIBLE);
+            contentView.setVisibility(View.VISIBLE);
+            contentView.setText(emptyMessage);
             return;
         }
 
-        if (emptyView != null) emptyView.setVisibility(View.GONE);
-
-        LayoutInflater inflater = LayoutInflater.from(getContext());
-
+        StringBuilder sb = new StringBuilder();
         for (String u : users) {
-            TextView tv = (TextView) inflater.inflate(
-                    android.R.layout.simple_list_item_1,
-                    container,
-                    false
-            );
-            tv.setText("• " + u);
-            container.addView(tv);
+            sb.append("• ").append(u).append("\n");
+        }
+
+        contentView.setVisibility(View.VISIBLE);
+        contentView.setText(sb.toString().trim());
+    }
+
+    /**
+     * Controls lottery button visibility + click behavior
+     * based on event status, organizer, and waitlist.
+     */
+    private void updateUI(Map<String, Object> eventData,
+                          List<String> waitUsers) {
+
+        if (eventData == null) return;
+
+        boolean isOpen     = Boolean.TRUE.equals(eventData.get("IsOpen"));
+        boolean hasRunLottery = Boolean.TRUE.equals(eventData.get("IsLottery"));
+        String organizer   = safe(eventData.get("organizer"));
+        boolean isOrganizer = organizer.equalsIgnoreCase(userName);
+
+        // Default: hide and clear click listener
+        binding.btnLottery.setVisibility(View.GONE);
+        binding.btnLottery.setOnClickListener(null);
+
+        // Only organizer can see this button,
+        // only if the lottery has NOT been run yet,
+        // and there is at least one person on the waitlist.
+        if (isOrganizer && !hasRunLottery && waitUsers != null && !waitUsers.isEmpty()) {
+            binding.btnLottery.setVisibility(View.VISIBLE);
+
+            binding.btnLottery.setOnClickListener(v -> {
+                if (isOpen) {
+                    toast("Registration is still open. You can run the lottery after it closes.");
+                    return;
+                }
+
+                binding.btnLottery.setEnabled(false);
+
+                // IMPORTANT: runLottery should set IsLottery = true in Firestore.
+                manager.runLottery(eventId, waitUsers,
+                        () -> {
+                            toast("Lottery completed");
+                            binding.btnLottery.setEnabled(true);
+                            loadEvent(); // reload – now IsLottery will be true, button disappears
+                        },
+                        e -> {
+                            toast("Lottery failed: " + e.getMessage());
+                            binding.btnLottery.setEnabled(true);
+                        });
+            });
         }
     }
+
 
     private String safe(Object o) {
         return o == null ? "" : o.toString();

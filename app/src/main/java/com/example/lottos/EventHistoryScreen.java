@@ -1,150 +1,155 @@
-package com.example.lottos;
-
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
-
-import com.example.lottos.account.ProfileScreen;
-import com.example.lottos.account.ProfileScreenDirections;
-import com.example.lottos.databinding.FragmentEventHistoryScreenBinding;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-/**
- * this fragment displays the entrant user's event history.
- * Role: Reads historical event data from Firestore
- * (based on the user's stored lists) and shows it in a simple list with navigation
- * back to the home screen.
- */
-public class EventHistoryScreen extends Fragment {
-
-    private FragmentEventHistoryScreenBinding binding;
-    private FirebaseFirestore db;
-    private String userName;
-
-    // List of *event names* to display
-    private final List<String> eventHistoryNames = new ArrayList<>();
-    private ArrayAdapter<String> historyAdapter;
-
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        binding = FragmentEventHistoryScreenBinding.inflate(inflater, container, false);
-        return binding.getRoot();
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        userName = EventHistoryScreenArgs.fromBundle(getArguments()).getUserName();
-        db = FirebaseFirestore.getInstance();
-
-        // Set up adapter once; we'll just update the backing list
-        historyAdapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_list_item_1,
-                eventHistoryNames
-        );
-        binding.lvEventHistory.setAdapter(historyAdapter);
-
-        loadHistory();
-        setupNavButtons();
-
-
-    }
-
-    private void loadHistory() {
-        db.collection("users").document(userName).get()
-                .addOnSuccessListener(snapshot -> {
-                    if (!snapshot.exists()) {
-                        Toast.makeText(getContext(), "User not found.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    // Firestore structure: waitListedEvents (map) -> events (array of eventIds)
-                    List<String> historyIds = (List<String>) snapshot.get("waitListedEvents.events");
-
-                    if (historyIds == null || historyIds.isEmpty()) {
-                        Toast.makeText(getContext(), "No past events found.", Toast.LENGTH_SHORT).show();
-                        eventHistoryNames.clear();
-                        historyAdapter.notifyDataSetChanged();
-                        return;
-                    }
-
-                    // Clear and resolve each eventId to its eventName
-                    eventHistoryNames.clear();
-                    historyAdapter.notifyDataSetChanged();
-
-                    for (String eventId : historyIds) {
-                        resolveEventName(eventId, eventName -> {
-                            eventHistoryNames.add(eventName);
-                            historyAdapter.notifyDataSetChanged();
-                        });
-                    }
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Error loading history", Toast.LENGTH_SHORT).show());
-    }
-
-    /**
-     * Helper to resolve an eventId to its eventName from /open events/{eventId}.
-     * Falls back to the eventId if name is missing or lookup fails.
-     */
-    private void resolveEventName(String eventId, EventNameCallback callback) {
-        db.collection("open events")
-                .document(eventId)
-                .get()
-                .addOnSuccessListener(doc -> {
-                    String name = null;
-                    if (doc.exists()) {
-                        name = doc.getString("eventName");
-                    }
-                    if (name == null || name.trim().isEmpty()) {
-                        name = eventId;
-                    }
-                    callback.onNameResolved(name);
-                })
-                .addOnFailureListener(e -> callback.onNameResolved(eventId));
-    }
-
-    private interface EventNameCallback {
-        void onNameResolved(String eventName);
-    }
-
-    private void setupNavButtons() {
-
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToHomeScreen(userName)));
-
-        binding.btnNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToNotificationScreen(userName)));
-
-        binding.btnProfile.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToProfileScreen(userName)));
-
-        binding.btnOpenEvents.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToOrganizerEventsScreen(userName))
-        );
-
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
-}
+//package com.example.lottos;
+//
+//import android.content.Context;
+//import android.os.Bundle;
+//import android.util.Log;
+//import android.view.LayoutInflater;
+//import android.view.View;
+//import android.view.ViewGroup;
+//import android.widget.Toast;
+//
+//import androidx.annotation.NonNull;
+//import androidx.fragment.app.Fragment;
+//import androidx.navigation.fragment.NavHostFragment;
+//import androidx.recyclerview.widget.LinearLayoutManager;
+//
+//import com.example.lottos.databinding.FragmentEventHistoryScreenBinding;
+//import com.example.lottos.events.EntrantEventManager;
+//import com.example.lottos.home.EventStatusUpdater;
+//import com.example.lottos.home.HomeScreenArgs;
+//import com.example.lottos.home.HomeScreenDirections;
+//
+//import java.util.ArrayList;
+//import java.util.List;
+//
+//public class EventHistoryScreen extends Fragment {
+//
+//    private FragmentEventHistoryScreenBinding binding;
+//    private EventStatusUpdater eventUpdater;
+//    private EntrantEventManager manager;
+//
+//    private String userName;
+//
+//    private final List<EventListAdapter.EventItem> eventItems = new ArrayList<>();
+//    private EventListAdapter adapter;
+//
+//    @Override
+//    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+//                             Bundle savedInstanceState) {
+//        binding = FragmentEventHistoryScreenBinding.inflate(inflater, container, false);
+//        return binding.getRoot();
+//    }
+//
+//    @Override
+//    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+//        super.onViewCreated(view, savedInstanceState);
+//
+//        userName = HomeScreenArgs.fromBundle(getArguments()).getUserName();
+//
+//        eventUpdater = new EventStatusUpdater();
+//        manager = new EntrantEventManager();
+//
+//        binding.tvTitle.setText("Event History");
+//
+//        eventUpdater.updateEventStatuses(new EventStatusUpdater.UpdateListener() {
+//            @Override
+//            public void onUpdateSuccess(int updatedCount) {
+//                loadEventsForUser();
+//            }
+//
+//            @Override
+//            public void onUpdateFailure(String errorMessage) {
+//                Toast.makeText(getContext(), "Status update failed: " + errorMessage, Toast.LENGTH_SHORT).show();
+//                loadEventsForUser();
+//            }
+//        });
+//
+//        setupRecycler();
+//        setupNavButtons();
+//    }
+//
+//    private void setupRecycler() {
+//        adapter = new EventListAdapter(
+//                eventItems,
+//                new EventListAdapter.Listener() {
+//                    @Override
+//                    public void onEventClick(String eventId) {
+//                        goToDetails(eventId);
+//                    }
+//
+//                    @Override
+//                    public void onEventSelected(String eventId) {
+//                        goToDetails(eventId);
+//                    }
+//                }
+//        );
+//
+//        binding.rvEventHistory.setLayoutManager(new LinearLayoutManager(requireContext()));
+//        binding.rvEventHistory.setAdapter(adapter);
+//        binding.rvEventHistory.setNestedScrollingEnabled(false);
+//    }
+//
+//    private void loadEventsForUser() {
+//        manager.loadEventsForUser(userName, new EntrantEventManager.EventsCallback() {
+//            @Override
+//            public void onSuccess(List<EntrantEventManager.EventModel> list,
+//                                  List<String> waitlisted) {
+//                updateAdapterWithEvents(list);
+//            }
+//
+//            @Override
+//            public void onError(Exception e) {
+//                Toast.makeText(getContext(), "Error loading events", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//    }
+//
+//    private void updateAdapterWithEvents(List<EntrantEventManager.EventModel> eventModelList) {
+//        eventItems.clear();
+//        for (EntrantEventManager.EventModel evt : eventModelList) {
+//            eventItems.add(
+//                    new EventListAdapter.EventItem(
+//                            evt.id,
+//                            evt.name,
+//                            evt.isOpen,
+//                            evt.location,
+//                            evt.startTime,
+//                            evt.endTime
+//                    )
+//            );
+//        }
+//        adapter.notifyDataSetChanged();
+//        Log.d("EventHistory", "Adapter updated with " + eventItems.size() + " events.");
+//    }
+//
+//    private void goToDetails(String eventId) {
+//        NavHostFragment.findNavController(this)
+//                .navigate(HomeScreenDirections.actionHomeScreenToEventDetailsScreen(userName, eventId));
+//    }
+//
+//    private void setupNavButtons() {
+//
+//        binding.btnBack.setOnClickListener(v ->
+//                NavHostFragment.findNavController(this)
+//                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToHomeScreen(userName)));
+//
+//        binding.btnNotification.setOnClickListener(v ->
+//                NavHostFragment.findNavController(this)
+//                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToNotificationScreen(userName)));
+//
+//        binding.btnProfile.setOnClickListener(v ->
+//                NavHostFragment.findNavController(this)
+//                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToProfileScreen(userName)));
+//
+//        binding.btnOpenEvents.setOnClickListener(v ->
+//                NavHostFragment.findNavController(this)
+//                        .navigate(EventHistoryScreenDirections.actionEventHistoryScreenToOrganizerEventsScreen(userName))
+//        );
+//    }
+//
+//    @Override
+//    public void onDestroyView() {
+//        super.onDestroyView();
+//        binding = null;
+//    }
+//}

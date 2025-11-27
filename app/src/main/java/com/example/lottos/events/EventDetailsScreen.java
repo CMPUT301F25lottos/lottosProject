@@ -116,7 +116,6 @@ public class EventDetailsScreen extends Fragment {
     }
 
     private void renderEventData(Map<String, Object> data) {
-        binding.tvOrganizer.setText("Organizer: " + safe(data.get("organizer")));
         binding.tvEventName.setText(safe(data.get("eventName")));
         binding.tvLocation.setText(" | " + safe(data.get("location")));
 
@@ -148,19 +147,19 @@ public class EventDetailsScreen extends Fragment {
             Date date = ts.toDate();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault());
             String formatted = sdf.format(date);
-            binding.tvWLCloseDateTime.setText("Register End Date: " + formatted);
+            binding.tvWLCloseDateTime.setText("Register End Time: " + formatted);
         } else {
-            binding.tvWLCloseDateTime.setText("Register End Date: N/A");
+            binding.tvWLCloseDateTime.setText("Register End Time: N/A");
         }
 
         Map<String, Object> waitList = (Map<String, Object>) data.get("waitList");
         if (waitList != null) {
             List<?> users = (List<?>) waitList.get("users");
             int userCount = (users != null) ? users.size() : 0;
-            binding.tvWLCount.setText("Number of Entrants on WaitList:" + userCount);
+            binding.tvWLCount.setText("Number of Entrants on WaitList: " + userCount);
         }
 
-        binding.tvDescription.setText("Description: " + safe(data.get("description")));
+        binding.tvDescription.setText(safe(data.get("description")));
         binding.tvCapacity.setText("Event Capacity: " + safe(data.get("selectionCap")));
 
         String capacity = "No Restriction";
@@ -177,6 +176,8 @@ public class EventDetailsScreen extends Fragment {
         return o == null ? "" : o.toString();
     }
 
+
+
     // ------------------------------------------------------------------
     // UI STATE
     // ------------------------------------------------------------------
@@ -184,10 +185,8 @@ public class EventDetailsScreen extends Fragment {
                           List<String> waitUsers,
                           Map<String, Object> userData) {
 
-
-
         boolean isOpen = Boolean.TRUE.equals(eventData.get("IsOpen"));
-        boolean isLottery = Boolean.TRUE.equals(eventData.get("IsLottery"));
+        boolean isLottery = Boolean.TRUE.equals(eventData.get("IsLottery")); // still used indirectly maybe
         String organizer = safe(eventData.get("organizer"));
         boolean isOrganizer = organizer.equalsIgnoreCase(userName);
 
@@ -197,27 +196,6 @@ public class EventDetailsScreen extends Fragment {
         boolean isSelected = selectedEvents.contains(eventName);
 
         binding.btnBack.setVisibility(View.VISIBLE);
-
-        if (isOrganizer && !isLottery) {
-            binding.btnLottery.setVisibility(View.VISIBLE);
-            binding.btnLottery.setOnClickListener(v -> {
-                if (isOpen) {
-                    toast("Registration is still open. You can run the lottery after it closes.");
-                    return;
-                }
-                binding.btnLottery.setEnabled(false);
-                manager.runLottery(eventName, waitUsers,
-                        () -> {
-                            toast("Lottery completed");
-                            binding.btnLottery.setEnabled(true);
-                            loadEvent(); // refresh view
-                        },
-                        e -> {
-                            toast("Lottery failed: " + e.getMessage());
-                            binding.btnLottery.setEnabled(true);
-                        });
-            });
-        }
 
         if (isOpen) {
             binding.btnJoin.setVisibility(View.VISIBLE);
@@ -232,12 +210,23 @@ public class EventDetailsScreen extends Fragment {
         }
 
         if (!isOpen && isSelected) {
+            // Show Accept / Decline
             binding.btnAccept.setVisibility(View.VISIBLE);
             binding.btnDecline.setVisibility(View.VISIBLE);
+
             binding.btnAccept.setOnClickListener(v -> acceptInvite());
             binding.btnDecline.setOnClickListener(v -> declineInvite());
+
+        } else {
+            // Hide them if user is NOT in selected list anymore
+            binding.btnAccept.setVisibility(View.GONE);
+            binding.btnDecline.setVisibility(View.GONE);
         }
+
     }
+
+
+
 
     private List<String> readUserList(Map<String, Object> userData, String key) {
         if (userData == null) return new ArrayList<>();
@@ -354,7 +343,6 @@ public class EventDetailsScreen extends Fragment {
         binding.btnViewSelected.setVisibility(View.GONE);
         binding.btnViewCancelled.setVisibility(View.GONE);
         binding.btnViewEnrolled.setVisibility(View.GONE);
-        binding.btnLottery.setVisibility(View.GONE);
 
 
         if (binding.btnDeleteEvent != null) {
