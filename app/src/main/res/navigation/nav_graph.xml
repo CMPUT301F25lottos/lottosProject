@@ -392,7 +392,7 @@
 
     <fragment
         android:id="@+id/LotteryInfoScreen"
-        android:name="com.example.lottos.LotteryInfoScreen"
+        android:name="com.example.lottos.lottery.LotteryInfoScreen"
         android:label="LotteryInfoScreen"
         tools:layout="@layout/fragment_lottery_info_screen">
 
@@ -453,7 +453,7 @@
 
     <fragment
         android:id="@+id/NotificationScreen"
-        android:name="com.example.lottos.NotificationScreen"
+        android:name="com.example.lottos.notifications.NotificationScreen"
         android:label="NotificationScreen"
         tools:layout="@layout/fragment_notification_screen">
 
@@ -485,7 +485,7 @@
 
     <fragment
         android:id="@+id/SendNotificationScreen"
-        android:name="com.example.lottos.SendNotificationScreen"
+        android:name="com.example.lottos.notifications.SendNotificationScreen"
         android:label="SendNotificationScreen"
         tools:layout="@layout/fragment_send_notification_screen">
 
