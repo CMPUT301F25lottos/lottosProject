@@ -60,27 +60,32 @@ public class EventDetailsScreen extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setupNavButtons();
-        hideAllButtons();
 
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(EventDetailsScreen.this).navigateUp()
+        );
+        setupNavButtons();
 
         if (isAdmin) {
+            binding.llAdminButtons.setVisibility(View.VISIBLE);
+            binding.llButtons.setVisibility(View.GONE);
             loadBasicEventDataForAdmin();
         } else {
+            binding.llButtons.setVisibility(View.VISIBLE);
+            binding.llAdminButtons.setVisibility(View.GONE);
             loadEvent();
         }
     }
 
     // --- NEW METHOD FOR ADMINS ---
     private void loadBasicEventDataForAdmin() {
+
+        binding.btnDeleteEvent.setOnClickListener(v -> showDeleteConfirmationDialog());
+
+        // Now, load the event data.
         manager.getEventDetails(eventName, eventData -> {
             if (eventData != null) {
                 renderEventData(eventData); // Show event details like name, date, etc.
-
-                // Now, show only the admin buttons
-                binding.btnBack.setVisibility(View.VISIBLE);
-                binding.btnDeleteEvent.setVisibility(View.VISIBLE);
-                binding.btnDeleteEvent.setOnClickListener(v -> showDeleteConfirmationDialog());
             } else {
                 toast("Error: Event not found.");
             }
@@ -341,6 +346,7 @@ public class EventDetailsScreen extends Fragment {
     }
 
     private void hideAllButtons() {
+        // This method should ONLY hide the action buttons within the user layout (llButtons).
         binding.btnJoin.setVisibility(View.GONE);
         binding.btnAccept.setVisibility(View.GONE);
         binding.btnDecline.setVisibility(View.GONE);
@@ -348,8 +354,8 @@ public class EventDetailsScreen extends Fragment {
         binding.btnViewSelected.setVisibility(View.GONE);
         binding.btnViewCancelled.setVisibility(View.GONE);
         binding.btnViewEnrolled.setVisibility(View.GONE);
-        binding.btnBack.setVisibility(View.GONE);
         binding.btnLottery.setVisibility(View.GONE);
+
 
         if (binding.btnDeleteEvent != null) {
             binding.btnDeleteEvent.setVisibility(View.GONE);
