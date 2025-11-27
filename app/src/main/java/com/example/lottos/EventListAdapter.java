@@ -27,16 +27,6 @@ public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> 
         public final String startTimeText; // optional
         public final String endTimeText;   // optional
 
-        // Old constructor: still works
-        public EventItem(String id, String name, boolean isOpen) {
-            this(id, name, isOpen, null, null, null);
-        }
-
-        // New: id + name + isOpen + location
-        public EventItem(String id, String name, boolean isOpen, String location) {
-            this(id, name, isOpen, location, null, null);
-        }
-
         // Full constructor (if you later want times too)
         public EventItem(String id, String name, boolean isOpen,
                          String location,

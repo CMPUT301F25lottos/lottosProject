@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.lottery;
 
 import android.os.Bundle;
 
@@ -10,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.lottos.EntrantWaitListsScreenArgs;
+import com.example.lottos.lottery.LotteryInfoScreenDirections;
 import com.example.lottos.databinding.FragmentLotteryInfoScreenBinding;
 
 /**

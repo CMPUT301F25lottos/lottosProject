@@ -122,7 +122,7 @@ public class EntrantEventManager {
         // Step 1: load user waitlisted events
         db.collection("users").document(userName).get()
                 .addOnSuccessListener(userSnap -> {
-                    // Make the list final and add items to it instead of reassigning.
+
                     final List<String> waitlisted = new ArrayList<>();
                     Object data = userSnap.get("waitListedEvents.events");
                     if (data instanceof List) {

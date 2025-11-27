@@ -8,66 +8,51 @@
     android:background="@drawable/vertical_gradient_bg"
     tools:context=".home.HomeScreen">
 
-
-
-
-
-
-
-    <!-- Scrollable content area -->
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scrollContent"
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvTitle"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-
+        android:layout_height="wrap_content"
+        android:text="Open Events"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:padding="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/navigationBar"
-        android:scrollbars="vertical" >
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <LinearLayout
-            android:id="@+id/contentArea"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:gravity="center_horizontal">
-
-            <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Open Events"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:textSize="40sp"
-                android:textStyle="bold"
-                android:paddingBottom="8dp"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvEvents"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:listitem="@layout/item_event"
-                android:background="@android:color/white"/>
-        </LinearLayout>
-
-    </androidx.core.widget.NestedScrollView>
-
+    <!-- Info button in top-right -->
     <ImageButton
         android:id="@+id/btnInfo"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:background="@android:color/transparent"
         android:src="@drawable/ic_lotteryinfo"
-        android:padding="8dp"
+        android:padding="16dp"
         android:contentDescription="Info"
         app:tint="@color/white"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="10dp" />
+        android:layout_marginEnd="10dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+
+    <!-- RecyclerView scrolls between title and bottom nav -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvEvents"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="16dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/item_event"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 
     <!-- Bottom navigation bar (always visible) -->
     <LinearLayout
@@ -100,7 +85,7 @@
             android:background="@android:color/transparent"
             android:src="@drawable/ic_event"
             android:padding="4dp"
-            app:tint="@color/white"/>
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnNotification"
@@ -133,9 +118,5 @@
             app:tint="@color/white" />
 
     </LinearLayout>
-
-    <!-- Info button in top-right -->
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

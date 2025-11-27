@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.lottery;
 
 import java.util.ArrayList;
 import java.util.Collections;
