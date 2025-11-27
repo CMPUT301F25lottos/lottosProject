@@ -1,7 +1,7 @@
 package com.example.lottos.events;
 
 import com.example.lottos.EventRepository;
-import com.example.lottos.LotterySystem;
+import com.example.lottos.lottery.LotterySystem;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;

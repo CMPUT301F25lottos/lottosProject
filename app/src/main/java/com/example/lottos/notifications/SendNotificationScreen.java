@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.notifications;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.lottos.notifications.SendNotificationScreenArgs;
+import com.example.lottos.notifications.SendNotificationScreenDirections;
 import com.example.lottos.databinding.FragmentSendNotificationScreenBinding;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
