@@ -13,9 +13,9 @@ import java.util.List;
 
 public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> {
 
-    // Simple click listener for "go to details"
     public interface Listener {
-        void onEventClick(String eventId);
+        void onEventClick(String eventId);      // arrow click
+        void onEventSelected(String eventId);   // row click
     }
 
     public static class EventItem {
@@ -24,11 +24,20 @@ public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> 
         public final boolean isOpen;
 
         public final String location;
-        public final String startTimeText; // optional
-        public final String endTimeText;   // optional
+        public final String startTimeText;
+        public final String endTimeText;
 
-        // Full constructor (if you later want times too)
-        public EventItem(String id, String name, boolean isOpen,
+        public EventItem(String id, String name, boolean isOpen) {
+            this(id, name, isOpen, null, null, null);
+        }
+
+        public EventItem(String id, String name, boolean isOpen, String location) {
+            this(id, name, isOpen, location, null, null);
+        }
+
+        public EventItem(String id,
+                         String name,
+                         boolean isOpen,
                          String location,
                          String startTimeText,
                          String endTimeText) {
@@ -39,11 +48,12 @@ public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> 
             this.startTimeText = startTimeText;
             this.endTimeText = endTimeText;
         }
-
     }
 
     private final List<EventItem> events;
     private final Listener listener;
+
+    private int selectedPosition = RecyclerView.NO_POSITION;
 
     public EventListAdapter(List<EventItem> events, Listener listener) {
         this.events = events;
@@ -51,9 +61,7 @@ public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> 
     }
 
     static class VH extends RecyclerView.ViewHolder {
-        TextView tvEventName;
-        TextView tvTime;
-        TextView tvLocation;
+        TextView tvEventName, tvTime, tvLocation;
         ImageButton btnArrow;
 
         VH(@NonNull View itemView) {
@@ -78,31 +86,38 @@ public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> 
         EventItem evt = events.get(position);
 
         holder.tvEventName.setText(evt.name);
+        holder.tvLocation.setText(evt.location != null ? evt.location : "");
 
-        holder.tvLocation.setText(
-                evt.location != null ? evt.location : ""
-        );
-
-        String timeRange = "";
-        if (evt.startTimeText != null || evt.endTimeText != null) {
-            String start = evt.startTimeText != null ? evt.startTimeText : "N/A";
-            String end = evt.endTimeText != null ? evt.endTimeText : "N/A";
-            timeRange = start + " - " + end;
+        if (evt.startTimeText != null && evt.endTimeText != null) {
+            holder.tvTime.setText(evt.startTimeText + " - " + evt.endTimeText);
+        } else {
+            holder.tvTime.setText("");
         }
 
-        holder.tvTime.setText(timeRange);
+        // Highlight selected item
+        holder.itemView.setBackgroundColor(
+                position == selectedPosition ? 0x220000FF : 0x00000000
+        );
 
-        // click → go to details
-        View.OnClickListener clickListener = v -> {
+        // Row click = select event
+        holder.itemView.setOnClickListener(v -> {
+            int old = selectedPosition;
+            selectedPosition = holder.getAdapterPosition();
+
+            notifyItemChanged(old);
+            notifyItemChanged(selectedPosition);
+
+            if (listener != null) {
+                listener.onEventSelected(evt.id);
+            }
+        });
+
+        // Arrow click = open details
+        holder.btnArrow.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onEventClick(evt.id);
             }
-        };
-
-        holder.itemView.setOnClickListener(clickListener);
-        if (holder.btnArrow != null) {
-            holder.btnArrow.setOnClickListener(clickListener);
-        }
+        });
     }
 
     @Override
