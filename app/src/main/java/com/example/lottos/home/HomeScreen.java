@@ -122,7 +122,7 @@ public class HomeScreen extends Fragment {
      * LOADS DATA FOR A REGULAR USER
      */
     private void loadEventsForUser() {
-        manager.loadEventsForUser(userName, new EntrantEventManager.EventsCallback() {
+        manager.loadOpenEventsForUser(userName, new EntrantEventManager.EventsCallback() {
             @Override
             public void onSuccess(List<EntrantEventManager.EventModel> list,
                                   List<String> waitlisted) {
