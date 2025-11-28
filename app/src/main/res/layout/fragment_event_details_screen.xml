@@ -39,7 +39,6 @@
         android:id="@+id/ivEventPoster"
         android:layout_width="375dp"
         android:layout_height="340dp"
-        android:layout_marginTop="24dp"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:src="@drawable/sample_event"
@@ -56,8 +55,7 @@
         android:paddingEnd="20dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ivEventPoster"
-        android:layout_marginTop="12dp">
+        app:layout_constraintTop_toBottomOf="@+id/ivEventPoster">
 
         <TextView
             android:id="@+id/tvStartTime"
@@ -84,8 +82,7 @@
         android:paddingEnd="20dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/llEventDetails"
-        android:layout_marginTop="8dp">
+        app:layout_constraintTop_toBottomOf="@+id/llEventDetails">
 
         <TextView
             android:id="@+id/tvEventName"
@@ -99,7 +96,7 @@
             android:id="@+id/tvLocation"
             android:textSize="25sp"
             android:textStyle="bold"
-            android:text=" . Event Location"
+            android:text=" | Event Location"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
@@ -112,11 +109,9 @@
         android:layout_height="0dp"
         android:fillViewport="true"
         app:layout_constraintTop_toBottomOf="@id/llEventDetails2"
-        app:layout_constraintBottom_toTopOf="@id/llButtons"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="80dp"
         android:paddingStart="20dp"
         android:paddingEnd="20dp">
 
@@ -131,7 +126,6 @@
                 android:id="@+id/tvDescription"
                 android:text="Description"
                 android:textSize="20sp"
-                android:layout_marginTop="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
@@ -139,7 +133,6 @@
                 android:id="@+id/tvWLCloseDateTime"
                 android:text="Register Close Time"
                 android:textSize="20sp"
-                android:layout_marginTop="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
@@ -147,7 +140,6 @@
                 android:id="@+id/tvCapacity"
                 android:textSize="20sp"
                 android:text="Capacity"
-                android:layout_marginTop="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
@@ -155,7 +147,6 @@
                 android:id="@+id/tvWLCount"
                 android:text="Wait List Count"
                 android:textSize="20sp"
-                android:layout_marginTop="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
@@ -163,7 +154,6 @@
                 android:id="@+id/tvWLSize"
                 android:textSize="20sp"
                 android:text="Wait List Size"
-                android:layout_marginTop="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 

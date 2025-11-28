@@ -39,7 +39,7 @@ public class EventHistoryScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        userName = HomeScreenArgs.fromBundle(getArguments()).getUserName();
+        userName = EventHistoryScreenArgs.fromBundle(getArguments()).getUserName();
         manager = new EntrantEventManager();
 
         setupRecycler();
