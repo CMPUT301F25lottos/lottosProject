@@ -122,7 +122,7 @@ public class EventDetailsScreen extends Fragment {
         loadPoster(posterUrl);
 
         binding.tvEventName.setText(safe(data.get("eventName")));
-        binding.tvLocation.setText(" | " + safe(data.get("location")));
+        binding.tvLocation.setText(safe(data.get("location")));
 
         binding.tvStartTime.setText(TimeUtils.formatEventTime(data.get("startTime")));
         binding.tvEndTime.setText(" ~ " + TimeUtils.formatEventTime(data.get("endTime")));
