@@ -10,18 +10,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lottos.R;
-import com.google.firebase.Timestamp;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.VH> {
+
     public interface Listener {
         void onNotificationClick(NotificationItem item);
         void onDelete(NotificationItem item);
     }
+
     public static class NotificationItem {
         public final String id;
         public final String content;
@@ -30,9 +28,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         public final String sender;
         public final String timestamp;
 
-
         public NotificationItem(String id, String content, String eventName, String receiver, String sender, String timestamp) {
-
             this.id = id;
             this.content = content;
             this.eventName = eventName;
@@ -40,15 +36,22 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             this.sender = sender;
             this.timestamp = timestamp;
         }
-
     }
+
     private final List<NotificationItem> notifications;
     private final Listener listener;
+    private boolean isAdminView = false;
 
-    public NotificationAdapter(List<NotificationItem> notifications,
-                               Listener listener) {
+    public NotificationAdapter(List<NotificationItem> notifications, Listener listener) {
         this.notifications = notifications;
         this.listener = listener;
+    }
+
+    /**
+     * Call this from NotificationScreen to tell the adapter it's in admin mode.
+     */
+    public void setAdminView(boolean isAdmin) {
+        this.isAdminView = isAdmin;
     }
 
     static class VH extends RecyclerView.ViewHolder {
@@ -56,6 +59,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         TextView tvEventName;
         TextView tvMessage;
         ImageButton btnDelete;
+        // This is the only extra field needed now
+        TextView tvSender;
 
         VH(@NonNull View itemView) {
             super(itemView);
@@ -63,6 +68,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             tvEventName = itemView.findViewById(R.id.TVEvent);
             tvMessage = itemView.findViewById(R.id.TVMessage);
             btnDelete = itemView.findViewById(R.id.btnDelete);
+            // We only find the sender TextView
+            tvSender = itemView.findViewById(R.id.tvSender);
+            // The line causing the error is now removed.
         }
     }
 
@@ -76,34 +84,27 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
-
         NotificationItem n = notifications.get(position);
 
         holder.tvEventName.setText(n.eventName);
         holder.tvMessage.setText(n.content);
 
-        if (n.timestamp != null) {
 
-            try {
-                SimpleDateFormat parser =
-                        new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.US);
-                Date date = parser.parse(n.timestamp);
+        if (isAdminView) {
+            // If it's the admin view, make the sender TextView visible
+            holder.tvSender.setVisibility(View.VISIBLE);
+            // And set its text to show who sent it
+            holder.tvSender.setText("from: " + n.sender);
+        } else {
+            // For regular users, make sure it is hidden
+            holder.tvSender.setVisibility(View.GONE);
+        }
 
-                if (date != null) {
-                    SimpleDateFormat monthFmt = new SimpleDateFormat("MMM", Locale.getDefault());
-                    SimpleDateFormat dayFmt = new SimpleDateFormat("dd", Locale.getDefault());
 
-                    String month = monthFmt.format(date).toUpperCase();
-                    String day = dayFmt.format(date);
-
-                    holder.tvDate.setText(month + "\n" + day);
-                } else {
-                    holder.tvDate.setText("");
-                }
-            } catch (Exception e) {
-                holder.tvDate.setText("");
-            }
-
+        if (n.timestamp != null && !n.timestamp.isEmpty()) {
+            holder.tvDate.setText(n.timestamp);
+        } else {
+            holder.tvDate.setText("");
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -123,7 +124,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                 }
             }
         });
-
     }
 
     @Override

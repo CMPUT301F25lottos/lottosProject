@@ -15,11 +15,10 @@
         android:layout_height="60dp"
         android:background="@color/navy"
         android:gravity="center"
-        android:text="month\nDate"
+        android:text="MONTH\nDATE"
         android:textColor="@color/white"
         android:textSize="15sp"
         android:textStyle="bold"
-        android:layout_centerVertical="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -31,21 +30,46 @@
         android:layout_gravity="center_vertical"
         android:orientation="vertical"
         android:paddingStart="8dp"
-        android:layout_centerVertical="true"
+        android:paddingEnd="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/btnDelete"
         app:layout_constraintStart_toEndOf="@id/tvDate"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/TVEvent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Event Name"
-            android:textColor="@color/navy"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+        <!-- This new RelativeLayout helps position the sender name to the top-right -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
+            <!-- The Event Name -->
+            <TextView
+                android:id="@+id/TVEvent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@+id/tvSender"
+                android:text="Event Name"
+                android:textColor="@color/navy"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <!-- SENDER NAME - ONLY VISIBLE FOR ADMIN -->
+            <TextView
+                android:id="@+id/tvSender"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:gravity="end"
+                android:textColor="@color/navy"
+                android:textSize="12sp"
+                android:textStyle="italic"
+                android:visibility="gone"
+                tools:text="from: organizer"
+                tools:visibility="visible" />
+
+        </RelativeLayout>
+
+        <!-- The Notification Message -->
         <TextView
             android:id="@+id/TVMessage"
             android:layout_width="wrap_content"
@@ -61,13 +85,16 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_gravity="center_vertical"
-        android:layout_marginTop="8dp"
-        android:layout_centerVertical="true"
         android:background="@android:color/transparent"
+        android:contentDescription="Delete Notification"
         android:src="@drawable/ic_cancel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:tint="@color/navy" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
