@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.lottos.EventListAdapter;
 import com.example.lottos.EventRepository;
 import com.example.lottos.databinding.FragmentOrganizerEventsScreenBinding;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -70,19 +71,26 @@ public class OrganizerEventsScreen extends Fragment {
 
                         String id = doc.getId();
                         String name = doc.getString("eventName");
-
                         String location = doc.getString("location");
 
-                        Object startObj = doc.get("startTime");
-                        Object endObj = doc.get("endTime");
+                        Timestamp startTs = doc.getTimestamp("startTime");
+                        Timestamp endTs   = doc.getTimestamp("endTime");
 
-                        String startTimeText = startObj != null ? startObj.toString() : null;
-                        String endTimeText = endObj != null ? endObj.toString() : null;
+                        String startTimeText = startTs != null ? formatTimestamp(startTs) : "";
+                        String endTimeText   = endTs != null ? formatTimestamp(endTs) : "";
 
                         String posterUrl = doc.getString("posterUrl");
 
                         if (name != null) {
-                            events.add(new EventListAdapter.EventItem(id, name, true, location, startTimeText, endTimeText, posterUrl));
+                            events.add(new EventListAdapter.EventItem(
+                                    id,
+                                    name,
+                                    true,
+                                    location,
+                                    startTimeText,
+                                    endTimeText,
+                                    posterUrl
+                            ));
                         }
                     }
                     adapter.notifyDataSetChanged();
@@ -111,6 +119,14 @@ public class OrganizerEventsScreen extends Fragment {
         NavHostFragment.findNavController(this)
                 .navigate(OrganizerEventsScreenDirections
                         .actionOrganizerEventsScreenToOrganizerEventDetailsScreen(userName, eventId));
+    }
+
+    private String formatTimestamp(Timestamp ts) {
+        if (ts == null) return "";
+        java.util.Date date = ts.toDate();
+        java.text.SimpleDateFormat sdf =
+                new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.getDefault());
+        return sdf.format(date);
     }
     private void setupNavButtons() {
 

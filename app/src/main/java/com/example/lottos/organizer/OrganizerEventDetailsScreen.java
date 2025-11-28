@@ -91,23 +91,29 @@ public class OrganizerEventDetailsScreen extends Fragment {
 
         Date start = TimeUtils.toDate(data.get("startTime"));
         Date end   = TimeUtils.toDate(data.get("endTime"));
+
         String dateText = "Date: N/A";
         String timeText = "Time: N/A";
 
-        if (start != null) {
-            String day  = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(start);
-            String time = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(start);
-            dateText = "Date: " + day;
-            timeText = "Time: " + time;
+        if (start != null && end != null) {
+
+            SimpleDateFormat dayFmt  = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+            SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+
+            String startDay   = dayFmt.format(start);
+            String endDay     = dayFmt.format(end);
+            String startTime  = timeFmt.format(start);
+            String endTime    = timeFmt.format(end);
+
+            dateText = "Date: " + startDay + " ~ " + endDay;
+
+            timeText = "Time: " + startTime + " ~ " + endTime;
         }
 
-        if (start != null && end != null) {
-            String endTime = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(end);
-            timeText = timeText + " - " + endTime;
-        }
         binding.tvEventDate.setText(dateText);
         binding.tvEventTime.setText(timeText);
     }
+
 
     private void renderListSection(TextView contentView, List<String> users, String emptyMessage) {
 
