@@ -122,7 +122,7 @@ public class EventDetailsScreen extends Fragment {
         loadPoster(posterUrl);
 
         binding.tvEventName.setText(safe(data.get("eventName")));
-        binding.tvLocation.setText(" | " + safe(data.get("location")));
+        binding.tvLocation.setText(safe(data.get("location")));
 
         binding.tvStartTime.setText(TimeUtils.formatEventTime(data.get("startTime")));
         binding.tvEndTime.setText(" ~ " + TimeUtils.formatEventTime(data.get("endTime")));
@@ -135,20 +135,31 @@ public class EventDetailsScreen extends Fragment {
             List<?> users = (List<?>) waitList.get("users");
             int userCount = (users != null) ? users.size() : 0;
             binding.tvWLCount.setText("Number of Entrants on WaitList: " + userCount);
+        } else {
+            binding.tvWLCount.setText("Number of Entrants on WaitList: 0");
         }
 
         binding.tvDescription.setText(safe(data.get("description")));
         binding.tvCapacity.setText("Event Capacity: " + safe(data.get("selectionCap")));
 
+        // 🔹 FIXED: capacity is top-level, not inside waitList
         String capacity = "No Restriction";
-        if (waitList != null) {
-            Object wlCapacityObj = waitList.get("waitListCapacity");
-            if (wlCapacityObj instanceof Number) {
-                capacity = String.valueOf(((Number) wlCapacityObj).intValue());
+
+        Object wlCapacityObj = data.get("waitListCapacity");  // ⬅ TOP-LEVEL
+
+        if (wlCapacityObj instanceof Number) {
+            capacity = String.valueOf(((Number) wlCapacityObj).intValue());
+        } else if (wlCapacityObj instanceof String) {
+            try {
+                capacity = String.valueOf(Integer.parseInt((String) wlCapacityObj));
+            } catch (NumberFormatException ignored) {
+                // leave as "No Restriction"
             }
         }
+
         binding.tvWLSize.setText("Wait List Capacity: " + capacity);
     }
+
 
 
     private void loadPoster(String url) {
@@ -163,30 +174,60 @@ public class EventDetailsScreen extends Fragment {
     private String safe(Object o) {
         return o == null ? "" : o.toString();
     }
-    private void updateUI(Map<String, Object> eventData, List<String> waitUsers, Map<String, Object> userData) {
+    private void updateUI(Map<String, Object> eventData,
+                          List<String> waitUsers,
+                          Map<String, Object> userData) {
 
         boolean isOpen = Boolean.TRUE.equals(eventData.get("IsOpen"));
         boolean isLottery = Boolean.TRUE.equals(eventData.get("IsLottery"));
         String organizer = safe(eventData.get("organizer"));
         boolean isOrganizer = organizer.equalsIgnoreCase(userName);
 
-        List<String> selectedEvents = readUserList(userData, "selectedEvents");
+        List<String> selectedEvents   = readUserList(userData, "selectedEvents");
         List<String> waitlistedEvents = readUserList(userData, "waitListedEvents");
         boolean isWaitlisted = waitlistedEvents.contains(eventName);
-        boolean isSelected = selectedEvents.contains(eventName);
+        boolean isSelected   = selectedEvents.contains(eventName);
+
+        // --- WAITLIST CAPACITY LOGIC ---
+        int currentWaitSize = (waitUsers != null) ? waitUsers.size() : 0;
+
+        int capacity = -1;  // -1 = no limit
+        Object capObj = eventData.get("waitListCapacity");  // top-level field
+        if (capObj instanceof Number) {
+            capacity = ((Number) capObj).intValue();
+        }
+
+        boolean hasLimit = capacity > 0;
+        boolean isFull   = hasLimit && currentWaitSize >= capacity;
+        // -------------------------------
 
         binding.btnBack.setVisibility(View.VISIBLE);
 
         if (isOpen) {
             binding.btnJoin.setVisibility(View.VISIBLE);
-            binding.btnJoin.setText(isWaitlisted ? "Leave Waitlist" : "Join Waitlist");
-            binding.btnJoin.setOnClickListener(v -> {
-                if (isWaitlisted) {
-                    leaveWaitlist();
+
+            if (isWaitlisted) {
+                // User is already on waitlist -> allow leaving, even if full.
+                binding.btnJoin.setEnabled(true);
+                binding.btnJoin.setText("Leave Waitlist");
+                binding.btnJoin.setOnClickListener(v -> leaveWaitlist());
+
+            } else {
+                // User NOT on waitlist yet
+                if (isFull) {
+                    // Waitlist reached capacity -> block joining
+                    binding.btnJoin.setEnabled(false);
+                    binding.btnJoin.setText("Waitlist Full");
+                    binding.btnJoin.setOnClickListener(null); // no-op
                 } else {
-                    joinWaitlist();
+                    // Space available -> allow join
+                    binding.btnJoin.setEnabled(true);
+                    binding.btnJoin.setText("Join Waitlist");
+                    binding.btnJoin.setOnClickListener(v -> joinWaitlist());
                 }
-            });
+            }
+        } else {
+            binding.btnJoin.setVisibility(View.GONE);
         }
 
         if (!isOpen && isSelected) {
@@ -201,6 +242,7 @@ public class EventDetailsScreen extends Fragment {
             binding.btnDecline.setVisibility(View.GONE);
         }
     }
+
 
     private List<String> readUserList(Map<String, Object> userData, String key) {
         if (userData == null) return new ArrayList<>();
