@@ -156,7 +156,7 @@ public class OrganizerEventDetailsManager {
 
         for (String user : selectedUsers) {
             Map<String, Object> notifData = new HashMap<>();
-            notifData.put("content", "You have been SELECTED for " + eventName + "go to event detail page to accept then invite");
+            notifData.put("content", "You have been SELECTED for " + eventName + "\ngo to event detail page to accept then invite");
             notifData.put("eventName", eventName);
             notifData.put("receiver", user);
             notifData.put("sender", organizer != null ? organizer : "System");

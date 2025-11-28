@@ -25,6 +25,7 @@ import java.util.List;
  * Home Screen Fragment.
  * - Checks if user is Admin or regular User.
  * - Updates event statuses.
+ * - Sweeps expired events: selectedList → cancelledList + notifications.
  * - Shows list of events based on user role.
  * - Handles navigation buttons.
  */
@@ -32,6 +33,7 @@ public class HomeScreen extends Fragment {
 
     private FragmentHomeScreenBinding binding;
     private EventStatusUpdater eventUpdater;
+    private UserStatusUpdater userUpdater;
     private EntrantEventManager manager;
     private String userName;
     private boolean isAdmin = false;
@@ -50,22 +52,33 @@ public class HomeScreen extends Fragment {
 
         userName = HomeScreenArgs.fromBundle(getArguments()).getUserName();
 
-        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = requireActivity()
+                .getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
 
+        Log.d("HomeScreen", "onViewCreated: userName=" + userName + ", isAdmin=" + isAdmin);
+
         eventUpdater = new EventStatusUpdater();
+        userUpdater = new UserStatusUpdater();
         manager = new EntrantEventManager();
 
+        // 1) Update event statuses (open/closed/etc.)
         eventUpdater.updateEventStatuses(new EventStatusUpdater.UpdateListener() {
             @Override
             public void onUpdateSuccess(int updatedCount) {
-                loadEventsBasedOnRole();
+                Log.d("HomeScreen", "eventUpdater.onUpdateSuccess, updatedCount=" + updatedCount);
+                // 2) After that, sweep expired selections for all events
+                runSelectionSweepThenLoadEvents();
             }
 
             @Override
             public void onUpdateFailure(String errorMessage) {
-                Toast.makeText(getContext(), "Status update failed: " + errorMessage, Toast.LENGTH_SHORT).show();
-                loadEventsBasedOnRole();
+                Log.d("HomeScreen", "eventUpdater.onUpdateFailure: " + errorMessage);
+                Toast.makeText(getContext(),
+                        "Status update failed: " + errorMessage,
+                        Toast.LENGTH_SHORT).show();
+                // Still try to sweep + load
+                runSelectionSweepThenLoadEvents();
             }
         });
 
@@ -73,19 +86,41 @@ public class HomeScreen extends Fragment {
         setupNavButtons();
     }
 
+    /**
+     * Runs the global sweep (for all events, all users), then loads events.
+     */
+    private void runSelectionSweepThenLoadEvents() {
+        userUpdater.sweepExpiredSelectedUsers(new UserStatusUpdater.UpdateListener() {
+            @Override
+            public void onUpdateSuccess(int updatedCount) {
+                Log.d("HomeScreen", "Sweep success. Affected users: " + updatedCount);
+                loadEventsBasedOnRole();
+            }
+
+            @Override
+            public void onUpdateFailure(String errorMessage) {
+                Log.e("HomeScreen", "Sweep FAILED: " + errorMessage);
+                Toast.makeText(getContext(),
+                        "Selection cleanup failed: " + errorMessage,
+                        Toast.LENGTH_SHORT).show();
+                loadEventsBasedOnRole();
+            }
+        });
+    }
+
     private void setupRecycler() {
         adapter = new EventListAdapter(eventItems, new EventListAdapter.Listener() {
-                    @Override
-                    public void onEventClick(String eventId) {goToDetails(eventId);}
+            @Override
+            public void onEventClick(String eventId) {
+                goToDetails(eventId);
+            }
 
-                    @Override
-                    public void onEventSelected(String eventId) {
-                        goToDetails(eventId);
-                    }
+            @Override
+            public void onEventSelected(String eventId) {
+                goToDetails(eventId);
+            }
+        });
 
-
-                }
-        );
         binding.rvEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvEvents.setAdapter(adapter);
         binding.rvEvents.setNestedScrollingEnabled(false);
@@ -108,6 +143,7 @@ public class HomeScreen extends Fragment {
                                   List<String> waitlisted) {
                 updateAdapterWithEvents(list);
             }
+
             @Override
             public void onError(Exception e) {
                 Toast.makeText(getContext(), "Error loading events", Toast.LENGTH_SHORT).show();
@@ -118,9 +154,11 @@ public class HomeScreen extends Fragment {
     private void loadAllEventsForAdmin() {
         manager.loadAllOpenEvents(new EntrantEventManager.EventsCallback() {
             @Override
-            public void onSuccess(List<EntrantEventManager.EventModel> list, List<String> waitlisted) {
+            public void onSuccess(List<EntrantEventManager.EventModel> list,
+                                  List<String> waitlisted) {
                 updateAdapterWithEvents(list);
             }
+
             @Override
             public void onError(Exception e) {
                 Toast.makeText(getContext(), "Error loading admin events", Toast.LENGTH_SHORT).show();
@@ -154,28 +192,35 @@ public class HomeScreen extends Fragment {
 
     private void goToDetails(String eventId) {
         NavHostFragment.findNavController(this)
-                .navigate(HomeScreenDirections.actionHomeScreenToEventDetailsScreen(userName, eventId));
+                .navigate(HomeScreenDirections
+                        .actionHomeScreenToEventDetailsScreen(userName, eventId));
     }
+
     private void setupNavButtons() {
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections.actionHomeScreenToProfileScreen(userName)));
+                        .navigate(HomeScreenDirections
+                                .actionHomeScreenToProfileScreen(userName)));
 
         binding.btnInfo.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections.actionHomeScreenToLotteryInfoScreen(userName)));
+                        .navigate(HomeScreenDirections
+                                .actionHomeScreenToLotteryInfoScreen(userName)));
 
         binding.btnOpenEvents.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections.actionHomeScreenToOrganizerEventsScreen(userName)));
+                        .navigate(HomeScreenDirections
+                                .actionHomeScreenToOrganizerEventsScreen(userName)));
 
         binding.btnEventHistory.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections.actionHomeScreenToEventHistoryScreen(userName)));
+                        .navigate(HomeScreenDirections
+                                .actionHomeScreenToEventHistoryScreen(userName)));
 
         binding.btnNotification.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections.actionHomeScreenToNotificationScreen(userName)));
+                        .navigate(HomeScreenDirections
+                                .actionHomeScreenToNotificationScreen(userName)));
     }
 
     @Override
