@@ -20,17 +20,11 @@ import java.util.function.Consumer;
  * - Run lottery
  */
 public class EventDetailsManager {
-
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final EventRepository repo = new EventRepository();
 
-    // ------------------------------------------------------------------
-    // LOAD EVENT + USER
-    // ------------------------------------------------------------------
     public interface LoadCallback {
-        void onSuccess(Map<String, Object> eventData,
-                       List<String> waitlistUsers,
-                       Map<String, Object> userData);
+        void onSuccess(Map<String, Object> eventData, List<String> waitlistUsers, Map<String, Object> userData);
         void onError(Exception e);
     }
 
@@ -44,21 +38,16 @@ public class EventDetailsManager {
                 return;
             }
 
-            // FIX: Declare the list as final. This ensures the variable always points to the same list object.
             final List<String> waitlistUsers = new ArrayList<>();
             Object mapObj = eventSnap.get("waitList");
 
             if (mapObj instanceof Map) {
                 Object usersObj = ((Map<?, ?>) mapObj).get("users");
                 if (usersObj instanceof List) {
-                    // FIX: Modify the list's contents instead of reassigning the variable.
-                    // This is allowed for a final variable.
-                    // noinspection unchecked
                     waitlistUsers.addAll((List<String>) usersObj);
                 }
             }
 
-            // Now 'waitlistUsers' is effectively final and can be safely used in the lambda below.
             userDoc.get().addOnSuccessListener(userSnap -> {
                 Map<String, Object> userData = userSnap.getData();
                 cb.onSuccess(eventSnap.getData(), waitlistUsers, userData);
@@ -67,23 +56,13 @@ public class EventDetailsManager {
         }).addOnFailureListener(cb::onError);
     }
 
-
-
     public void deleteEvent(String eventName, Runnable onSuccess, Consumer<Exception> onError) {
-        repo.getEvent(eventName)                .delete()
+        repo.getEvent(eventName).delete()
                 .addOnSuccessListener(aVoid -> onSuccess.run())
                 .addOnFailureListener(onError::accept);
     }
 
-
-
-
-    // ------------------------------------------------------------------
-    // JOIN WAITLIST
-    // ------------------------------------------------------------------
-    public void joinWaitlist(String eventName, String userName,
-                             Runnable onSuccess,
-                             EventRepository.OnError onError) {
+    public void joinWaitlist(String eventName, String userName, Runnable onSuccess, EventRepository.OnError onError) {
 
         DocumentReference eventDoc = repo.getEvent(eventName);
         DocumentReference userDoc = db.collection("users").document(userName);
@@ -103,12 +82,7 @@ public class EventDetailsManager {
                 .addOnFailureListener(e -> onError.run(e));
     }
 
-    // ------------------------------------------------------------------
-    // LEAVE WAITLIST
-    // ------------------------------------------------------------------
-    public void leaveWaitlist(String eventName, String userName,
-                              Runnable onSuccess,
-                              EventRepository.OnError onError) {
+    public void leaveWaitlist(String eventName, String userName, Runnable onSuccess, EventRepository.OnError onError) {
 
         DocumentReference eventDoc = repo.getEvent(eventName);
         DocumentReference userDoc = db.collection("users").document(userName);
@@ -122,12 +96,7 @@ public class EventDetailsManager {
                 .addOnFailureListener(e -> onError.run(e));
     }
 
-    // ------------------------------------------------------------------
-    // ACCEPT INVITE
-    // ------------------------------------------------------------------
-    public void acceptInvite(String eventName, String userName,
-                             Runnable onSuccess,
-                             EventRepository.OnError onError) {
+    public void acceptInvite(String eventName, String userName, Runnable onSuccess, EventRepository.OnError onError) {
 
         DocumentReference eDoc = repo.getEvent(eventName);
         DocumentReference uDoc = db.collection("users").document(userName);
@@ -142,12 +111,7 @@ public class EventDetailsManager {
                 .addOnFailureListener(e -> onError.run(e));
     }
 
-    // ------------------------------------------------------------------
-    // DECLINE INVITE
-    // ------------------------------------------------------------------
-    public void declineInvite(String eventName, String userName,
-                              Runnable onSuccess,
-                              EventRepository.OnError onError) {
+    public void declineInvite(String eventName, String userName, Runnable onSuccess, EventRepository.OnError onError) {
 
         DocumentReference eDoc = repo.getEvent(eventName);
         DocumentReference uDoc = db.collection("users").document(userName);
@@ -168,20 +132,13 @@ public class EventDetailsManager {
                     if (documentSnapshot.exists()) {
                         onSuccess.accept(documentSnapshot.getData());
                     } else {
-                        onSuccess.accept(null); // Event not found
+                        onSuccess.accept(null);
                     }
                 })
                 .addOnFailureListener(onError::accept);
     }
 
-
-    // ------------------------------------------------------------------
-    // RUN LOTTERY
-    // ------------------------------------------------------------------
-    public void runLottery(String eventName,
-                           List<String> entrants,
-                           Runnable onSuccess,
-                           EventRepository.OnError onError) {
+    public void runLottery(String eventName, List<String> entrants, Runnable onSuccess, EventRepository.OnError onError) {
 
         DocumentReference eventDoc = repo.getEvent(eventName);
 
@@ -221,20 +178,16 @@ public class EventDetailsManager {
             notSelected.removeAll(finalSelected);
 
             db.runTransaction(tx -> {
-                        // Update event lists
                         tx.update(eventDoc, "selectedList.users", finalSelected);
                         tx.update(eventDoc, "notSelectedList.users", notSelected);
 
-                        // Clear waitlist
                         for (String u : entrants) {
                             tx.update(eventDoc, "waitList.users", FieldValue.arrayRemove(u));
                         }
 
-                        // Mark closed + lottery done
                         tx.update(eventDoc, "IsOpen", false);
                         tx.update(eventDoc, "IsLottery", true);
 
-                        // Update user documents
                         for (String u : finalSelected) {
                             DocumentReference uDoc = db.collection("users").document(u);
                             tx.update(uDoc, "selectedEvents.events", FieldValue.arrayUnion(eventName));

@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
-import com.example.lottos.auth.LoginScreenDirections;
 import com.example.lottos.databinding.FragmentLoginScreenBinding;
 
 /**
@@ -20,7 +19,6 @@ import com.example.lottos.databinding.FragmentLoginScreenBinding;
  * Delegates authentication logic to UserAuthenticator.
  */
 public class LoginScreen extends Fragment {
-
     private FragmentLoginScreenBinding binding;
     private UserAuthenticator authenticator;
 

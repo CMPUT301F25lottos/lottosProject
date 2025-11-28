@@ -29,12 +29,10 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
     private NotificationAdapter adapter;
     private final List<NotificationAdapter.NotificationItem> notifications = new ArrayList<>();
 
-    private String userName;   // passed in via SafeArgs
+    private String userName;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentNotificationScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
@@ -45,7 +43,6 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get userName from NotificationScreenArgs (not HomeScreenArgs)
         if (getArguments() != null) {
             NotificationScreenArgs args = NotificationScreenArgs.fromBundle(getArguments());
             userName = args.getUserName();
@@ -58,7 +55,6 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         loadNotificationsForUser();
     }
 
-    // ---------------- RecyclerView setup ----------------
     private void setupRecycler() {
         adapter = new NotificationAdapter(notifications, this);
         binding.rvReceivedNotification.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -66,16 +62,13 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         binding.rvReceivedNotification.setNestedScrollingEnabled(false);
     }
 
-    // ---------------- Load notifications from Firestore ----------------
     private void loadNotificationsForUser() {
         if (userName == null || userName.isEmpty()) {
             Log.e(TAG, "userName is null/empty, cannot load notifications");
             return;
         }
 
-        notificationManager.loadNotificationForUser(
-                userName,
-                new NotificationManager.NotificationCallback() {
+        notificationManager.loadNotificationForUser(userName, new NotificationManager.NotificationCallback() {
 
                     @Override
                     public void onSuccess(List<NotificationManager.NotificationModel> list) {
@@ -114,9 +107,6 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         adapter.notifyDataSetChanged();
     }
 
-
-    // ---------------- Adapter Listener callbacks ----------------
-
     @Override
     public void onNotificationClick(NotificationAdapter.NotificationItem item) {
         if (!isAdded()) return;
@@ -127,7 +117,6 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
                 Toast.LENGTH_SHORT
         ).show();
     }
-
     @Override
     public void onDelete(NotificationAdapter.NotificationItem item) {
         if (!isAdded()) return;
@@ -135,11 +124,9 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         int position = notifications.indexOf(item);
         if (position == -1) return;
 
-        // 1) Delete from Firestore
         notificationManager.deleteNotificationById(item.id, () -> {
             if (!isAdded()) return;
 
-            // 2) Remove from RecyclerView list when Firestore responds
             notifications.remove(position);
             adapter.notifyItemRemoved(position);
 
@@ -150,11 +137,6 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
             }
         });
     }
-
-
-
-
-    // ---------------- Nav bar buttons ----------------
 
     private void setupNavButtons() {
 

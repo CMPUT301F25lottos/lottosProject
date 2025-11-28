@@ -12,36 +12,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Non-UI logic for OrganizerEventDetailsScreen.
- * Loads event metadata + all participant lists for an eventId.
- *
- * Lists (from Firestore):
- * - waitList.users
- * - selectedList.users
- * - notSelectedList.users
- * - enrolledList.users
- * - cancelledList.users
- */
 public class OrganizerEventDetailsManager {
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final EventRepository repo = new EventRepository();
 
     public interface LoadCallback {
-        void onSuccess(Map<String, Object> eventData,
-                       List<String> waitlistUsers,
-                       List<String> selectedUsers,
-                       List<String> notSelectedUsers,
-                       List<String> enrolledUsers,
-                       List<String> cancelledUsers);
-
+        void onSuccess(Map<String, Object> eventData, List<String> waitlistUsers, List<String> selectedUsers, List<String> notSelectedUsers, List<String> enrolledUsers, List<String> cancelledUsers);
         void onError(Exception e);
     }
 
-    /**
-     * Loads a single event by document ID (eventId).
-     */
     public void loadEvent(String eventId, LoadCallback cb) {
         DocumentReference eventDoc = repo.getEvent(eventId);
 
@@ -60,21 +40,11 @@ public class OrganizerEventDetailsManager {
                     List<String> enrolledUsers   = extractUserList(data, "enrolledList");
                     List<String> cancelledUsers  = extractUserList(data, "cancelledList");
 
-                    cb.onSuccess(data,
-                            waitlistUsers,
-                            selectedUsers,
-                            notSelectedUsers,
-                            enrolledUsers,
-                            cancelledUsers);
+                    cb.onSuccess(data, waitlistUsers, selectedUsers, notSelectedUsers, enrolledUsers, cancelledUsers);
                 })
                 .addOnFailureListener(cb::onError);
     }
 
-    /**
-     * Helper for Firestore structure of the form:
-     *   "<key>": { "users": [ "u1", "u2", ... ] }
-     */
-    @SuppressWarnings("unchecked")
     private List<String> extractUserList(Map<String, Object> eventData, String key) {
         List<String> result = new ArrayList<>();
         if (eventData == null) return result;
@@ -93,18 +63,14 @@ public class OrganizerEventDetailsManager {
         return result;
     }
 
-    public void runLottery(String eventId,
-                           List<String> waitUsers,
-                           Runnable onSuccess,
-                           java.util.function.Consumer<Exception> onError) {
+    public void runLottery(String eventId, List<String> waitUsers, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
 
-        // Safety check: nothing to do if nobody is on the waitlist
         if (waitUsers == null || waitUsers.isEmpty()) {
             onError.accept(new Exception("No users on waitlist to run lottery."));
             return;
         }
 
-        DocumentReference eventRef = repo.getEvent(eventId); // points to "open events/{eventId}"
+        DocumentReference eventRef = repo.getEvent(eventId);
 
         eventRef.get()
                 .addOnSuccessListener(eventSnap -> {
@@ -118,9 +84,8 @@ public class OrganizerEventDetailsManager {
                     Long selectionCapL = eventSnap.getLong("selectionCap");
                     int selectionCap   = (selectionCapL != null && selectionCapL > 0)
                             ? selectionCapL.intValue()
-                            : waitUsers.size(); // fallback: everyone can be selected
+                            : waitUsers.size();
 
-                    // 1. Shuffle and split waitlist into selected + not selected
                     List<String> shuffled = new ArrayList<>(waitUsers);
                     java.util.Collections.shuffle(shuffled);
 
@@ -135,10 +100,8 @@ public class OrganizerEventDetailsManager {
                         }
                     }
 
-                    // 2. Start a batch write
                     WriteBatch batch = db.batch();
 
-                    // 2a) Update event doc lists in "open events/{eventId}"
                     Map<String, Object> eventUpdates = new HashMap<>();
                     eventUpdates.put("IsLottery", true);
 
@@ -150,16 +113,13 @@ public class OrganizerEventDetailsManager {
                     notSelectedListMap.put("users", notSelectedUsers);
                     eventUpdates.put("notSelectedList", notSelectedListMap);
 
-                    // Clear waitList.users
                     Map<String, Object> waitListMap = new HashMap<>();
                     waitListMap.put("users", new ArrayList<String>());
                     eventUpdates.put("waitList", waitListMap);
 
                     batch.update(eventRef, eventUpdates);
 
-                    // 2b) Update each user doc:
-                    // move this event from waitListedEvents.events → selectedEvents / notSelectedEvents
-                    String eventKeyForUser = eventId; // we store event *ID* in user docs
+                    String eventKeyForUser = eventId;
 
                     for (String userId : selectedUsers) {
                         DocumentReference userRef = db.collection("users").document(userId);
@@ -177,16 +137,9 @@ public class OrganizerEventDetailsManager {
                         );
                     }
 
-                    // 3) Create notifications in the same batch
-                    sendLotteryNotifications(
-                            batch,
-                            eventName != null ? eventName : eventId,
-                            organizer,
-                            selectedUsers,
-                            notSelectedUsers
+                    sendLotteryNotifications(batch, eventName != null ? eventName : eventId, organizer, selectedUsers, notSelectedUsers
                     );
 
-                    // 4) Commit the batch
                     batch.commit()
                             .addOnSuccessListener(v -> onSuccess.run())
                             .addOnFailureListener(onError::accept);
@@ -196,16 +149,11 @@ public class OrganizerEventDetailsManager {
     }
 
 
-    private void sendLotteryNotifications(WriteBatch batch,
-                                          String eventName,
-                                          String organizer,
-                                          List<String> selectedUsers,
-                                          List<String> notSelectedUsers) {
+    private void sendLotteryNotifications(WriteBatch batch, String eventName, String organizer, List<String> selectedUsers, List<String> notSelectedUsers) {
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         com.google.firebase.Timestamp now = com.google.firebase.Timestamp.now();
 
-        // Selected users
         for (String user : selectedUsers) {
             Map<String, Object> notifData = new HashMap<>();
             notifData.put("content", "You have been SELECTED for " + eventName + "go to event detail page to accept then invite");
@@ -218,7 +166,6 @@ public class OrganizerEventDetailsManager {
             batch.set(notifRef, notifData);
         }
 
-        // Not selected users
         for (String user : notSelectedUsers) {
             Map<String, Object> notifData = new HashMap<>();
             notifData.put("content", "You were NOT selected for " + eventName);

@@ -8,30 +8,19 @@ import java.util.List;
 import java.util.Map;
 
 public class EventRepository {
-
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-    // --------------------------
-    // ORIGINAL CODE (unchanged)
-    // --------------------------
 
     public DocumentReference getEvent(String eventId) {
         return db.collection("open events").document(eventId);
     }
-
     public Query getEventsByOrganizer(String organizer) {
         return db.collection("open events")
                 .whereEqualTo("organizer", organizer);
     }
-
     public Query getAllEvents() {
         return db.collection("open events");
     }
-
-    public void createEvent(String eventId,
-                            Map<String, Object> data,
-                            Runnable onSuccess,
-                            OnError onError) {
+    public void createEvent(String eventId, Map<String, Object> data, Runnable onSuccess, OnError onError) {
 
         db.collection("open events")
                 .document(eventId)
@@ -40,10 +29,7 @@ public class EventRepository {
                 .addOnFailureListener(onError::run);
     }
 
-    public void updateEvent(String eventId,
-                            Map<String, Object> data,
-                            Runnable onSuccess,
-                            OnError onError) {
+    public void updateEvent(String eventId, Map<String, Object> data,Runnable onSuccess, OnError onError) {
 
         db.collection("open events")
                 .document(eventId)
@@ -52,9 +38,7 @@ public class EventRepository {
                 .addOnFailureListener(onError::run);
     }
 
-    public void deleteEvent(String eventId,
-                            Runnable onSuccess,
-                            OnError onError) {
+    public void deleteEvent(String eventId, Runnable onSuccess, OnError onError) {
 
         db.collection("open events")
                 .document(eventId)
@@ -67,21 +51,11 @@ public class EventRepository {
         void run(Exception e);
     }
 
-    // --------------------------
-    // NEW CODE (added only)
-    // --------------------------
-
     public interface OnNameResult {
         void run(String eventName);
     }
 
-    /**
-     * Gets the event name corresponding to an event ID.
-     * No assumptions, matches your actual Firestore structure.
-     */
-    public void getEventName(String eventId,
-                             OnNameResult onSuccess,
-                             OnError onError) {
+    public void getEventName(String eventId, OnNameResult onSuccess, OnError onError) {
 
         db.collection("open events")
                 .document(eventId)

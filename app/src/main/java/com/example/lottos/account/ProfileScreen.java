@@ -13,12 +13,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
-
-import com.example.lottos.account.ProfileScreenArgs;
-import com.example.lottos.account.ProfileScreenDirections;
 import com.example.lottos.databinding.FragmentProfileScreenBinding;
-import com.example.lottos.home.HomeScreen;
-import com.example.lottos.home.HomeScreenDirections;
+
 
 /**
  * UI-only fragment for displaying and managing user profile.
@@ -26,23 +22,19 @@ import com.example.lottos.home.HomeScreenDirections;
  */
 
 public class ProfileScreen extends Fragment {
-
     private FragmentProfileScreenBinding binding;
 
     private static final String ADMIN_PASSWORD = "lottos_password";
     private UserProfileManager profileManager;
     private String userName;
 
-    // To store the user's role
     private SharedPreferences sharedPreferences;
     private boolean isAdmin = false;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentProfileScreenBinding.inflate(inflater, container, false);
 
-        // Initialize SharedPreferences
         sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
 
         return binding.getRoot();
@@ -58,63 +50,45 @@ public class ProfileScreen extends Fragment {
         loadProfile();
         setupNavButtons();
 
-        // Load the current role and update the UI accordingly
         loadUserRole();
         updateAdminButtonUI();
 
         binding.btnSwitchToAdmin.setOnClickListener(v -> {
-            if (isAdmin) {
-                // If the user is already an admin, switch them back to a normal user
-                switchToUserMode();
-            } else {
-                // If they are a normal user, show the password dialog
-                showAdminPasswordDialog();
+            if (isAdmin) {switchToUserMode();
+            } else {showAdminPasswordDialog();
             }
         });
     }
 
     private void showAdminPasswordDialog() {
-        // Create an alert dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Enter Admin Password");
 
-        // Set up the input
         final EditText input = new EditText(requireContext());
         input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
         builder.setView(input);
 
-        // Set up the buttons
         builder.setPositiveButton("OK", (dialog, which) -> {
             String password = input.getText().toString();
             checkAdminPassword(password);
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-
         builder.show();
     }
 
     private void checkAdminPassword(String password) {
-        if (password.equals(ADMIN_PASSWORD)) {
-            // Correct password, switch to admin mode
-            switchToAdminMode();
-        } else {
-            Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
+        if (password.equals(ADMIN_PASSWORD)) {switchToAdminMode();
+        } else {Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void loadUserRole() {
-        // Retrieve the current role from SharedPreferences, defaulting to false (not an admin)
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
     }
 
     private void updateAdminButtonUI() {
-        if (isAdmin) {
-            binding.btnSwitchToAdmin.setText("Switch to User");
-            // You can also change the button color if you want
-            // binding.btnSwitchToAdmin.setBackgroundColor(getResources().getColor(R.color.your_user_color));
-        } else {
-            binding.btnSwitchToAdmin.setText("Switch to Admin");
-            // binding.btnSwitchToAdmin.setBackgroundColor(getResources().getColor(R.color.your_admin_red_color));
+        if (isAdmin) {binding.btnSwitchToAdmin.setText("Switch to User");
+        } else {binding.btnSwitchToAdmin.setText("Switch to Admin");
         }
         // TODO: Add logic here to change the visibility of other menu/nav buttons based on 'isAdmin'
     }
@@ -150,13 +124,11 @@ public class ProfileScreen extends Fragment {
             }
 
             @Override
-            public void onProfileNotFound() {
-                Toast.makeText(getContext(), "User not found.", Toast.LENGTH_SHORT).show();
+            public void onProfileNotFound() {Toast.makeText(getContext(), "User not found.", Toast.LENGTH_SHORT).show();
             }
 
             @Override
-            public void onError(String errorMessage) {
-                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+            public void onError(String errorMessage) {Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -173,8 +145,7 @@ public class ProfileScreen extends Fragment {
     private void deleteUser() {
         profileManager.deleteUser(userName, new UserProfileManager.DeleteListener() {
             @Override
-            public void onDeleteSuccess() {
-                Toast.makeText(getContext(), "Profile deleted successfully.", Toast.LENGTH_SHORT).show();
+            public void onDeleteSuccess() {Toast.makeText(getContext(), "Profile deleted successfully.", Toast.LENGTH_SHORT).show();
                 NavHostFragment.findNavController(ProfileScreen.this)
                         .navigate(ProfileScreenDirections.actionProfileScreenToWelcomeScreen());
             }
@@ -218,7 +189,6 @@ public class ProfileScreen extends Fragment {
 
         binding.btnDelete.setOnClickListener(v -> showDeleteConfirmation());
     }
-
 
     @Override
     public void onDestroyView() {

@@ -18,14 +18,12 @@ import java.util.List;
 import java.util.Locale;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.VH> {
-
     public interface Listener {
         void onNotificationClick(NotificationItem item);
         void onDelete(NotificationItem item);
     }
-
     public static class NotificationItem {
-        public final String id;     // <- used for delete
+        public final String id;
         public final String content;
         public final String eventName;
         public final String receiver;
@@ -33,12 +31,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         public final String timestamp;
 
 
-        public NotificationItem(String id,
-                                String content,
-                                String eventName,
-                                String receiver,
-                                String sender,
-                                String timestamp) {
+        public NotificationItem(String id, String content, String eventName, String receiver, String sender, String timestamp) {
 
             this.id = id;
             this.content = content;
@@ -60,8 +53,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     static class VH extends RecyclerView.ViewHolder {
         TextView tvDate;
-        TextView tvEventName;   // TVEvent
-        TextView tvMessage;     // TVMessage
+        TextView tvEventName;
+        TextView tvMessage;
         ImageButton btnDelete;
 
         VH(@NonNull View itemView) {
@@ -86,13 +79,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
         NotificationItem n = notifications.get(position);
 
-        // event name + message
         holder.tvEventName.setText(n.eventName);
         holder.tvMessage.setText(n.content);
 
-        // Format date as:
-        // NOV
-        // 26
         if (n.timestamp != null) {
 
             try {
@@ -117,8 +106,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
         }
 
-
-        // Click item → open notification details (if needed)
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 int pos = holder.getBindingAdapterPosition();
@@ -128,8 +115,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             }
         });
 
-
-        // Delete button
         holder.btnDelete.setOnClickListener(v -> {
             if (listener != null) {
                 int pos = holder.getBindingAdapterPosition();

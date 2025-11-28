@@ -12,18 +12,16 @@ import java.util.List;
 import java.util.Locale;
 
 public class NotificationManager {
-
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private static final String TAG = "NotificationManager";
 
-    // Model returned from manager to the screen
     public static class NotificationModel {
         public final String id;
         public final String content;
         public final String eventName;
         public final String receiver;
         public final String sender;
-        public final String timestamp;  // already formatted string
+        public final String timestamp;
 
         public NotificationModel(String id,
                                  String content,
@@ -44,9 +42,7 @@ public class NotificationManager {
         void onSuccess(List<NotificationModel> list);
         void onError(Exception e);
     }
-
-    public void loadNotificationForUser(String userName,
-                                        NotificationCallback callback) {
+    public void loadNotificationForUser(String userName, NotificationCallback callback) {
 
         Log.d(TAG, "Loading notifications for userName = " + userName);
 
@@ -78,7 +74,6 @@ public class NotificationManager {
                         if (sender == null) sender = "";
                         if (ts == null) ts = Timestamp.now();
 
-                        // if you format to String here:
                         String formattedDate = formatTimestamp(ts);
 
                         result.add(new NotificationModel(
@@ -99,7 +94,6 @@ public class NotificationManager {
                 });
     }
 
-
     public void deleteNotificationById(String id, Runnable onDone) {
         db.collection("notification")
                 .document(id)
@@ -110,7 +104,7 @@ public class NotificationManager {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Delete failed for id: " + id, e);
-                    onDone.run(); // still call so UI can react
+                    onDone.run();
                 });
     }
 

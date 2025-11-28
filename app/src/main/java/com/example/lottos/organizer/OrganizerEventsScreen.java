@@ -20,21 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OrganizerEventsScreen extends Fragment {
-
     private FragmentOrganizerEventsScreenBinding binding;
     private EventRepository repo;
     private String userName;
-
     private final List<EventListAdapter.EventItem> events = new ArrayList<>();
     private EventListAdapter adapter;
-
-    // Tracks current selected event from RecyclerView
     private String selectedEventId = null;
 
     @Override
-    public View onCreateView(@NonNull android.view.LayoutInflater inflater,
-                             android.view.ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull android.view.LayoutInflater inflater, android.view.ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentOrganizerEventsScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -46,23 +40,16 @@ public class OrganizerEventsScreen extends Fragment {
         userName = OrganizerEventsScreenArgs.fromBundle(getArguments()).getUserName();
         repo = new EventRepository();
 
-        // -------------------------
-        // RecyclerView Setup
-        // -------------------------
         RecyclerView rv = binding.rvOrganizerEvents;
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         adapter = new EventListAdapter(events, new EventListAdapter.Listener() {
-
             @Override
             public void onEventClick(String eventId) {
-                // Arrow click → open details instantly
                 openOrganizerEventDetailsScreen(eventId);
             }
-
             @Override
             public void onEventSelected(String eventId) {
-                // Normal click → select + highlight
                 selectedEventId = eventId;
                 Toast.makeText(getContext(),
                         "Selected event", Toast.LENGTH_SHORT).show();
@@ -70,8 +57,6 @@ public class OrganizerEventsScreen extends Fragment {
         });
 
         rv.setAdapter(adapter);
-        // -------------------------
-
         loadOrganizerEvents();
         setupNavButtons();
     }
@@ -79,7 +64,6 @@ public class OrganizerEventsScreen extends Fragment {
     private void loadOrganizerEvents() {
         repo.getEventsByOrganizer(userName).get()
                 .addOnSuccessListener(query -> {
-
                     events.clear();
 
                     for (QueryDocumentSnapshot doc : query) {
@@ -87,27 +71,20 @@ public class OrganizerEventsScreen extends Fragment {
                         String id = doc.getId();
                         String name = doc.getString("eventName");
 
-                        // SAFE conversion for timestamps/numbers/strings
-                        Object locObj = doc.get("location");
+                        String location = doc.getString("location");
+
                         Object startObj = doc.get("startTime");
                         Object endObj = doc.get("endTime");
 
-                        String location = locObj != null ? locObj.toString() : null;
-                        String start = startObj != null ? startObj.toString() : null;
-                        String end = endObj != null ? endObj.toString() : null;
+                        String startTimeText = startObj != null ? startObj.toString() : null;
+                        String endTimeText = endObj != null ? endObj.toString() : null;
+
+                        String posterUrl = doc.getString("posterUrl");
 
                         if (name != null) {
-                            events.add(new EventListAdapter.EventItem(
-                                    id,
-                                    name,
-                                    true,        // isOpen placeholder
-                                    location,
-                                    start,
-                                    end
-                            ));
+                            events.add(new EventListAdapter.EventItem(id, name, true, location, startTimeText, endTimeText, posterUrl));
                         }
                     }
-
                     adapter.notifyDataSetChanged();
 
                     if (events.isEmpty()) {
@@ -135,7 +112,6 @@ public class OrganizerEventsScreen extends Fragment {
                 .navigate(OrganizerEventsScreenDirections
                         .actionOrganizerEventsScreenToOrganizerEventDetailsScreen(userName, eventId));
     }
-
     private void setupNavButtons() {
 
         binding.btnBack.setOnClickListener(v ->

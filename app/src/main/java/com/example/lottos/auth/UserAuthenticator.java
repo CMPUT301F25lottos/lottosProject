@@ -28,7 +28,6 @@ public class UserAuthenticator {
     private static final String TAG = "UserAuthenticator";
     private final CollectionReference usersRef;
 
-    // Common callback interface for login and registration results
     public interface AuthListener {
         void onSuccess(String userName);
         void onFailure(String errorMessage);
@@ -39,9 +38,6 @@ public class UserAuthenticator {
         this.usersRef = db.collection("users");
     }
 
-    // ------------------------------------------------------
-    // LOGIN
-    // ------------------------------------------------------
     public void checkUserLogin(@NonNull String userName, @NonNull String password, @NonNull AuthListener listener) {
         DocumentReference userDoc = usersRef.document(userName);
         userDoc.get().addOnCompleteListener(task -> {
@@ -77,9 +73,6 @@ public class UserAuthenticator {
         });
     }
 
-    // ------------------------------------------------------
-    // SIGNUP / REGISTRATION
-    // ------------------------------------------------------
     public void registerUser(
             @NonNull String userName,
             @NonNull String displayName,
@@ -90,18 +83,15 @@ public class UserAuthenticator {
     ) {
         DocumentReference userDoc = usersRef.document(userName);
 
-        // Check if username already exists
         userDoc.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
                 listener.onFailure("Username already taken. Please choose another.");
                 return;
             }
 
-            // Initialize all event lists as empty
             Map<String, Object> emptyEventsMap = new HashMap<>();
             emptyEventsMap.put("events", new ArrayList<String>());
 
-            // User info data
             Map<String, Object> userInfo = new HashMap<>();
             userInfo.put("displayName", displayName);
             userInfo.put("email", email);
@@ -109,12 +99,10 @@ public class UserAuthenticator {
             userInfo.put("password", password);
             userInfo.put("phoneNumber", phoneNumber);
 
-            // Main user data structure
             Map<String, Object> userData = new HashMap<>();
             userData.put("userName", userName);
             userData.put("userInfo", userInfo);
 
-            // Each event type gets its own copy of the empty map
             userData.put("closedEvents", new HashMap<>(emptyEventsMap));
             userData.put("declinedEvents", new HashMap<>(emptyEventsMap));
             userData.put("enrolledEvents", new HashMap<>(emptyEventsMap));
@@ -123,7 +111,6 @@ public class UserAuthenticator {
             userData.put("organizedEvents", new HashMap<>(emptyEventsMap));
             userData.put("waitListedEvents", new HashMap<>(emptyEventsMap));
 
-            // Create user in Firestore
             userDoc.set(userData)
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "User account created: " + userName);

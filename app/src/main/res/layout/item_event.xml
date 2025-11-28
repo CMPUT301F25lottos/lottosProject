@@ -7,18 +7,18 @@
     android:background="@color/white"
     android:padding="8dp">
 
-    <!-- Event Image -->
+
     <ImageView
         android:id="@+id/eventImage"
         android:layout_width="0dp"
-        android:layout_height="200dp"
-        android:scaleType="centerCrop"
+        android:layout_height="300dp"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
         android:src="@drawable/sample_event"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Info Text -->
     <LinearLayout
         android:id="@+id/info"
         android:orientation="vertical"
@@ -56,7 +56,6 @@
 
     </LinearLayout>
 
-    <!-- Arrow Button -->
     <ImageButton
         android:id="@+id/btnArrow"
         android:layout_width="30dp"
