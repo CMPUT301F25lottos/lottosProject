@@ -25,15 +25,12 @@ public class EventHistoryScreen extends Fragment {
 
     private FragmentEventHistoryScreenBinding binding;
     private EntrantEventManager manager;
-
     private String userName;
-
     private final List<EventListAdapter.EventItem> eventItems = new ArrayList<>();
     private EventListAdapter adapter;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentEventHistoryScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -58,7 +55,6 @@ public class EventHistoryScreen extends Fragment {
                     public void onEventClick(String eventId) {
                         goToDetails(eventId);
                     }
-
                     @Override
                     public void onEventSelected(String eventId) {
                         goToDetails(eventId);
@@ -74,8 +70,7 @@ public class EventHistoryScreen extends Fragment {
     private void loadEventsForUser() {
         manager.loadEventsHistory(userName, new EntrantEventManager.EventsCallback() {
             @Override
-            public void onSuccess(List<EntrantEventManager.EventModel> list,
-                                  List<String> waitlisted) {
+            public void onSuccess(List<EntrantEventManager.EventModel> list, List<String> waitlisted) {
                 updateAdapterWithEvents(list);
             }
 
@@ -88,7 +83,9 @@ public class EventHistoryScreen extends Fragment {
 
     private void updateAdapterWithEvents(List<EntrantEventManager.EventModel> eventModelList) {
         eventItems.clear();
+
         for (EntrantEventManager.EventModel evt : eventModelList) {
+
             eventItems.add(
                     new EventListAdapter.EventItem(
                             evt.id,
@@ -96,13 +93,16 @@ public class EventHistoryScreen extends Fragment {
                             evt.isOpen,
                             evt.location,
                             evt.startTime,
-                            evt.endTime
+                            evt.endTime,
+                            evt.posterUrl
                     )
             );
         }
+
         adapter.notifyDataSetChanged();
         Log.d("EventHistory", "Adapter updated with " + eventItems.size() + " events.");
     }
+
 
     private void goToDetails(String eventId) {
         NavHostFragment.findNavController(this)

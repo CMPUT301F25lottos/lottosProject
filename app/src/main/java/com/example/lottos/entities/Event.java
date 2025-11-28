@@ -37,6 +37,9 @@ public class Event {
     private UserList enrolledList;
     private UserList cancelledList;
 
+    private String posterUrl;
+
+
 
     public Event(String eventName, String organizer,
                  LocalDateTime startTime, LocalDateTime endTime,
@@ -57,6 +60,7 @@ public class Event {
         this.enrolledList = new UserList();
         this.isOpen=true;
         this.EndRegisterTime=EndRegisterTime;
+        this.posterUrl = null;
     }
     public boolean isOrganizer() {
         FirebaseUser cur = FirebaseAuth.getInstance().getCurrentUser();
@@ -262,6 +266,11 @@ public class Event {
         this.enrolledList = enrolledList;
     }
 
+    public String getPosterUrl() {return posterUrl;}
+
+    public void setPosterUrl(String posterUrl) {this.posterUrl = posterUrl;}
+
+
     @Override
     public boolean equals(Object event) {
         if (this == event) {
@@ -280,4 +289,6 @@ public class Event {
     public int hashCode() {
         return eventName.hashCode();
     }
+
+
 }

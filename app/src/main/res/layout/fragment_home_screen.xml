@@ -8,7 +8,6 @@
     android:background="@color/white"
     tools:context=".home.HomeScreen">
 
-    <!-- Title -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
@@ -23,7 +22,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Info button in top-right -->
     <ImageButton
         android:id="@+id/btnInfo"
         android:layout_width="40dp"
@@ -38,9 +36,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-
-
-    <!-- RecyclerView scrolls between title and bottom nav -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvEvents"
         android:layout_width="0dp"
@@ -53,8 +48,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-
-    <!-- Bottom navigation bar (always visible) -->
     <LinearLayout
         android:id="@+id/navigationBar"
         android:layout_width="0dp"

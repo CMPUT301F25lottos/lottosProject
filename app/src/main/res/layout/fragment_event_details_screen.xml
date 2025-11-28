@@ -22,7 +22,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Event title -->
     <TextView
         android:id="@+id/tvEventDetails"
         android:text="Event Detail"
@@ -36,19 +35,18 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="24dp"/>
 
-    <!-- CIRCULAR PROFILE IMAGE -->
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/ivEventPoster"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
+        android:layout_width="375dp"
+        android:layout_height="340dp"
         android:layout_marginTop="24dp"
-        android:scaleType="centerCrop"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
         android:src="@drawable/sample_event"
-        app:layout_constraintTop_toBottomOf="@id/tvEventDetails"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/tvEventDetails" />
 
-    <!-- Event details list -->
     <LinearLayout
         android:id="@+id/llEventDetails"
         android:orientation="horizontal"
@@ -137,7 +135,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
-
             <TextView
                 android:id="@+id/tvWLCloseDateTime"
                 android:text="Register Close Time"
@@ -174,7 +171,6 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Buttons for Regular Users -->
     <LinearLayout
         android:id="@+id/llButtons"
         android:orientation="vertical"
@@ -187,7 +183,6 @@
         android:layout_marginBottom="8dp"
         android:padding="8dp">
 
-        <!-- All your user-only buttons go here -->
         <Button
             android:id="@+id/btnJoin"
             android:text="Join WaitList"
@@ -254,7 +249,6 @@
 
     </LinearLayout>
 
-    <!-- NEW: Buttons for Admin Users (Side-by-Side) -->
     <LinearLayout
         android:id="@+id/llAdminButtons"
         android:layout_width="0dp"
@@ -281,8 +275,6 @@
 
     </LinearLayout>
 
-
-    <!-- Your Existing Navigation Bar -->
     <LinearLayout
         android:id="@+id/navigationBar"
         android:layout_width="match_parent"

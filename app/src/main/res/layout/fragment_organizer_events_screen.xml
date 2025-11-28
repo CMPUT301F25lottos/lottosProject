@@ -8,7 +8,7 @@
     android:background="@color/white"
     tools:context=".organizer.OrganizerEventsScreen">
 
-    <!-- Title -->
+
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
@@ -23,7 +23,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- RecyclerView using your item_event card -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvOrganizerEvents"
         android:layout_width="0dp"
@@ -35,7 +34,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/buttonsRow" />
 
-    <!-- Buttons row: Create | View Details | Edit -->
     <LinearLayout
         android:id="@+id/buttonsRow"
         android:layout_width="0dp"
@@ -81,7 +79,6 @@
 
     </LinearLayout>
 
-    <!-- Bottom navigation bar -->
     <LinearLayout
         android:id="@+id/navigationBar"
         android:layout_width="0dp"

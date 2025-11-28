@@ -22,7 +22,6 @@ public class EventStatusUpdater {
     private static final String TAG = "EventStatusUpdater";
     private final CollectionReference eventsRef;
 
-    // Callback interface
     public interface UpdateListener {
         void onUpdateSuccess(int updatedCount);
         void onUpdateFailure(String errorMessage);

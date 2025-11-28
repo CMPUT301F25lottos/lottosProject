@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
-import com.example.lottos.auth.SignupScreenDirections;
 import com.example.lottos.databinding.FragmentSignupScreenBinding;
 
 /**
@@ -20,7 +19,6 @@ import com.example.lottos.databinding.FragmentSignupScreenBinding;
  * and delegates account creation to UserAuthenticator.
  */
 public class SignupScreen extends Fragment {
-
     private FragmentSignupScreenBinding binding;
     private UserAuthenticator authenticator;
 

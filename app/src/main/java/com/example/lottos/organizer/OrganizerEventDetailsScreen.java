@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.lottos.TimeUtils;
 import com.example.lottos.databinding.FragmentOrganizerEventDetailsScreenBinding;
 import com.google.firebase.Timestamp;
 
@@ -25,17 +26,13 @@ import java.util.Map;
  * All Firestore / business logic lives in OrganizerEventDetailsManager.
  */
 public class OrganizerEventDetailsScreen extends Fragment {
-
     private FragmentOrganizerEventDetailsScreenBinding binding;
     private OrganizerEventDetailsManager manager;
-
     private String userName;
     private String eventId;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentOrganizerEventDetailsScreenBinding.inflate(inflater, container, false);
 
@@ -51,10 +48,8 @@ public class OrganizerEventDetailsScreen extends Fragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull View view,
-                              Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         loadEvent();
         setupNavButtons();
     }
@@ -62,31 +57,22 @@ public class OrganizerEventDetailsScreen extends Fragment {
     private void loadEvent() {
         manager.loadEvent(eventId, new OrganizerEventDetailsManager.LoadCallback() {
             @Override
-            public void onSuccess(Map<String, Object> eventData,
-                                  List<String> waitlistUsers,
-                                  List<String> selectedUsers,
-                                  List<String> notSelectedUsers,
-                                  List<String> enrolledUsers,
-                                  List<String> cancelledUsers) {
+            public void onSuccess(Map<String, Object> eventData, List<String> waitlistUsers, List<String> selectedUsers, List<String> notSelectedUsers, List<String> enrolledUsers, List<String> cancelledUsers) {
 
-                // Header info
                 renderHeader(eventData);
 
-                // Section headers with counts
                 binding.tvWaitlistHeader.setText("Waitlist (" + waitlistUsers.size() + ")");
                 binding.tvSelectedHeader.setText("Selected (" + selectedUsers.size() + ")");
                 binding.tvNotSelectedHeader.setText("Not Selected (" + notSelectedUsers.size() + ")");
                 binding.tvEnrolledHeader.setText("Enrolled (" + enrolledUsers.size() + ")");
                 binding.tvCancelledHeader.setText("Cancelled (" + cancelledUsers.size() + ")");
 
-                // Section bodies
                 renderListSection(binding.tvWaitlistEmpty,  waitlistUsers,  "No users on waitlist.");
                 renderListSection(binding.tvSelectedEmpty,  selectedUsers,  "No selected users yet.");
                 renderListSection(binding.tvNotSelectedEmpty, notSelectedUsers, "No not-selected users yet.");
                 renderListSection(binding.tvEnrolledEmpty,  enrolledUsers,  "No enrolled users yet.");
                 renderListSection(binding.tvCancelledEmpty, cancelledUsers, "No cancelled users yet.");
 
-                // Setup lottery button based on this event + waitlist
                 updateUI(eventData, waitlistUsers);
             }
 
@@ -103,40 +89,27 @@ public class OrganizerEventDetailsScreen extends Fragment {
         binding.tvEventName.setText(safe(data.get("eventName")));
         binding.tvEventLocation.setText("Location: " + safe(data.get("location")));
 
-        Object startTimeObj = data.get("startTime");
-        Object endTimeObj   = data.get("endTime");
-
+        Date start = TimeUtils.toDate(data.get("startTime"));
+        Date end   = TimeUtils.toDate(data.get("endTime"));
         String dateText = "Date: N/A";
         String timeText = "Time: N/A";
 
-        SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
-        SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
-
-        if (startTimeObj instanceof Timestamp) {
-            Timestamp tsStart = (Timestamp) startTimeObj;
-            Date dStart = tsStart.toDate();
-            dateText = "Date: " + dateFmt.format(dStart);
-            timeText = "Time: " + timeFmt.format(dStart);
+        if (start != null) {
+            String day  = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(start);
+            String time = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(start);
+            dateText = "Date: " + day;
+            timeText = "Time: " + time;
         }
 
-        if (endTimeObj instanceof Timestamp) {
-            Timestamp tsEnd = (Timestamp) endTimeObj;
-            Date dEnd = tsEnd.toDate();
-            timeText = timeText + " - " + timeFmt.format(dEnd);
+        if (start != null && end != null) {
+            String endTime = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(end);
+            timeText = timeText + " - " + endTime;
         }
-
         binding.tvEventDate.setText(dateText);
         binding.tvEventTime.setText(timeText);
     }
 
-    /**
-     * Populates one section text view:
-     * - If users list is empty: show the "empty" message
-     * - If not empty: show bullet list of usernames
-     */
-    private void renderListSection(TextView contentView,
-                                   List<String> users,
-                                   String emptyMessage) {
+    private void renderListSection(TextView contentView, List<String> users, String emptyMessage) {
 
         if (contentView == null) return;
 
@@ -155,12 +128,7 @@ public class OrganizerEventDetailsScreen extends Fragment {
         contentView.setText(sb.toString().trim());
     }
 
-    /**
-     * Controls lottery button visibility + click behavior
-     * based on event status, organizer, and waitlist.
-     */
-    private void updateUI(Map<String, Object> eventData,
-                          List<String> waitUsers) {
+    private void updateUI(Map<String, Object> eventData, List<String> waitUsers) {
 
         if (eventData == null) return;
 
@@ -169,13 +137,9 @@ public class OrganizerEventDetailsScreen extends Fragment {
         String organizer   = safe(eventData.get("organizer"));
         boolean isOrganizer = organizer.equalsIgnoreCase(userName);
 
-        // Default: hide and clear click listener
         binding.btnLottery.setVisibility(View.GONE);
         binding.btnLottery.setOnClickListener(null);
 
-        // Only organizer can see this button,
-        // only if the lottery has NOT been run yet,
-        // and there is at least one person on the waitlist.
         if (isOrganizer && !hasRunLottery && waitUsers != null && !waitUsers.isEmpty()) {
             binding.btnLottery.setVisibility(View.VISIBLE);
 
@@ -187,12 +151,11 @@ public class OrganizerEventDetailsScreen extends Fragment {
 
                 binding.btnLottery.setEnabled(false);
 
-                // IMPORTANT: runLottery should set IsLottery = true in Firestore.
                 manager.runLottery(eventId, waitUsers,
                         () -> {
                             toast("Lottery completed");
                             binding.btnLottery.setEnabled(true);
-                            loadEvent(); // reload – now IsLottery will be true, button disappears
+                            loadEvent();
                         },
                         e -> {
                             toast("Lottery failed: " + e.getMessage());
@@ -202,43 +165,35 @@ public class OrganizerEventDetailsScreen extends Fragment {
         }
     }
 
-
     private String safe(Object o) {
         return o == null ? "" : o.toString();
     }
-
     private void setupNavButtons() {
-        // Home (back/home icon)
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(OrganizerEventDetailsScreenDirections
                                 .actionOrganizerEventDetailsScreenToHomeScreen(userName)));
 
-        // Open Events (back to organizer events list)
         binding.btnOpenEvents.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(OrganizerEventDetailsScreenDirections
                                 .actionOrganizerEventDetailsScreenToOrganizerEventsScreen(userName)));
 
-        // Notifications
         binding.btnNotification.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(OrganizerEventDetailsScreenDirections
                                 .actionOrganizerEventDetailsScreenToNotificationScreen(userName)));
 
-        // Event History
         binding.btnEventHistory.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(OrganizerEventDetailsScreenDirections
                                 .actionOrganizerEventDetailsScreenToEventHistoryScreen(userName)));
 
-        // Profile
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(OrganizerEventDetailsScreenDirections
                                 .actionOrganizerEventDetailsScreenToProfileScreen(userName)));
     }
-
     private void toast(String msg) {
         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
     }

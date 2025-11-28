@@ -27,8 +27,7 @@ public class EditProfileScreen extends Fragment {
     private String userName;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentEditProfileScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -42,8 +41,6 @@ public class EditProfileScreen extends Fragment {
 
         loadUserInfo();
         setupNavButtons();
-
-
     }
 
     private void loadUserInfo() {
@@ -54,7 +51,6 @@ public class EditProfileScreen extends Fragment {
                 binding.etEmail.setText(email);
                 binding.etPhone.setText(phone);
             }
-
             @Override
             public void onProfileNotFound() {
                 Toast.makeText(getContext(), "Profile not found.", Toast.LENGTH_SHORT).show();
@@ -96,7 +92,6 @@ public class EditProfileScreen extends Fragment {
     }
 
     private void setupNavButtons() {
-
         binding.btnSave.setOnClickListener(v -> saveProfile());
 
         binding.btnCancel.setOnClickListener(v -> {

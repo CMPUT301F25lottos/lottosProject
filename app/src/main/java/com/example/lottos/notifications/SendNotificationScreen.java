@@ -29,18 +29,14 @@ public class SendNotificationScreen extends Fragment {
     private FragmentSendNotificationScreenBinding binding;
     private FirebaseFirestore db;
     private String userName;
-
     private final List<String> eventNames = new ArrayList<>();
     private final List<String> eventIds = new ArrayList<>();
-
     private ArrayAdapter<String> eventAdapter;
-
     private final List<String> groups = List.of("waitList", "selectedList", "cancelledList");
     private ArrayAdapter<String> groupAdapter;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentSendNotificationScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -59,9 +55,6 @@ public class SendNotificationScreen extends Fragment {
         binding.btnSendMessage.setOnClickListener(v -> sendNotification());
     }
 
-    // ----------------------------------------------------------
-    // ADAPTER SETUP
-    // ----------------------------------------------------------
     private void setupAdapters() {
         eventAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_item, eventNames);
@@ -74,9 +67,6 @@ public class SendNotificationScreen extends Fragment {
         binding.spGroupSelect.setAdapter(groupAdapter);
     }
 
-    // ----------------------------------------------------------
-    // LOAD ORGANIZER'S EVENTS (ID + name)
-    // ----------------------------------------------------------
     private void loadOrganizerEvents() {
         db.collection("open events")
                 .whereEqualTo("organizer", userName)
@@ -108,9 +98,6 @@ public class SendNotificationScreen extends Fragment {
                 });
     }
 
-    // ----------------------------------------------------------
-    // SEND NOTIFICATIONS
-    // ----------------------------------------------------------
     private void sendNotification() {
 
         if (eventIds.isEmpty()) {

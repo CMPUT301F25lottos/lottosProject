@@ -8,11 +8,7 @@
     android:background="@color/white"
     android:padding="8dp">
 
-    <!-- Date box -->
 
-    <!-- Notification info -->
-
-    <!-- Delete (X) button -->
     <TextView
         android:id="@+id/tvDate"
         android:layout_width="60dp"

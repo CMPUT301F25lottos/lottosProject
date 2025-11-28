@@ -2,12 +2,15 @@ package com.example.lottos.events;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.SharedPreferences;import android.os.Bundle;
+import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.lottos.ImageLoader;
+import com.example.lottos.TimeUtils;
 import com.example.lottos.databinding.FragmentEventDetailsScreenBinding;
 import com.google.firebase.Timestamp;
 
@@ -21,7 +24,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Consumer;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Handler;
+import android.os.Looper;
+
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * UI-only Fragment for event details.
@@ -35,12 +48,11 @@ public class EventDetailsScreen extends Fragment {
     private String eventName;
     private String userName;
     private boolean isAdmin = false;
-
     private EventDetailsManager manager;
+    private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentEventDetailsScreenBinding.inflate(inflater, container, false);
 
@@ -77,34 +89,24 @@ public class EventDetailsScreen extends Fragment {
         }
     }
 
-    // --- NEW METHOD FOR ADMINS ---
     private void loadBasicEventDataForAdmin() {
-
         binding.btnDeleteEvent.setOnClickListener(v -> showDeleteConfirmationDialog());
 
-        // Now, load the event data.
         manager.getEventDetails(eventName, eventData -> {
             if (eventData != null) {
-                renderEventData(eventData); // Show event details like name, date, etc.
+                renderEventData(eventData);
             } else {
                 toast("Error: Event not found.");
             }
         }, e -> toast("Failed to load event details: " + e.getMessage()));
     }
 
-
-    // ------------------------------------------------------------------
-    // LOAD + RENDER (Your existing methods)
-    // ------------------------------------------------------------------
     private void loadEvent() {
         manager.loadEventForEntrant(eventName, userName,
                 new EventDetailsManager.LoadCallback() {
                     @Override
-                    public void onSuccess(Map<String, Object> eventData,
-                                          List<String> waitUsers,
-                                          Map<String, Object> userData) {
+                    public void onSuccess(Map<String, Object> eventData, List<String> waitUsers, Map<String, Object> userData) {
                         renderEventData(eventData);
-                        // This method is now ONLY called for regular users, so the admin check is gone.
                         updateUI(eventData, waitUsers, userData);
                     }
 
@@ -114,43 +116,19 @@ public class EventDetailsScreen extends Fragment {
                     }
                 });
     }
-
     private void renderEventData(Map<String, Object> data) {
+
+        String posterUrl = (String) data.get("posterUrl");
+        loadPoster(posterUrl);
+
         binding.tvEventName.setText(safe(data.get("eventName")));
         binding.tvLocation.setText(" | " + safe(data.get("location")));
 
-        Object startTimeObj = data.get("startTime");
-        if (startTimeObj instanceof Timestamp) {
-            Timestamp ts = (Timestamp) startTimeObj;
-            Date date = ts.toDate();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault());
-            String formatted = sdf.format(date);
-            binding.tvStartTime.setText(formatted);
-        } else {
-            binding.tvStartTime.setText("N/A");
-        }
-
-        Object endTimeObj = data.get("endTime");
-        if (endTimeObj instanceof Timestamp) {
-            Timestamp ts = (Timestamp) endTimeObj;
-            Date date = ts.toDate();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault());
-            String formatted = sdf.format(date);
-            binding.tvEndTime.setText(" ~ " + formatted);
-        } else {
-            binding.tvEndTime.setText("N/A");
-        }
-
-        Object registercloseTimeObj = data.get("registerEndTime");
-        if (registercloseTimeObj instanceof Timestamp) {
-            Timestamp ts = (Timestamp) registercloseTimeObj;
-            Date date = ts.toDate();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault());
-            String formatted = sdf.format(date);
-            binding.tvWLCloseDateTime.setText("Register End Time: " + formatted);
-        } else {
-            binding.tvWLCloseDateTime.setText("Register End Time: N/A");
-        }
+        binding.tvStartTime.setText(TimeUtils.formatEventTime(data.get("startTime")));
+        binding.tvEndTime.setText(" ~ " + TimeUtils.formatEventTime(data.get("endTime")));
+        binding.tvWLCloseDateTime.setText(
+                "Register End Time: " + TimeUtils.formatEventTime(data.get("registerEndTime"))
+        );
 
         Map<String, Object> waitList = (Map<String, Object>) data.get("waitList");
         if (waitList != null) {
@@ -172,21 +150,23 @@ public class EventDetailsScreen extends Fragment {
         binding.tvWLSize.setText("Wait List Capacity: " + capacity);
     }
 
-    private String safe(Object o) {
-        return o == null ? "" : o.toString();
+
+    private void loadPoster(String url) {
+        ImageLoader.load(
+                url,
+                binding.ivEventPoster,
+                com.example.lottos.R.drawable.sample_event
+        );
     }
 
 
-
-    // ------------------------------------------------------------------
-    // UI STATE
-    // ------------------------------------------------------------------
-    private void updateUI(Map<String, Object> eventData,
-                          List<String> waitUsers,
-                          Map<String, Object> userData) {
+    private String safe(Object o) {
+        return o == null ? "" : o.toString();
+    }
+    private void updateUI(Map<String, Object> eventData, List<String> waitUsers, Map<String, Object> userData) {
 
         boolean isOpen = Boolean.TRUE.equals(eventData.get("IsOpen"));
-        boolean isLottery = Boolean.TRUE.equals(eventData.get("IsLottery")); // still used indirectly maybe
+        boolean isLottery = Boolean.TRUE.equals(eventData.get("IsLottery"));
         String organizer = safe(eventData.get("organizer"));
         boolean isOrganizer = organizer.equalsIgnoreCase(userName);
 
@@ -210,7 +190,6 @@ public class EventDetailsScreen extends Fragment {
         }
 
         if (!isOpen && isSelected) {
-            // Show Accept / Decline
             binding.btnAccept.setVisibility(View.VISIBLE);
             binding.btnDecline.setVisibility(View.VISIBLE);
 
@@ -218,15 +197,10 @@ public class EventDetailsScreen extends Fragment {
             binding.btnDecline.setOnClickListener(v -> declineInvite());
 
         } else {
-            // Hide them if user is NOT in selected list anymore
             binding.btnAccept.setVisibility(View.GONE);
             binding.btnDecline.setVisibility(View.GONE);
         }
-
     }
-
-
-
 
     private List<String> readUserList(Map<String, Object> userData, String key) {
         if (userData == null) return new ArrayList<>();
@@ -238,10 +212,6 @@ public class EventDetailsScreen extends Fragment {
         }
         return new ArrayList<>();
     }
-
-    // ------------------------------------------------------------------
-    // ACTIONS
-    // ------------------------------------------------------------------
 
     private void showDeleteConfirmationDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
@@ -264,9 +234,7 @@ public class EventDetailsScreen extends Fragment {
                     });
         });
 
-        builder.setNegativeButton("No, Cancel", (dialog, which) -> {
-            dialog.dismiss();
-        });
+        builder.setNegativeButton("No, Cancel", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -308,9 +276,6 @@ public class EventDetailsScreen extends Fragment {
                 e -> toast("Failed to decline invite: " + e.getMessage()));
     }
 
-    // ------------------------------------------------------------------
-    // NAV / UTILS
-    // ------------------------------------------------------------------
     private void setupNavButtons() {
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this).navigateUp());
@@ -328,14 +293,15 @@ public class EventDetailsScreen extends Fragment {
                                 .actionEventDetailsScreenToHomeScreen(userName)));
         binding.btnOpenEvents.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
-                        .navigate(EventDetailsScreenDirections.actionEventDetailsScreenToOrganizerEventsScreen(userName)));
+                        .navigate(EventDetailsScreenDirections
+                                .actionEventDetailsScreenToOrganizerEventsScreen(userName)));
         binding.btnEventHistory.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
-                        .navigate(EventDetailsScreenDirections.actionEventDetailsScreenToEventHistoryScreen(userName)));
+                        .navigate(EventDetailsScreenDirections
+                                .actionEventDetailsScreenToEventHistoryScreen(userName)));
     }
 
     private void hideAllButtons() {
-        // This method should ONLY hide the action buttons within the user layout (llButtons).
         binding.btnJoin.setVisibility(View.GONE);
         binding.btnAccept.setVisibility(View.GONE);
         binding.btnDecline.setVisibility(View.GONE);
@@ -343,7 +309,6 @@ public class EventDetailsScreen extends Fragment {
         binding.btnViewSelected.setVisibility(View.GONE);
         binding.btnViewCancelled.setVisibility(View.GONE);
         binding.btnViewEnrolled.setVisibility(View.GONE);
-
 
         if (binding.btnDeleteEvent != null) {
             binding.btnDeleteEvent.setVisibility(View.GONE);
@@ -358,5 +323,6 @@ public class EventDetailsScreen extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        imageExecutor.shutdown();
     }
 }

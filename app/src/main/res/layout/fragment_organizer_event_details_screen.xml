@@ -8,7 +8,7 @@
     android:background="@color/white"
     tools:context=".organizer.OrganizerEventDetailsScreen">
 
-    <!-- Header (event title + basic info) -->
+
     <LinearLayout
         android:id="@+id/headerArea"
         android:layout_width="0dp"
@@ -61,7 +61,7 @@
             android:layout_marginBottom="8dp" />
     </LinearLayout>
 
-    <!-- Scrollable content area (all sections) -->
+
     <ScrollView
         android:id="@+id/contentArea"
         android:layout_width="0dp"

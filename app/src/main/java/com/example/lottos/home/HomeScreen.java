@@ -33,17 +33,13 @@ public class HomeScreen extends Fragment {
     private FragmentHomeScreenBinding binding;
     private EventStatusUpdater eventUpdater;
     private EntrantEventManager manager;
-
     private String userName;
-    private boolean isAdmin = false; // Flag for user role
-
-    // Recycler / adapter data
+    private boolean isAdmin = false;
     private final List<EventListAdapter.EventItem> eventItems = new ArrayList<>();
     private EventListAdapter adapter;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -54,25 +50,21 @@ public class HomeScreen extends Fragment {
 
         userName = HomeScreenArgs.fromBundle(getArguments()).getUserName();
 
-        // 1. CHECK THE USER'S ROLE
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
 
         eventUpdater = new EventStatusUpdater();
         manager = new EntrantEventManager();
 
-        // 2. Update event statuses first
         eventUpdater.updateEventStatuses(new EventStatusUpdater.UpdateListener() {
             @Override
             public void onUpdateSuccess(int updatedCount) {
-                // After updating statuses, load the events based on user role
                 loadEventsBasedOnRole();
             }
 
             @Override
             public void onUpdateFailure(String errorMessage) {
                 Toast.makeText(getContext(), "Status update failed: " + errorMessage, Toast.LENGTH_SHORT).show();
-                // Even if update fails, still try to load events
                 loadEventsBasedOnRole();
             }
         });
@@ -82,15 +74,9 @@ public class HomeScreen extends Fragment {
     }
 
     private void setupRecycler() {
-        // In HomeScreen, clicking an event directly navigates to its details
-        adapter = new EventListAdapter(
-                eventItems,
-                new EventListAdapter.Listener() {
+        adapter = new EventListAdapter(eventItems, new EventListAdapter.Listener() {
                     @Override
-                    public void onEventClick(String eventId) {
-                        // Navigate directly to event details (no selection, no highlight)
-                        goToDetails(eventId);
-                    }
+                    public void onEventClick(String eventId) {goToDetails(eventId);}
 
                     @Override
                     public void onEventSelected(String eventId) {
@@ -102,12 +88,9 @@ public class HomeScreen extends Fragment {
         );
         binding.rvEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvEvents.setAdapter(adapter);
-        binding.rvEvents.setNestedScrollingEnabled(false); // For smooth scrolling
+        binding.rvEvents.setNestedScrollingEnabled(false);
     }
 
-    /**
-     * It decides which data loading method to call.
-     */
     private void loadEventsBasedOnRole() {
         if (isAdmin) {
             binding.tvTitle.setText("All Events (Admin)");
@@ -118,9 +101,6 @@ public class HomeScreen extends Fragment {
         }
     }
 
-    /**
-     * LOADS DATA FOR A REGULAR USER
-     */
     private void loadEventsForUser() {
         manager.loadOpenEventsForUser(userName, new EntrantEventManager.EventsCallback() {
             @Override
@@ -128,7 +108,6 @@ public class HomeScreen extends Fragment {
                                   List<String> waitlisted) {
                 updateAdapterWithEvents(list);
             }
-
             @Override
             public void onError(Exception e) {
                 Toast.makeText(getContext(), "Error loading events", Toast.LENGTH_SHORT).show();
@@ -136,16 +115,12 @@ public class HomeScreen extends Fragment {
         });
     }
 
-    /**
-     * LOADS ALL EVENTS FOR AN ADMIN
-     */
     private void loadAllEventsForAdmin() {
         manager.loadAllOpenEvents(new EntrantEventManager.EventsCallback() {
             @Override
             public void onSuccess(List<EntrantEventManager.EventModel> list, List<String> waitlisted) {
                 updateAdapterWithEvents(list);
             }
-
             @Override
             public void onError(Exception e) {
                 Toast.makeText(getContext(), "Error loading admin events", Toast.LENGTH_SHORT).show();
@@ -153,13 +128,13 @@ public class HomeScreen extends Fragment {
         });
     }
 
-    /**
-     * Helper method to prevent code duplication.
-     * Updates the RecyclerView adapter with a new list of events.
-     */
     private void updateAdapterWithEvents(List<EntrantEventManager.EventModel> eventModelList) {
         eventItems.clear();
+
         for (EntrantEventManager.EventModel evt : eventModelList) {
+
+            String posterUrl = evt.posterUrl;
+
             eventItems.add(
                     new EventListAdapter.EventItem(
                             evt.id,
@@ -167,20 +142,20 @@ public class HomeScreen extends Fragment {
                             evt.isOpen,
                             evt.location,
                             evt.startTime,
-                            evt.endTime
+                            evt.endTime,
+                            posterUrl
                     )
             );
         }
+
         adapter.notifyDataSetChanged();
         Log.d("HomeScreen", "Adapter updated with " + eventItems.size() + " events.");
     }
 
-    // Navigate directly to the event details
     private void goToDetails(String eventId) {
         NavHostFragment.findNavController(this)
                 .navigate(HomeScreenDirections.actionHomeScreenToEventDetailsScreen(userName, eventId));
     }
-
     private void setupNavButtons() {
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)

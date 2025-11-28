@@ -9,7 +9,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Map;
 
 public class UserProfileManager {
-
     private static final String TAG = "UserProfileManager";
     private final FirebaseFirestore db;
 
@@ -17,34 +16,28 @@ public class UserProfileManager {
         db = FirebaseFirestore.getInstance();
     }
 
-    // Callback for loading profile
     public interface ProfileLoadListener {
         void onProfileLoaded(String name, String email, String phone);
         void onProfileNotFound();
         void onError(String errorMessage);
     }
 
-    // Callback for updating profile
     public interface ProfileUpdateListener {
         void onUpdateSuccess();
         void onUpdateFailure(String errorMessage);
     }
 
-    // Callback for profile deletion
     public interface DeleteListener {
         void onDeleteSuccess();
         void onDeleteFailure(String errorMessage);
     }
 
-    /** Loads a user profile and extracts userInfo. */
     public void loadUserProfile(String userName, ProfileLoadListener listener) {
         DocumentReference ref = db.collection("users").document(userName);
 
         ref.get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                extractUserInfo(snapshot, listener);
-            } else {
-                fallbackOrganizerCheck(userName, listener);
+            if (snapshot.exists()) {extractUserInfo(snapshot, listener);
+            } else {fallbackOrganizerCheck(userName, listener);
             }
         }).addOnFailureListener(e -> {
             Log.e(TAG, "Failed to load profile", e);
@@ -52,15 +45,12 @@ public class UserProfileManager {
         });
     }
 
-    /** Fallback lookup — reusable logic */
     private void fallbackOrganizerCheck(String userName, ProfileLoadListener listener) {
         DocumentReference ref = db.collection("users").document(userName);
 
         ref.get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                extractUserInfo(snapshot, listener);
-            } else {
-                listener.onProfileNotFound();
+            if (snapshot.exists()) {extractUserInfo(snapshot, listener);
+            } else {listener.onProfileNotFound();
             }
         }).addOnFailureListener(e -> {
             Log.e(TAG, "Fallback profile load failed", e);
@@ -68,7 +58,6 @@ public class UserProfileManager {
         });
     }
 
-    /** Extract userInfo object */
     private void extractUserInfo(DocumentSnapshot snapshot, ProfileLoadListener listener) {
         Map<String, Object> userInfo = (Map<String, Object>) snapshot.get("userInfo");
 
@@ -80,13 +69,10 @@ public class UserProfileManager {
         String name = (String) userInfo.get("name");
         String email = (String) userInfo.getOrDefault("email", "N/A");
         String phone = (String) userInfo.getOrDefault("phoneNumber", "N/A");
-
         listener.onProfileLoaded(name, email, phone);
     }
 
-    /** NEW — Update a user profile */
-    public void updateUserProfile(String userName, String name, String email, String phone,
-                                  ProfileUpdateListener listener) {
+    public void updateUserProfile(String userName, String name, String email, String phone,ProfileUpdateListener listener) {
 
         DocumentReference doc = db.collection("users").document(userName);
 
@@ -101,7 +87,6 @@ public class UserProfileManager {
                 });
     }
 
-    /** Delete profile */
     public void deleteUser(String userName, DeleteListener listener) {
         db.collection("users").document(userName).delete()
                 .addOnSuccessListener(aVoid -> listener.onDeleteSuccess())
