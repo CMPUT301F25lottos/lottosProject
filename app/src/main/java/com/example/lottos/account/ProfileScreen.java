@@ -173,7 +173,7 @@ public class ProfileScreen extends Fragment {
     }
 
     private void setupNavButtons() {
-        // --- REVERTED TO ORIGINAL STRATEGY: ALWAYS PASS 'userName' ---
+        // --- Static Buttons that don't change based on role ---
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(ProfileScreenDirections.actionProfileScreenToHomeScreen(userName))
@@ -195,29 +195,50 @@ public class ProfileScreen extends Fragment {
 
         binding.btnDelete.setOnClickListener(v -> showDeleteConfirmation());
 
-        // --- DYNAMIC BUTTONS ---
+
+        // --- DYNAMIC BUTTONS based on the 'isAdmin' flag ---
         if (isAdmin) {
             // ADMIN MODE
+            // 1. "Event History" icon becomes "View Users"
             binding.btnEventHistory.setImageResource(R.drawable.outline_article_person_24);
             binding.btnEventHistory.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
                             .navigate(ProfileScreenDirections.actionProfileScreenToViewUsersScreen(userName)));
 
+            // 2. "Open Events" icon becomes "View Images"
+            binding.btnOpenEvents.setImageResource(R.drawable.outline_add_photo_alternate_24); // This line changes the icon
             binding.btnOpenEvents.setOnClickListener(v ->
-                    Toast.makeText(getContext(), "Admin: View All Images (Not Implemented)", Toast.LENGTH_SHORT).show());
+                    // NAVIGATE to the All Images screen
+                    NavHostFragment.findNavController(this)
+                            .navigate(ProfileScreenDirections.actionToAllImagesFragment(userName))
+
+            );
+
+            binding.btnOpenEvents.setImageResource(R.drawable.outline_add_photo_alternate_24); // This line changes the icon
+            binding.btnOpenEvents.setOnClickListener(v ->
+                    // THIS LINE IS PERFECT. IT PERFORMS THE NAVIGATION.
+                    NavHostFragment.findNavController(this)
+                            .navigate(ProfileScreenDirections.actionToAllImagesFragment(userName))
+            );
         } else {
-            // USER MODE
+            // REGULAR USER MODE
+            // 1. "Event History" icon is the standard history icon
             binding.btnEventHistory.setImageResource(R.drawable.ic_history);
             binding.btnEventHistory.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
                             .navigate(ProfileScreenDirections.actionProfileScreenToEventHistoryScreen(userName))
             );
+
+            // 2. "Open Events" icon is the standard event icon
+            binding.btnOpenEvents.setImageResource(R.drawable.ic_event); // This line sets the correct user icon
             binding.btnOpenEvents.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
                             .navigate(ProfileScreenDirections.actionProfileScreenToOrganizerEventsScreen(userName))
             );
         }
     }
+
+
 
     @Override
     public void onDestroyView() {

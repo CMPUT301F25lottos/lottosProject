@@ -83,6 +83,12 @@
         <action
             android:id="@+id/action_HomeScreen_to_LotteryInfoScreen"
             app:destination="@id/LotteryInfoScreen" />
+
+        <action
+            android:id="@+id/action_to_allImagesFragment"
+            app:destination="@id/allImagesFragment" />
+
+
     </fragment>
 
     <fragment
@@ -120,6 +126,9 @@
         <action
             android:id="@+id/action_ProfileScreen_to_EventDetailsScreen"
             app:destination="@id/EventDetailsScreen" />
+        <action
+            android:id="@+id/action_to_allImagesFragment"
+            app:destination="@id/allImagesFragment" />
     </fragment>
 
     <fragment
@@ -188,6 +197,10 @@
         <action
             android:id="@+id/action_NotificationScreen_to_EventDetailsScreen"
             app:destination="@id/EventDetailsScreen" />
+
+        <action
+            android:id="@+id/action_to_allImagesFragment"
+            app:destination="@id/allImagesFragment" />
     </fragment>
 
     <fragment
@@ -265,6 +278,10 @@
             android:id="@+id/action_OrganizerEventsScreen_to_CreateEventScreen"
             app:destination="@id/CreateEventScreen" />
 
+        <action
+            android:id="@+id/action_to_allImagesFragment"
+            app:destination="@id/allImagesFragment" />
+
 
 
     </fragment>
@@ -299,6 +316,9 @@
         <action
             android:id="@+id/action_EventHistoryScreen_to_LotteryInfoScreen"
             app:destination="@id/LotteryInfoScreen" />
+        <action
+            android:id="@+id/action_to_allImagesFragment"
+            app:destination="@id/allImagesFragment" />
     </fragment>
 
     <fragment
@@ -382,6 +402,10 @@
         <action
             android:id="@+id/action_viewUsersScreen_to_OrganizerEventsScreen"
             app:destination="@id/OrganizerEventsScreen" />
+
+        <action
+            android:id="@+id/action_to_allImagesFragment"
+            app:destination="@id/allImagesFragment" />
     </fragment>
 
 
@@ -482,6 +506,31 @@
     </fragment>
 
 
+    <fragment
+        android:id="@+id/allImagesFragment"
+        android:name="com.example.lottos.admin.AllImagesFragment"
+        android:label=""
+        tools:layout="@layout/fragment_all_images" >
+
+        <!-- This argument definition is what creates the .getUserName() method -->
+        <argument
+            android:name="userName"
+            app:argType="string"
+            app:nullable="true" />
+
+        <action
+            android:id="@+id/action_allImagesFragment_to_HomeScreen"
+            app:destination="@id/HomeScreen" />
+        <action
+            android:id="@+id/action_allImagesFragment_to_ProfileScreen"
+            app:destination="@id/ProfileScreen" />
+        <action
+            android:id="@+id/action_allImagesFragment_to_NotificationScreen"
+            app:destination="@id/NotificationScreen" />
+        <action
+            android:id="@+id/action_allImagesFragment_to_viewUsersScreen"
+            app:destination="@id/viewUsersScreen" />
+    </fragment>
 
 
 

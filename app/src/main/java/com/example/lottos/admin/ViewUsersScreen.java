@@ -139,9 +139,9 @@ public class ViewUsersScreen extends Fragment {
     }
 
     private void setupNavButtons() {
-        // The problematic btnInfo line is GONE.
-        // We use the binding object for all buttons.
 
+        binding.btnHome.setOnClickListener(v -> NavHostFragment.findNavController(this)
+                .navigate(ViewUsersScreenDirections.actionViewUsersScreenToHomeScreen(loggedInUserName)));
 
         binding.btnProfile.setOnClickListener(v -> NavHostFragment.findNavController(this)
                 .navigate(ViewUsersScreenDirections.actionViewUsersScreenToProfileScreen(loggedInUserName)));
@@ -149,20 +149,21 @@ public class ViewUsersScreen extends Fragment {
         binding.btnNotification.setOnClickListener(v -> NavHostFragment.findNavController(this)
                 .navigate(ViewUsersScreenDirections.actionViewUsersScreenToNotificationScreen(loggedInUserName)));
 
-        binding.btnEventHistory.setImageResource(R.drawable.outline_article_person_24);
+        binding.btnEventHistory.setImageResource(R.drawable.outline_article_person_24); // Stays as "View Users" icon
         binding.btnEventHistory.setOnClickListener(v -> {
             Toast.makeText(getContext(), "User list reloaded.", Toast.LENGTH_SHORT).show();
-            fetchUsernames();
+            fetchUsernames(); // The action is to reload the user list
         });
 
-        // ADD THIS BLOCK FOR THE HOME BUTTON
-        binding.btnHome.setOnClickListener(v -> NavHostFragment.findNavController(this)
-                .navigate(ViewUsersScreenDirections.actionViewUsersScreenToHomeScreen(loggedInUserName)));
-
-        // Changed this button to go to lottery screen as per your previous code.
-        binding.btnOpenEvents.setOnClickListener(v -> NavHostFragment.findNavController(this)
-                .navigate(ViewUsersScreenDirections.actionViewUsersScreenToLotteryInfoScreen(loggedInUserName)));
+        binding.btnOpenEvents.setImageResource(R.drawable.outline_add_photo_alternate_24);
+        binding.btnOpenEvents.setOnClickListener(v -> {
+            // THIS IS THE CORRECTED LINE:
+            NavHostFragment.findNavController(this)
+                    .navigate(ViewUsersScreenDirections.actionToAllImagesFragment(loggedInUserName));
+        });
     }
+
+
 
     @Override
     public void onDestroyView() {

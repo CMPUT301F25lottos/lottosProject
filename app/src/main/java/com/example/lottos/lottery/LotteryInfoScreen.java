@@ -58,13 +58,11 @@ public class LotteryInfoScreen extends Fragment {
     }
 
     private void setupNavButtons() {
-        // --- THIS IS THE CORRECTED LOGIC FOR THIS SPECIFIC SCREEN ---
 
-        // Back button takes user to the previous screen
+
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this).navigateUp());
 
-        // Profile and Notification buttons work as expected
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToProfileScreen(loggedInUserName)));
@@ -73,28 +71,25 @@ public class LotteryInfoScreen extends Fragment {
                 NavHostFragment.findNavController(this)
                         .navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToNotificationScreen(loggedInUserName)));
 
-        // **SPECIFIC LOGIC 1: Lottery button is disabled since we are on this screen**
 
 
-        // **SPECIFIC LOGIC 2: Handle Admin vs. Regular User icons and navigation**
         if (isAdmin) {
-            // "Event History" button becomes "View Users" button
             binding.btnEventHistory.setImageResource(R.drawable.outline_article_person_24);
             binding.btnEventHistory.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
                             .navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToViewUsersScreen(loggedInUserName))
             );
-            // "Open Events" plus button has an admin-specific action (placeholder)
+
             binding.btnOpenEvents.setOnClickListener(v ->
                     Toast.makeText(getContext(), "Admin action placeholder.", Toast.LENGTH_SHORT).show());
         } else {
-            // For regular users, it remains "Event History"
+
             binding.btnEventHistory.setImageResource(R.drawable.ic_history);
             binding.btnEventHistory.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
                             .navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToEventHistoryScreen(loggedInUserName))
             );
-            // "Open Events" plus button leads to the organizer screen
+
             binding.btnOpenEvents.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
                             .navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToOrganizerEventsScreen(loggedInUserName))
