@@ -133,7 +133,7 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
     @Override
     public void onNotificationClick(NotificationAdapter.NotificationItem item) {
         if (!isAdded()) return;
-        Toast.makeText(getContext(), "Notification from: " + item.sender, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getContext(), "Notification from: " + item.sender, Toast.LENGTH_SHORT).show();
     }
 
     @Override
