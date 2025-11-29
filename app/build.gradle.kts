@@ -53,7 +53,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation("com.google.firebase:firebase-firestore")
     implementation(libs.ext.junit)
-    implementation(libs.firebase.storage)
+    implementation("com.google.firebase:firebase-storage")
 
 
 

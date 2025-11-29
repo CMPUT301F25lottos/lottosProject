@@ -26,7 +26,7 @@ public class UserStatusUpdater {
     private final CollectionReference notificationsRef = db.collection("notification");
 
     public interface UpdateListener {
-        void onUpdateSuccess(int updatedCount);      // number of users affected
+        void onUpdateSuccess(int updatedCount);
         void onUpdateFailure(String errorMessage);
     }
 
@@ -45,7 +45,7 @@ public class UserStatusUpdater {
         Log.d(TAG, "sweepExpiredSelectedUsers CALLED at " + now.toDate());
 
         eventsRef
-                .whereLessThan("startTime", now)  // event already started
+                .whereLessThan("startTime", now)
                 .get()
                 .addOnSuccessListener((QuerySnapshot querySnapshot) -> {
                     Log.d(TAG, "Expired events found: " + querySnapshot.size());
@@ -65,7 +65,7 @@ public class UserStatusUpdater {
                         if (eventName == null) eventName = "this event";
                         String organizer = doc.getString("organizer");
 
-                        // selectedList(map) → users(array of string)
+
                         Map<String, Object> selectedList =
                                 (Map<String, Object>) doc.get("selectedList");
                         if (selectedList == null) continue;
@@ -79,21 +79,21 @@ public class UserStatusUpdater {
                         Log.d(TAG, "Event " + doc.getId() +
                                 " has " + selectedUsers.size() + " selected users to move.");
 
-                        // 1) Add all selected users to cancelledList.users
+
                         batch.update(
                                 eventDocRef,
                                 "cancelledList.users",
                                 FieldValue.arrayUnion(selectedUsers.toArray(new String[0]))
                         );
 
-                        // 2) Clear selectedList.users (set to empty array)
+
                         batch.update(
                                 eventDocRef,
                                 "selectedList.users",
                                 new ArrayList<String>()  // []
                         );
 
-                        // 3) Create notification for each user
+
                         for (String userId : selectedUsers) {
                             DocumentReference notifRef = notificationsRef.document();
                             Map<String, Object> notifData = new HashMap<>();

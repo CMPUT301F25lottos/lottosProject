@@ -64,7 +64,7 @@ public class HomeScreen extends Fragment {
         userUpdater = new UserStatusUpdater();
         manager = new EntrantEventManager();
 
-        // 1) Update event statuses (open/closed/etc.)
+
         eventUpdater.updateEventStatuses(new EventStatusUpdater.UpdateListener() {
             @Override
             public void onUpdateSuccess(int updatedCount) {
@@ -79,7 +79,7 @@ public class HomeScreen extends Fragment {
                 Toast.makeText(getContext(),
                         "Status update failed: " + errorMessage,
                         Toast.LENGTH_SHORT).show();
-                // Still try to sweep + load
+
                 runSelectionSweepThenLoadEvents();
             }
         });
@@ -198,13 +198,13 @@ public class HomeScreen extends Fragment {
                         .actionHomeScreenToEventDetailsScreen(userName, eventId));
     }
 
-    // In HomeScreen.java, replace your existing setupNavButtons() with this one.
-    // In HomeScreen.java, replace your existing setupNavButtons() with this one.
+
     private void setupNavButtons() {
-        // --- Buttons that are the same for everyone ---
+
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
                         .navigate(HomeScreenDirections.actionHomeScreenToProfileScreen(userName)));
+
 
         binding.btnInfo.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
@@ -214,36 +214,39 @@ public class HomeScreen extends Fragment {
                 NavHostFragment.findNavController(HomeScreen.this)
                         .navigate(HomeScreenDirections.actionHomeScreenToNotificationScreen(userName)));
 
-        // --- DYNAMIC BUTTONS: Use the class-level 'isAdmin' variable ---
-        // The 'isAdmin' variable was already correctly set in onViewCreated.
+
         if (isAdmin) {
-            // ADMIN IS LOGGED IN
-            // 1. btnEventHistory becomes "View Users"
-            binding.btnEventHistory.setImageResource(com.example.lottos.R.drawable.outline_article_person_24);
+
+            binding.btnEventHistory.setImageResource(R.drawable.outline_article_person_24);
             binding.btnEventHistory.setOnClickListener(v ->
                     NavHostFragment.findNavController(HomeScreen.this)
                             .navigate(HomeScreenDirections.actionHomeScreenToViewUsersScreen(userName))
             );
 
-            // 2. btnOpenEvents becomes "View Images" (Not Implemented)
-            binding.btnOpenEvents.setOnClickListener(v -> {
-                Toast.makeText(getContext(), "Admin: View All Images (Not Implemented)", Toast.LENGTH_SHORT).show();
-            });
+            binding.btnOpenEvents.setImageResource(R.drawable.outline_add_photo_alternate_24);
+            binding.btnOpenEvents.setOnClickListener(v ->
+
+                    NavHostFragment.findNavController(HomeScreen.this)
+                            .navigate(HomeScreenDirections.actionToAllImagesFragment(userName))
+            );
 
         } else {
-            // REGULAR USER IS LOGGED IN
-            // 1. btnEventHistory navigates to the user's event history
-            binding.btnEventHistory.setImageResource(com.example.lottos.R.drawable.ic_history);
+
+            binding.btnEventHistory.setImageResource(R.drawable.ic_history);
             binding.btnEventHistory.setOnClickListener(v ->
                     NavHostFragment.findNavController(HomeScreen.this)
                             .navigate(HomeScreenDirections.actionHomeScreenToEventHistoryScreen(userName)));
 
-            // 2. btnOpenEvents navigates to the organizer event screen
+
+            binding.btnOpenEvents.setImageResource(R.drawable.ic_event);
             binding.btnOpenEvents.setOnClickListener(v ->
                     NavHostFragment.findNavController(HomeScreen.this)
                             .navigate(HomeScreenDirections.actionHomeScreenToOrganizerEventsScreen(userName)));
         }
     }
+
+
+
 
 
 

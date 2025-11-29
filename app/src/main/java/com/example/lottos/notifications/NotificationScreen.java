@@ -44,16 +44,14 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
 
-        // Try to get username from arguments first (the intended way)
         if (getArguments() != null) {
             userName = NotificationScreenArgs.fromBundle(getArguments()).getUserName();
         }
-        // If arguments fail, fall back to SharedPreferences (the robust way)
+
         if (userName == null) {
             userName = sharedPreferences.getString("userName", null);
         }
 
-        // If both fail, it's a critical error.
         if (userName == null) {
             Toast.makeText(getContext(), "Credentials not found. Please log in.", Toast.LENGTH_LONG).show();
             NavHostFragment.findNavController(this).popBackStack(R.id.WelcomeScreen, false);
@@ -75,7 +73,6 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         }
     }
 
-    // ... (All other methods like setupRecyclerView, loadNotifications, etc., are correct and remain unchanged) ...
 
     private void setupRecyclerView() {
         adapter = new NotificationAdapter(notificationItems, this);
@@ -152,9 +149,10 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         });
     }
 
-    // In C:/Users/Dua/Desktop/CMPUT301LOTTOS/lottosProject/app/src/main/java/com/example/lottos/notifications/NotificationScreen.java
 
-    private void setupNavButtons() {// Navigation calls that ALWAYS pass the currently active userName
+
+    private void setupNavButtons() {
+        // --- Navigation that is the same for all users ---
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(NotificationScreenDirections.actionNotificationScreenToHomeScreen(userName)));
@@ -168,28 +166,40 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
                         .navigate(NotificationScreenDirections.actionNotificationScreenToSendNotificationScreen(userName)));
 
         if (isAdmin) {
+            // --- ADMIN MODE ---
+            // 1. "Event History" icon becomes "View Users".
             binding.btnEventHistory.setImageResource(R.drawable.outline_article_person_24);
             binding.btnEventHistory.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
                             .navigate(NotificationScreenDirections.actionNotificationScreenToViewUsersScreen(userName))
             );
+
+            binding.btnOpenEvents.setImageResource(R.drawable.outline_add_photo_alternate_24);
             binding.btnOpenEvents.setOnClickListener(v ->
-                    Toast.makeText(getContext(), "Admin: View All Images", Toast.LENGTH_SHORT).show());
+
+                    NavHostFragment.findNavController(this)
+                            .navigate(NotificationScreenDirections.actionToAllImagesFragment(userName))
+            );
+
         } else {
+
             binding.btnEventHistory.setImageResource(R.drawable.ic_history);
+            binding.btnEventHistory.setOnClickListener(v ->
+                    NavHostFragment.findNavController(this)
+                            .navigate(NotificationScreenDirections.actionNotificationScreenToEventHistoryScreen(userName))
+            );
 
-            // SYNTAX FIX: Added the missing '{' and ';'
-            binding.btnEventHistory.setOnClickListener(v -> {
-                NavHostFragment.findNavController(this)
-                        .navigate(NotificationScreenDirections.actionNotificationScreenToEventHistoryScreen(userName));
-            });
 
+            binding.btnOpenEvents.setImageResource(R.drawable.ic_event);
             binding.btnOpenEvents.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
                             .navigate(NotificationScreenDirections.actionNotificationScreenToOrganizerEventsScreen(userName))
             );
         }
     }
+
+
+
 
 
     @Override

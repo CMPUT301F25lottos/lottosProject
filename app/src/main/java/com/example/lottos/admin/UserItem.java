@@ -1,6 +1,5 @@
 package com.example.lottos.admin;
 
-// This is a simple data holder class for our adapter.
 public class UserItem {
     private final String userId;
     private final String userName;
@@ -14,7 +13,7 @@ public class UserItem {
         this.eventsCreated = 0;
     }
 
-    // --- Getters ---
+
     public String getUserId() { return userId; }
     public String getUserName() { return userName; }
     public int getEventsParticipated() { return eventsParticipated; }
