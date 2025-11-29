@@ -59,7 +59,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         TextView tvEventName;
         TextView tvMessage;
         ImageButton btnDelete;
-        // This is the only extra field needed now
+
         TextView tvSender;
 
         VH(@NonNull View itemView) {
@@ -68,9 +68,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             tvEventName = itemView.findViewById(R.id.TVEvent);
             tvMessage = itemView.findViewById(R.id.TVMessage);
             btnDelete = itemView.findViewById(R.id.btnDelete);
-            // We only find the sender TextView
+
             tvSender = itemView.findViewById(R.id.tvSender);
-            // The line causing the error is now removed.
+
         }
     }
 

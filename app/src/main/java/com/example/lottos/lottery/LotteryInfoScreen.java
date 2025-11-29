@@ -1,67 +1,105 @@
+// FINAL, CORRECTED and SPECIFIC file for LotteryInfoScreen.java
+
 package com.example.lottos.lottery;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.lottos.R;
 import com.example.lottos.databinding.FragmentLotteryInfoScreenBinding;
+import com.example.lottos.lottery.LotteryInfoScreenArgs;
+import com.example.lottos.lottery.LotteryInfoScreenDirections;
 
-/**
- * Fragment that displays information about how the lottery system works.
- * Role: Shows explanatory text to help users
- * understand event lotteries and provides navigation back to the home screen
- * while preserving the current user.
- */
 public class LotteryInfoScreen extends Fragment {
+
     private FragmentLotteryInfoScreenBinding binding;
+    private String loggedInUserName;
+    private boolean isAdmin = false;
 
     @Override
-    public View onCreateView(
-            @NonNull LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState
-    ) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // This binds to the layout file: fragment_lottery_info_screen.xml
         binding = FragmentLotteryInfoScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Use this fragment's own args, no dependency on EntrantWaitListsScreen
-        String userName = LotteryInfoScreenArgs
-                .fromBundle(requireArguments())
-                .getUserName();
+        // --- ROBUST CREDENTIAL AND STATE HANDLING ---
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        isAdmin = sharedPreferences.getBoolean("isAdmin", false);
 
+        if (getArguments() != null) {
+            loggedInUserName = LotteryInfoScreenArgs.fromBundle(getArguments()).getUserName();
+        }
+        if (loggedInUserName == null) {
+            loggedInUserName = sharedPreferences.getString("userName", null);
+        }
+
+        if (loggedInUserName == null) {
+            Toast.makeText(getContext(), "Critical: Session lost. Please log in again.", Toast.LENGTH_LONG).show();
+            NavHostFragment.findNavController(this).popBackStack(R.id.WelcomeScreen, false);
+            return;
+        }
+
+        setupNavButtons();
+    }
+
+    private void setupNavButtons() {
+        // --- THIS IS THE CORRECTED LOGIC FOR THIS SPECIFIC SCREEN ---
+
+        // Back button takes user to the previous screen
         binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(LotteryInfoScreen.this)
-                        .navigate(LotteryInfoScreenDirections
-                                .actionLotteryInfoScreenToHomeScreen(userName)));
+                NavHostFragment.findNavController(this).navigateUp());
+
+        // Profile and Notification buttons work as expected
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToProfileScreen(loggedInUserName)));
 
         binding.btnNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(LotteryInfoScreen.this)
-                        .navigate(LotteryInfoScreenDirections
-                                .actionLotteryInfoScreenToNotificationScreen(userName)));
+                NavHostFragment.findNavController(this)
+                        .navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToNotificationScreen(loggedInUserName)));
 
-        binding.btnProfile.setOnClickListener(v ->
-                NavHostFragment.findNavController(LotteryInfoScreen.this)
-                        .navigate(LotteryInfoScreenDirections
-                                .actionLotteryInfoScreenToProfileScreen(userName)));
+        // **SPECIFIC LOGIC 1: Lottery button is disabled since we are on this screen**
 
-        binding.btnEventHistory.setOnClickListener(v ->
-                NavHostFragment.findNavController(LotteryInfoScreen.this)
-                        .navigate(LotteryInfoScreenDirections
-                                .actionLotteryInfoScreenToEventHistoryScreen(userName)));
 
-        binding.btnOpenEvents.setOnClickListener(v ->
-                NavHostFragment.findNavController(LotteryInfoScreen.this)
-                        .navigate(LotteryInfoScreenDirections
-                                .actionLotteryInfoScreenToOrganizerEventsScreen(userName)));
+        // **SPECIFIC LOGIC 2: Handle Admin vs. Regular User icons and navigation**
+        if (isAdmin) {
+            // "Event History" button becomes "View Users" button
+            binding.btnEventHistory.setImageResource(R.drawable.outline_article_person_24);
+            binding.btnEventHistory.setOnClickListener(v ->
+                    NavHostFragment.findNavController(this)
+                            .navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToViewUsersScreen(loggedInUserName))
+            );
+            // "Open Events" plus button has an admin-specific action (placeholder)
+            binding.btnOpenEvents.setOnClickListener(v ->
+                    Toast.makeText(getContext(), "Admin action placeholder.", Toast.LENGTH_SHORT).show());
+        } else {
+            // For regular users, it remains "Event History"
+            binding.btnEventHistory.setImageResource(R.drawable.ic_history);
+            binding.btnEventHistory.setOnClickListener(v ->
+                    NavHostFragment.findNavController(this)
+                            .navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToEventHistoryScreen(loggedInUserName))
+            );
+            // "Open Events" plus button leads to the organizer screen
+            binding.btnOpenEvents.setOnClickListener(v ->
+                    NavHostFragment.findNavController(this)
+                            .navigate(LotteryInfoScreenDirections.actionLotteryInfoScreenToOrganizerEventsScreen(loggedInUserName))
+            );
+        }
     }
 
     @Override

@@ -15,6 +15,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.lottos.EventListAdapter;
+import com.example.lottos.R;
 import com.example.lottos.databinding.FragmentHomeScreenBinding;
 import com.example.lottos.events.EntrantEventManager;
 
@@ -55,6 +56,7 @@ public class HomeScreen extends Fragment {
         SharedPreferences sharedPreferences = requireActivity()
                 .getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
+
 
         Log.d("HomeScreen", "onViewCreated: userName=" + userName + ", isAdmin=" + isAdmin);
 
@@ -196,32 +198,56 @@ public class HomeScreen extends Fragment {
                         .actionHomeScreenToEventDetailsScreen(userName, eventId));
     }
 
+    // In HomeScreen.java, replace your existing setupNavButtons() with this one.
+    // In HomeScreen.java, replace your existing setupNavButtons() with this one.
     private void setupNavButtons() {
+        // --- Buttons that are the same for everyone ---
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections
-                                .actionHomeScreenToProfileScreen(userName)));
+                        .navigate(HomeScreenDirections.actionHomeScreenToProfileScreen(userName)));
 
         binding.btnInfo.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections
-                                .actionHomeScreenToLotteryInfoScreen(userName)));
-
-        binding.btnOpenEvents.setOnClickListener(v ->
-                NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections
-                                .actionHomeScreenToOrganizerEventsScreen(userName)));
-
-        binding.btnEventHistory.setOnClickListener(v ->
-                NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections
-                                .actionHomeScreenToEventHistoryScreen(userName)));
+                        .navigate(HomeScreenDirections.actionHomeScreenToLotteryInfoScreen(userName)));
 
         binding.btnNotification.setOnClickListener(v ->
                 NavHostFragment.findNavController(HomeScreen.this)
-                        .navigate(HomeScreenDirections
-                                .actionHomeScreenToNotificationScreen(userName)));
+                        .navigate(HomeScreenDirections.actionHomeScreenToNotificationScreen(userName)));
+
+        // --- DYNAMIC BUTTONS: Use the class-level 'isAdmin' variable ---
+        // The 'isAdmin' variable was already correctly set in onViewCreated.
+        if (isAdmin) {
+            // ADMIN IS LOGGED IN
+            // 1. btnEventHistory becomes "View Users"
+            binding.btnEventHistory.setImageResource(com.example.lottos.R.drawable.outline_article_person_24);
+            binding.btnEventHistory.setOnClickListener(v ->
+                    NavHostFragment.findNavController(HomeScreen.this)
+                            .navigate(HomeScreenDirections.actionHomeScreenToViewUsersScreen(userName))
+            );
+
+            // 2. btnOpenEvents becomes "View Images" (Not Implemented)
+            binding.btnOpenEvents.setOnClickListener(v -> {
+                Toast.makeText(getContext(), "Admin: View All Images (Not Implemented)", Toast.LENGTH_SHORT).show();
+            });
+
+        } else {
+            // REGULAR USER IS LOGGED IN
+            // 1. btnEventHistory navigates to the user's event history
+            binding.btnEventHistory.setImageResource(com.example.lottos.R.drawable.ic_history);
+            binding.btnEventHistory.setOnClickListener(v ->
+                    NavHostFragment.findNavController(HomeScreen.this)
+                            .navigate(HomeScreenDirections.actionHomeScreenToEventHistoryScreen(userName)));
+
+            // 2. btnOpenEvents navigates to the organizer event screen
+            binding.btnOpenEvents.setOnClickListener(v ->
+                    NavHostFragment.findNavController(HomeScreen.this)
+                            .navigate(HomeScreenDirections.actionHomeScreenToOrganizerEventsScreen(userName)));
+        }
     }
+
+
+
+
 
     @Override
     public void onDestroyView() {
