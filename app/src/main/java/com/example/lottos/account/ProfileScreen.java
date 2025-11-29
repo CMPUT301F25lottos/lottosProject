@@ -3,7 +3,7 @@ package com.example.lottos.account;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;
+import android.os.Bundle;import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,15 +11,12 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+
+import com.example.lottos.R;
 import com.example.lottos.databinding.FragmentProfileScreenBinding;
-
-
-/**
- * UI-only fragment for displaying and managing user profile.
- * Logic is fully delegated to UserProfileManager.
- */
 
 public class ProfileScreen extends Fragment {
     private FragmentProfileScreenBinding binding;
@@ -34,28 +31,43 @@ public class ProfileScreen extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentProfileScreenBinding.inflate(inflater, container, false);
-
+        // Initialize SharedPreferences here
         sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
-
         return binding.getRoot();
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        userName = ProfileScreenArgs.fromBundle(getArguments()).getUserName();
-        profileManager = new UserProfileManager();
+        // --- ROBUST USERNAME LOADING (Original Strategy) ---
+        // First, try to get userName from navigation arguments as intended.
+        if (getArguments() != null) {
+            userName = ProfileScreenArgs.fromBundle(getArguments()).getUserName();
+        }
+        // If it's still null (which happens on credential loss), get it from SharedPreferences as a fallback.
+        if (userName == null) {
+            userName = sharedPreferences.getString("userName", null);
+        }
+        // If it's *still* null, then there is a real problem.
+        if (userName == null) {
+            Toast.makeText(getContext(), "FATAL: Credentials lost. Please log in again.", Toast.LENGTH_LONG).show();
+            NavHostFragment.findNavController(this).navigate(ProfileScreenDirections.actionProfileScreenToWelcomeScreen());
+            return;
+        }
+        // --- END OF FIX ---
 
+        profileManager = new UserProfileManager();
+        loadUserRole();
         loadProfile();
         setupNavButtons();
-
-        loadUserRole();
         updateAdminButtonUI();
 
         binding.btnSwitchToAdmin.setOnClickListener(v -> {
-            if (isAdmin) {switchToUserMode();
-            } else {showAdminPasswordDialog();
+            if (isAdmin) {
+                switchToUserMode();
+            } else {
+                showAdminPasswordDialog();
             }
         });
     }
@@ -77,20 +89,24 @@ public class ProfileScreen extends Fragment {
     }
 
     private void checkAdminPassword(String password) {
-        if (password.equals(ADMIN_PASSWORD)) {switchToAdminMode();
-        } else {Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
+        if (password.equals(ADMIN_PASSWORD)) {
+            switchToAdminMode();
+        } else {
+            Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void loadUserRole() {
+        // We also check the SharedPreferences here to be certain
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
     }
 
     private void updateAdminButtonUI() {
-        if (isAdmin) {binding.btnSwitchToAdmin.setText("Switch to User");
-        } else {binding.btnSwitchToAdmin.setText("Switch to Admin");
+        if (isAdmin) {
+            binding.btnSwitchToAdmin.setText("Switch to User");
+        } else {
+            binding.btnSwitchToAdmin.setText("Switch to Admin");
         }
-        // TODO: Add logic here to change the visibility of other menu/nav buttons based on 'isAdmin'
     }
 
     private void switchToAdminMode() {
@@ -101,6 +117,7 @@ public class ProfileScreen extends Fragment {
 
         Toast.makeText(getContext(), "Admin mode activated!", Toast.LENGTH_SHORT).show();
         updateAdminButtonUI();
+        setupNavButtons(); // Refresh nav buttons for admin mode
     }
 
     private void switchToUserMode() {
@@ -111,25 +128,24 @@ public class ProfileScreen extends Fragment {
 
         Toast.makeText(getContext(), "Switched to user mode.", Toast.LENGTH_SHORT).show();
         updateAdminButtonUI();
+        setupNavButtons(); // Refresh nav buttons for user mode
     }
 
     private void loadProfile() {
+        if (userName == null) return;
         profileManager.loadUserProfile(userName, new UserProfileManager.ProfileLoadListener() {
             @Override
             public void onProfileLoaded(String name, String email, String phone) {
+                if (binding == null) return; // Check if view is still valid
                 binding.tvUsername.setText("Username: " + userName);
                 binding.tvName.setText("Name: " + name);
                 binding.tvEmail.setText("Email: " + email);
                 binding.tvPhoneNumber.setText("Phone Number: " + phone);
             }
-
             @Override
-            public void onProfileNotFound() {Toast.makeText(getContext(), "User not found.", Toast.LENGTH_SHORT).show();
-            }
-
+            public void onProfileNotFound() { Toast.makeText(getContext(), "User not found.", Toast.LENGTH_SHORT).show(); }
             @Override
-            public void onError(String errorMessage) {Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
-            }
+            public void onError(String errorMessage) { Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show(); }
         });
     }
 
@@ -143,51 +159,64 @@ public class ProfileScreen extends Fragment {
     }
 
     private void deleteUser() {
+        if (userName == null) return;
         profileManager.deleteUser(userName, new UserProfileManager.DeleteListener() {
             @Override
-            public void onDeleteSuccess() {Toast.makeText(getContext(), "Profile deleted successfully.", Toast.LENGTH_SHORT).show();
+            public void onDeleteSuccess() {
+                Toast.makeText(getContext(), "Profile deleted successfully.", Toast.LENGTH_SHORT).show();
                 NavHostFragment.findNavController(ProfileScreen.this)
                         .navigate(ProfileScreenDirections.actionProfileScreenToWelcomeScreen());
             }
-
             @Override
-            public void onDeleteFailure(String errorMessage) {
-                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
-            }
+            public void onDeleteFailure(String errorMessage) { Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show(); }
         });
     }
 
     private void setupNavButtons() {
+        // --- REVERTED TO ORIGINAL STRATEGY: ALWAYS PASS 'userName' ---
         binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(ProfileScreen.this)
+                NavHostFragment.findNavController(this)
                         .navigate(ProfileScreenDirections.actionProfileScreenToHomeScreen(userName))
         );
 
         binding.btnEdit.setOnClickListener(v ->
-                NavHostFragment.findNavController(ProfileScreen.this)
+                NavHostFragment.findNavController(this)
                         .navigate(ProfileScreenDirections.actionProfileScreenToEditProfileScreen(userName))
         );
 
         binding.btnLogout.setOnClickListener(v ->
-                NavHostFragment.findNavController(ProfileScreen.this)
+                NavHostFragment.findNavController(this)
                         .navigate(ProfileScreenDirections.actionProfileScreenToWelcomeScreen()));
 
         binding.btnNotification.setOnClickListener(v ->
-                NavHostFragment.findNavController(ProfileScreen.this)
+                NavHostFragment.findNavController(this)
                         .navigate(ProfileScreenDirections.actionProfileScreenToNotificationScreen(userName))
         );
 
-        binding.btnOpenEvents.setOnClickListener(v ->
-                NavHostFragment.findNavController(ProfileScreen.this)
-                        .navigate(ProfileScreenDirections.actionProfileScreenToOrganizerEventsScreen(userName))
-        );
-
-        binding.btnEventHistory.setOnClickListener(v ->
-                NavHostFragment.findNavController(ProfileScreen.this)
-                        .navigate(ProfileScreenDirections.actionProfileScreenToEventHistoryScreen(userName))
-        );
-
         binding.btnDelete.setOnClickListener(v -> showDeleteConfirmation());
+
+        // --- DYNAMIC BUTTONS ---
+        if (isAdmin) {
+            // ADMIN MODE
+            binding.btnEventHistory.setImageResource(R.drawable.outline_article_person_24);
+            binding.btnEventHistory.setOnClickListener(v ->
+                    NavHostFragment.findNavController(this)
+                            .navigate(ProfileScreenDirections.actionProfileScreenToViewUsersScreen(userName)));
+
+            binding.btnOpenEvents.setOnClickListener(v ->
+                    Toast.makeText(getContext(), "Admin: View All Images (Not Implemented)", Toast.LENGTH_SHORT).show());
+        } else {
+            // USER MODE
+            binding.btnEventHistory.setImageResource(R.drawable.ic_history);
+            binding.btnEventHistory.setOnClickListener(v ->
+                    NavHostFragment.findNavController(this)
+                            .navigate(ProfileScreenDirections.actionProfileScreenToEventHistoryScreen(userName))
+            );
+            binding.btnOpenEvents.setOnClickListener(v ->
+                    NavHostFragment.findNavController(this)
+                            .navigate(ProfileScreenDirections.actionProfileScreenToOrganizerEventsScreen(userName))
+            );
+        }
     }
 
     @Override

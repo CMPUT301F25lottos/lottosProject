@@ -5,179 +5,121 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/WelcomeScreen">
 
+    <!-- ===================================================================== -->
+    <!-- Screens that DO NOT need userName -->
+    <!-- ===================================================================== -->
     <fragment
         android:id="@+id/WelcomeScreen"
         android:name="com.example.lottos.WelcomeScreen"
         android:label="WelcomeScreen"
         tools:layout="@layout/fragment_welcome_screen">
-
         <action
             android:id="@+id/action_WelcomeScreen_to_LoginScreen"
-            app:destination="@+id/LoginScreen"/>
-
+            app:destination="@+id/LoginScreen" />
         <action
             android:id="@+id/action_WelcomeScreen_to_SignupScreen"
-            app:destination="@+id/SignupScreen"/>
-
+            app:destination="@+id/SignupScreen" />
+        <action
+            android:id="@+id/action_WelcomeScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen" />
     </fragment>
-
     <fragment
         android:id="@+id/LoginScreen"
         android:name="com.example.lottos.auth.LoginScreen"
         android:label="LoginScreen"
         tools:layout="@layout/fragment_login_screen">
-
         <action
             android:id="@+id/action_LoginScreen_to_WelcomeScreen"
-            app:destination="@+id/WelcomeScreen"/>
-
+            app:destination="@+id/WelcomeScreen" />
         <action
             android:id="@+id/action_LoginScreen_to_HomeScreen"
-            app:destination="@id/HomeScreen"/>
-
+            app:destination="@id/HomeScreen" />
     </fragment>
-
     <fragment
         android:id="@+id/SignupScreen"
         android:name="com.example.lottos.auth.SignupScreen"
         android:label="SignupScreen"
         tools:layout="@layout/fragment_signup_screen">
-
         <action
             android:id="@+id/action_SignupScreen_to_WelcomeScreen"
-            app:destination="@+id/WelcomeScreen"/>
-
+            app:destination="@+id/WelcomeScreen" />
         <action
             android:id="@+id/action_SignupScreen_to_HomeScreen"
-            app:destination="@+id/HomeScreen"/>
-
+            app:destination="@+id/HomeScreen" />
     </fragment>
 
+    <!-- ===================================================================== -->
+    <!-- Screens that REQUIRE userName -->
+    <!-- ===================================================================== -->
     <fragment
         android:id="@+id/HomeScreen"
         android:name="com.example.lottos.home.HomeScreen"
         android:label="HomeScreen"
         tools:layout="@layout/fragment_home_screen">
-
         <argument
             android:name="userName"
-            app:argType="java.lang.String"/>
-
+            app:argType="string" />
         <action
             android:id="@+id/action_HomeScreen_to_WelcomeScreen"
-            app:destination="@+id/WelcomeScreen"/>
-
-        <action
-            android:id="@+id/action_HomeScreen_to_EntrantEventsScreen"
-            app:destination="@+id/EntrantEventsScreen"/>
-
-        <action
-            android:id="@+id/action_HomeScreen_to_EntrantWaitListsScreen"
-            app:destination="@+id/EntrantWaitListsScreen"/>
-
+            app:destination="@+id/WelcomeScreen" />
         <action
             android:id="@+id/action_HomeScreen_to_ProfileScreen"
-            app:destination="@+id/ProfileScreen"/>
-
+            app:destination="@+id/ProfileScreen" />
         <action
             android:id="@+id/action_HomeScreen_to_OrganizerEventsScreen"
-            app:destination="@+id/OrganizerEventsScreen"/>
-
-        <action
-            android:id="@+id/action_HomeScreen_to_LotteryInfoScreen"
-            app:destination="@+id/LotteryInfoScreen"/>
-
+            app:destination="@+id/OrganizerEventsScreen" />
         <action
             android:id="@+id/action_HomeScreen_to_EventHistoryScreen"
-            app:destination="@+id/EventHistoryScreen"/>
-
+            app:destination="@+id/EventHistoryScreen" />
         <action
             android:id="@+id/action_HomeScreen_to_NotificationScreen"
-            app:destination="@+id/NotificationScreen"/>
-
+            app:destination="@+id/NotificationScreen" />
         <action
             android:id="@+id/action_HomeScreen_to_EventDetailsScreen"
-            app:destination="@+id/EventDetailsScreen"/>
-
-
+            app:destination="@+id/EventDetailsScreen" />
+        <action
+            android:id="@+id/action_HomeScreen_to_viewUsersScreen"
+            app:destination="@id/viewUsersScreen" />
+        <action
+            android:id="@+id/action_HomeScreen_to_LotteryInfoScreen"
+            app:destination="@id/LotteryInfoScreen" />
     </fragment>
-
-    <fragment
-        android:id="@+id/EventDetailsScreen"
-        android:name="com.example.lottos.events.EventDetailsScreen"
-        android:label="EventDetailsScreen"
-        tools:layout="@layout/fragment_event_details_screen">
-
-        <argument
-            android:name="userName"
-            app:argType="java.lang.String"/>
-
-        <argument
-            android:name="eventName"
-            app:argType="java.lang.String"/>
-
-        <action
-            android:id="@+id/action_EventDetailsScreen_to_EntrantEventsScreen"
-            app:destination="@+id/EntrantEventsScreen"/>
-
-        <action
-        android:id="@+id/action_EventDetailsScreen_to_HomeScreen"
-        app:destination="@+id/HomeScreen"/>
-
-        <action
-            android:id="@+id/action_EventDetailsScreen_to_ProfileScreen"
-            app:destination="@+id/ProfileScreen" />
-
-        <action
-            android:id="@+id/action_EventDetailsScreen_to_NotificationScreen"
-            app:destination="@+id/NotificationScreen"/>
-
-        <action
-            android:id="@+id/action_EventDetailsScreen_to_OrganizerEventsScreen"
-            app:destination="@+id/OrganizerEventsScreen"/>
-
-        <action
-            android:id="@+id/action_EventDetailsScreen_to_EventHistoryScreen"
-            app:destination="@+id/EventHistoryScreen"/>
-
-    </fragment>
-
 
     <fragment
         android:id="@+id/ProfileScreen"
         android:name="com.example.lottos.account.ProfileScreen"
         android:label="ProfileScreen"
         tools:layout="@layout/fragment_profile_screen">
-
         <argument
             android:name="userName"
-            app:argType="java.lang.String"/>
-
+            app:argType="string" />
         <action
             android:id="@+id/action_ProfileScreen_to_HomeScreen"
-            app:destination="@+id/HomeScreen"/>
-
+            app:destination="@+id/HomeScreen" />
         <action
             android:id="@+id/action_ProfileScreen_to_EditProfileScreen"
-            app:destination="@+id/EditProfileScreen"/>
-
+            app:destination="@+id/EditProfileScreen" />
         <action
             android:id="@+id/action_ProfileScreen_to_WelcomeScreen"
-            app:destination="@id/WelcomeScreen"/>
-
+            app:destination="@id/WelcomeScreen" />
         <action
             android:id="@+id/action_ProfileScreen_to_NotificationScreen"
-            app:destination="@+id/NotificationScreen"/>
-
+            app:destination="@+id/NotificationScreen" />
         <action
             android:id="@+id/action_ProfileScreen_to_OrganizerEventsScreen"
-            app:destination="@+id/OrganizerEventsScreen"/>
-
+            app:destination="@+id/OrganizerEventsScreen" />
         <action
             android:id="@+id/action_ProfileScreen_to_EventHistoryScreen"
-            app:destination="@+id/EventHistoryScreen"/>
-
-
+            app:destination="@+id/EventHistoryScreen" />
+        <action
+            android:id="@+id/action_ProfileScreen_to_viewUsersScreen"
+            app:destination="@id/viewUsersScreen" />
+        <action
+            android:id="@+id/action_ProfileScreen_to_LotteryInfoScreen"
+            app:destination="@id/LotteryInfoScreen" />
+        <action
+            android:id="@+id/action_ProfileScreen_to_EventDetailsScreen"
+            app:destination="@id/EventDetailsScreen" />
     </fragment>
 
     <fragment
@@ -185,33 +127,101 @@
         android:name="com.example.lottos.account.EditProfileScreen"
         android:label="EditProfileScreen"
         tools:layout="@layout/fragment_edit_profile_screen">
-
         <argument
             android:name="userName"
-            app:argType="java.lang.String"/>
-
+            app:argType="string" />
         <action
             android:id="@+id/action_EditProfileScreen_to_ProfileScreen"
-            app:destination="@+id/ProfileScreen"/>
-
-        <action
-            android:id="@+id/action_EditProfileScreen_to_NotificationScreen"
-            app:destination="@+id/NotificationScreen"/>
-
+            app:destination="@+id/ProfileScreen" />
         <action
             android:id="@+id/action_EditProfileScreen_to_HomeScreen"
-            app:destination="@id/HomeScreen"/>
-
+            app:destination="@id/HomeScreen" />
+        <action
+            android:id="@+id/action_EditProfileScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen" />
         <action
             android:id="@+id/action_EditProfileScreen_to_OrganizerEventsScreen"
-            app:destination="@id/OrganizerEventsScreen"/>
-
+            app:destination="@+id/OrganizerEventsScreen" />
         <action
             android:id="@+id/action_EditProfileScreen_to_EventHistoryScreen"
-            app:destination="@id/EventHistoryScreen"/>
+            app:destination="@+id/EventHistoryScreen" />
+        <action
+            android:id="@+id/action_EditProfileScreen_to_viewUsersScreen"
+            app:destination="@id/viewUsersScreen" />
+        <action
+            android:id="@+id/action_EditProfileScreen_to_LotteryInfoScreen"
+            app:destination="@id/LotteryInfoScreen" />
+        <action
+            android:id="@+id/action_EditProfileScreen_to_EventDetailsScreen"
+            app:destination="@id/EventDetailsScreen" />
+    </fragment>
 
+    <fragment
+        android:id="@+id/NotificationScreen"
+        android:name="com.example.lottos.notifications.NotificationScreen"
+        android:label="NotificationScreen"
+        tools:layout="@layout/fragment_notification_screen">
+        <argument
+            android:name="userName"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_NotificationScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen" />
+        <action
+            android:id="@+id/action_NotificationScreen_to_SendNotificationScreen"
+            app:destination="@+id/SendNotificationScreen" />
+        <action
+            android:id="@+id/action_NotificationScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen" />
+        <action
+            android:id="@+id/action_NotificationScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen" />
+        <action
+            android:id="@+id/action_NotificationScreen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen" />
+        <action
+            android:id="@+id/action_NotificationScreen_to_viewUsersScreen"
+            app:destination="@id/viewUsersScreen" />
+        <action
+            android:id="@+id/action_NotificationScreen_to_LotteryInfoScreen"
+            app:destination="@id/LotteryInfoScreen" />
+        <action
+            android:id="@+id/action_NotificationScreen_to_EventDetailsScreen"
+            app:destination="@id/EventDetailsScreen" />
+    </fragment>
 
-
+    <fragment
+        android:id="@+id/EventDetailsScreen"
+        android:name="com.example.lottos.events.EventDetailsScreen"
+        android:label="EventDetailsScreen"
+        tools:layout="@layout/fragment_event_details_screen">
+        <argument
+            android:name="userName"
+            app:argType="string" />
+        <argument
+            android:name="eventName"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen" />
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen" />
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen" />
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen" />
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen" />
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_viewUsersScreen"
+            app:destination="@id/viewUsersScreen" />
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_LotteryInfoScreen"
+            app:destination="@id/LotteryInfoScreen" />
     </fragment>
 
     <fragment
@@ -219,143 +229,42 @@
         android:name="com.example.lottos.organizer.OrganizerEventsScreen"
         android:label="OrganizerEventsScreen"
         tools:layout="@layout/fragment_organizer_events_screen">
-
         <argument
             android:name="userName"
-            app:argType="java.lang.String"/>
-
-
+            app:argType="string" />
         <action
             android:id="@+id/action_OrganizerEventsScreen_to_HomeScreen"
-            app:destination="@+id/HomeScreen"/>
-
+            app:destination="@+id/HomeScreen" />
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen" />
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen" />
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen" />
         <action
             android:id="@+id/action_OrganizerEventsScreen_to_EventDetailsScreen"
-            app:destination="@+id/EventDetailsScreen"/>
-
+            app:destination="@id/EventDetailsScreen" />
         <action
-            android:id="@+id/action_OrganizerEventsScreen_to_CreateEventScreen"
-            app:destination="@+id/CreateEventScreen"/>
+            android:id="@+id/action_OrganizerEventsScreen_to_viewUsersScreen"
+            app:destination="@id/viewUsersScreen" />
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_LotteryInfoScreen"
+            app:destination="@id/LotteryInfoScreen" />
 
         <action
             android:id="@+id/action_OrganizerEventsScreen_to_EditEventScreen"
-            app:destination="@+id/EditEventScreen"/>
+            app:destination="@id/EditEventScreen" />
+        <action
+            android:id="@+id/action_OrganizerEventsScreen_to_OrganizerEventDetailsScreen"
+            app:destination="@id/OrganizerEventDetailsScreen" />
 
         <action
-            android:id="@+id/action_OrganizerEventsScreen_to_NotificationScreen"
-            app:destination="@+id/NotificationScreen"/>
+            android:id="@+id/action_OrganizerEventsScreen_to_CreateEventScreen"
+            app:destination="@id/CreateEventScreen" />
 
-        <action
-            android:id="@+id/action_OrganizerEventsScreen_to_ProfileScreen"
-            app:destination="@+id/ProfileScreen"/>
-
-        <action
-            android:id="@+id/action_OrganizerEventsScreen_to_EventHistoryScreen"
-            app:destination="@+id/EventHistoryScreen"/>
-
-        <action
-            android:id="@+id/action_organizerEventsScreen_to_organizerEventDetailsScreen"
-            app:destination="@id/organizerEventDetailsScreen"/>
-
-
-
-    </fragment>
-
-    <fragment
-        android:id="@+id/EditEventScreen"
-        android:name="com.example.lottos.organizer.EditEventScreen"
-        android:label="Edit Event">
-        <argument
-            android:name="userName"
-            app:argType="string" />
-        <argument
-            android:name="eventId"
-            app:argType="string" />
-
-        <action
-            android:id="@+id/action_EditEventScreen_to_OrganizerEventsScreen"
-            app:destination="@+id/OrganizerEventsScreen"/>
-
-        <action
-            android:id="@+id/action_EditEventScreen_to_ProfileScreen"
-            app:destination="@+id/ProfileScreen"/>
-
-        <action
-            android:id="@+id/action_EditEventScreen_to_HomeScreen"
-            app:destination="@+id/HomeScreen"/>
-
-        <action
-            android:id="@+id/action_EditEventScreen_to_NotificationScreen"
-            app:destination="@+id/NotificationScreen"/>
-
-        <action
-            android:id="@+id/action_EditEventScreen_to_EventHistoryScreen"
-            app:destination="@+id/EventHistoryScreen"/>
-
-    </fragment>
-
-    <fragment
-        android:id="@+id/CreateEventScreen"
-        android:name="com.example.lottos.organizer.CreateEventScreen"
-        android:label="CreateEventScreen"
-        tools:layout="@layout/fragment_create_event_screen">
-
-        <argument
-            android:name="userName"
-            app:argType="java.lang.String"/>
-
-        <action
-            android:id="@+id/action_CreateEventScreen_to_OrganizerEventsScreen"
-            app:destination="@+id/OrganizerEventsScreen"/>
-
-        <action
-            android:id="@+id/action_CreateEventScreen_to_ProfileScreen"
-            app:destination="@+id/ProfileScreen"/>
-
-        <action
-            android:id="@+id/action_CreateEventScreen_to_HomeScreen"
-            app:destination="@+id/HomeScreen"/>
-
-        <action
-            android:id="@+id/action_CreateEventScreen_to_NotificationScreen"
-            app:destination="@+id/NotificationScreen"/>
-
-        <action
-            android:id="@+id/action_CreateEventScreen_to_EventHistoryScreen"
-            app:destination="@+id/EventHistoryScreen"/>
-
-
-    </fragment>
-
-    <fragment
-        android:id="@+id/LotteryInfoScreen"
-        android:name="com.example.lottos.lottery.LotteryInfoScreen"
-        android:label="LotteryInfoScreen"
-        tools:layout="@layout/fragment_lottery_info_screen">
-
-        <argument
-            android:name="userName"
-            app:argType="java.lang.String"/>
-
-        <action
-            android:id="@+id/action_LotteryInfoScreen_to_HomeScreen"
-            app:destination="@+id/HomeScreen"/>
-
-        <action
-            android:id="@+id/action_LotteryInfoScreen_to_NotificationScreen"
-            app:destination="@+id/NotificationScreen"/>
-
-        <action
-            android:id="@+id/action_LotteryInfoScreen_to_profileScreen"
-            app:destination="@+id/ProfileScreen"/>
-
-        <action
-            android:id="@+id/action_LotteryInfoScreen_to_EventHistoryScreen"
-            app:destination="@+id/EventHistoryScreen"/>
-
-        <action
-            android:id="@+id/action_LotteryInfoScreen_to_OrganizerEventsScreen"
-            app:destination="@+id/OrganizerEventsScreen"/>
 
 
     </fragment>
@@ -365,63 +274,31 @@
         android:name="com.example.lottos.events.EventHistoryScreen"
         android:label="EventHistoryScreen"
         tools:layout="@layout/fragment_event_history_screen">
-
         <argument
             android:name="userName"
-            app:argType="java.lang.String"/>
-
+            app:argType="string" />
         <action
-            android:id="@+id/action_event_history_screen_to_HomeScreen"
-            app:destination="@+id/HomeScreen"/>
-
+            android:id="@+id/action_EventHistoryScreen_to_HomeScreen"
+            app:destination="@+id/HomeScreen" />
         <action
-            android:id="@+id/action_event_history_screen_to_ProfileScreen"
-            app:destination="@+id/ProfileScreen"/>
-
+            android:id="@+id/action_EventHistoryScreen_to_ProfileScreen"
+            app:destination="@+id/ProfileScreen" />
         <action
-            android:id="@+id/action_event_history_screen_to_NotificationScreen"
-            app:destination="@+id/NotificationScreen"/>
-
+            android:id="@+id/action_EventHistoryScreen_to_NotificationScreen"
+            app:destination="@+id/NotificationScreen" />
         <action
-            android:id="@+id/action_event_history_screen_to_OrganizerEventsScreen"
-            app:destination="@+id/OrganizerEventsScreen"/>
-
+            android:id="@+id/action_EventHistoryScreen_to_OrganizerEventsScreen"
+            app:destination="@+id/OrganizerEventsScreen" />
+        <!-- THIS IS THE FIX FOR YOUR ERROR -->
         <action
-            android:id="@+id/action_event_history_screen_to_EventDetailsScreen"
-            app:destination="@+id/EventDetailsScreen"/>
-
-    </fragment>
-
-    <fragment
-        android:id="@+id/NotificationScreen"
-        android:name="com.example.lottos.notifications.NotificationScreen"
-        android:label="NotificationScreen"
-        tools:layout="@layout/fragment_notification_screen">
-
-        <argument
-            android:name="userName"
-            app:argType="java.lang.String"/>
-
+            android:id="@+id/action_EventHistoryScreen_to_EventDetailsScreen"
+            app:destination="@id/EventDetailsScreen" />
         <action
-            android:id="@+id/action_NotificationScreen_to_HomeScreen"
-            app:destination="@+id/HomeScreen"/>
-
+            android:id="@+id/action_EventHistoryScreen_to_viewUsersScreen"
+            app:destination="@id/viewUsersScreen" />
         <action
-            android:id="@+id/action_NotificationScreen_to_SendNotificationScreen"
-            app:destination="@+id/SendNotificationScreen"/>
-
-        <action
-            android:id="@+id/action_NotificationScreen_to_profileScreen"
-            app:destination="@+id/ProfileScreen"/>
-
-        <action
-            android:id="@+id/action_NotificationScreen_to_EventHistoryScreen"
-            app:destination="@+id/EventHistoryScreen"/>
-
-        <action
-            android:id="@+id/action_NotificationScreen_to_OrganizerEventsScreen"
-            app:destination="@+id/OrganizerEventsScreen"/>
-
+            android:id="@+id/action_EventHistoryScreen_to_LotteryInfoScreen"
+            app:destination="@id/LotteryInfoScreen" />
     </fragment>
 
     <fragment
@@ -429,75 +306,188 @@
         android:name="com.example.lottos.notifications.SendNotificationScreen"
         android:label="SendNotificationScreen"
         tools:layout="@layout/fragment_send_notification_screen">
-
         <argument
             android:name="userName"
-            app:argType="java.lang.String"/>
+            app:argType="string" />
+        <action
+            android:id="@+id/action_SendNotificationScreen_to_NotificationScreen"
+            app:destination="@id/NotificationScreen" />
+        <action
+            android:id="@+id/action_SendNotificationScreen_to_HomeScreen"
+            app:destination="@id/HomeScreen" />
+        <action
+            android:id="@+id/action_SendNotificationScreen_to_ProfileScreen"
+            app:destination="@id/ProfileScreen" />
 
         <action
-            android:id="@+id/action_send_notification_screen_to_NotificationScreen"
-            app:destination="@+id/NotificationScreen"/>
+            android:id="@+id/action_SendNotificationScreen_to_EventHistoryScreen"
+            app:destination="@id/EventHistoryScreen" />
 
         <action
-            android:id="@+id/action_send_notification_screen_to_HomeScreen"
-            app:destination="@+id/HomeScreen"/>
-
-        <action
-            android:id="@+id/action_send_notification_screen_to_ProfileScreen"
-            app:destination="@+id/ProfileScreen"/>
-
-        <action
-            android:id="@+id/action_send_notification_screen_to_EventHistoryScreen"
-            app:destination="@+id/EventHistoryScreen"/>
-
-        <action
-            android:id="@+id/action_send_notification_screen_to_OrganizerEventsScreen"
-            app:destination="@+id/OrganizerEventsScreen"/>
-
-
+            android:id="@+id/action_SendNotificationScreen_to_OrganizerEventsScreen"
+            app:destination="@id/OrganizerEventsScreen" />
     </fragment>
 
     <fragment
-        android:id="@+id/organizerEventDetailsScreen"
+        android:id="@+id/LotteryInfoScreen"
+        android:name="com.example.lottos.lottery.LotteryInfoScreen"
+        android:label=""
+        tools:layout="@layout/fragment_lottery_info_screen">
+        <argument
+            android:name="userName"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_LotteryInfoScreen_to_HomeScreen"
+            app:destination="@id/HomeScreen" />
+        <action
+            android:id="@+id/action_LotteryInfoScreen_to_ProfileScreen"
+            app:destination="@id/ProfileScreen" />
+        <action
+            android:id="@+id/action_LotteryInfoScreen_to_NotificationScreen"
+            app:destination="@id/NotificationScreen" />
+        <action
+            android:id="@+id/action_LotteryInfoScreen_to_EventHistoryScreen"
+            app:destination="@id/EventHistoryScreen" />
+        <action
+            android:id="@+id/action_LotteryInfoScreen_to_OrganizerEventsScreen"
+            app:destination="@id/OrganizerEventsScreen" />
+        <action
+            android:id="@+id/action_LotteryInfoScreen_to_viewUsersScreen"
+            app:destination="@id/viewUsersScreen" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/viewUsersScreen"
+        android:name="com.example.lottos.admin.ViewUsersScreen"
+        android:label=""
+        tools:layout="@layout/fragment_view_users">
+        <argument
+            android:name="userName"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_viewUsersScreen_to_HomeScreen"
+            app:destination="@id/HomeScreen" />
+        <action
+            android:id="@+id/action_viewUsersScreen_to_ProfileScreen"
+            app:destination="@id/ProfileScreen" />
+        <action
+            android:id="@+id/action_viewUsersScreen_to_NotificationScreen"
+            app:destination="@id/NotificationScreen" />
+        <action
+            android:id="@+id/action_viewUsersScreen_to_LotteryInfoScreen"
+            app:destination="@id/LotteryInfoScreen" />
+        <action
+            android:id="@+id/action_viewUsersScreen_to_EventHistoryScreen"
+            app:destination="@id/EventHistoryScreen" />
+        <action
+            android:id="@+id/action_viewUsersScreen_to_OrganizerEventsScreen"
+            app:destination="@id/OrganizerEventsScreen" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/CreateEventScreen"
+        android:name="com.example.lottos.organizer.CreateEventScreen"
+        android:label="CreateEventScreen"
+        tools:layout="@layout/fragment_create_event_screen">
+
+        <!-- ADD THIS MISSING ARGUMENT -->
+        <argument
+            android:name="userName"
+            app:argType="string" />
+
+        <!-- Actions for navigation -->
+        <action
+            android:id="@+id/action_CreateEventScreen_to_OrganizerEventsScreen"
+            app:destination="@id/OrganizerEventsScreen" />
+        <action
+            android:id="@+id/action_CreateEventScreen_to_HomeScreen"
+            app:destination="@id/HomeScreen" />
+        <action
+            android:id="@+id/action_CreateEventScreen_to_ProfileScreen"
+            app:destination="@id/ProfileScreen" />
+        <action
+            android:id="@+id/action_CreateEventScreen_to_NotificationScreen"
+            app:destination="@id/NotificationScreen" />
+        <action
+            android:id="@+id/action_CreateEventScreen_to_EventHistoryScreen"
+            app:destination="@id/EventHistoryScreen" />
+    </fragment>
+
+
+
+    <fragment
+        android:id="@+id/EditEventScreen"
+        android:name="com.example.lottos.organizer.EditEventScreen"
+        android:label="EditEventScreen"
+        tools:layout="@layout/fragment_edit_event_screen">
+
+        <argument
+            android:name="userName"
+            app:argType="string" />
+        <argument
+            android:name="eventId"
+            app:argType="string" />
+
+
+        <action
+            android:id="@+id/action_EditEventScreen_to_OrganizerEventsScreen"
+            app:destination="@id/OrganizerEventsScreen" />
+        <action
+            android:id="@+id/action_EditEventScreen_to_ProfileScreen"
+            app:destination="@id/ProfileScreen" />
+        <action
+            android:id="@+id/action_EditEventScreen_to_NotificationScreen"
+            app:destination="@id/NotificationScreen" />
+        <action
+            android:id="@+id/action_EditEventScreen_to_EventHistoryScreen"
+            app:destination="@id/EventHistoryScreen" />
+    </fragment>
+
+    <!-- In res/navigation/nav_graph.xml -->
+
+    <!-- ... other fragments ... -->
+
+    <fragment
+        android:id="@+id/OrganizerEventDetailsScreen"
         android:name="com.example.lottos.organizer.OrganizerEventDetailsScreen"
         android:label="OrganizerEventDetailsScreen"
         tools:layout="@layout/fragment_organizer_event_details_screen">
 
+        <!-- ADD THESE TWO MISSING ARGUMENTS -->
         <argument
             android:name="userName"
-            app:argType="java.lang.String" />
-
+            app:argType="string" />
         <argument
             android:name="eventId"
-            app:argType="java.lang.String" />
+            app:argType="string" />
 
+        <!-- Actions for navigating away from this screen -->
+        <action
+            android:id="@+id/action_OrganizerEventDetailsScreen_to_HomeScreen"
+            app:destination="@id/HomeScreen" />
         <action
             android:id="@+id/action_OrganizerEventDetailsScreen_to_OrganizerEventsScreen"
             app:destination="@id/OrganizerEventsScreen" />
-
         <action
-            android:id="@+id/actionOrganizerEventDetailsScreenToNotificationScreen"
-            app:destination="@+id/NotificationScreen"/>
-
+            android:id="@+id/action_OrganizerEventDetailsScreen_to_NotificationScreen"
+            app:destination="@id/NotificationScreen" />
         <action
-            android:id="@+id/actionOrganizerEventDetailsScreenToHomeScreen"
-            app:destination="@+id/HomeScreen"/>
-
+            android:id="@+id/action_OrganizerEventDetailsScreen_to_EventHistoryScreen"
+            app:destination="@id/EventHistoryScreen" />
         <action
-            android:id="@+id/actionOrganizerEventDetailsScreenToProfileScreen"
-            app:destination="@+id/ProfileScreen"/>
-
-        <action
-            android:id="@+id/actionOrganizerEventDetailsScreenToEventHistoryScreen"
-            app:destination="@+id/EventHistoryScreen"/>
-
-        <action
-            android:id="@+id/action_send_notification_screen_to_OrganizerEventsScreen"
-            app:destination="@+id/OrganizerEventsScreen"/>
+            android:id="@+id/action_OrganizerEventDetailsScreen_to_ProfileScreen"
+            app:destination="@id/ProfileScreen" />
 
     </fragment>
+
+
+
+
+
 
 
 
 
 </navigation>
+
