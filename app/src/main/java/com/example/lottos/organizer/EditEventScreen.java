@@ -20,8 +20,10 @@ import com.example.lottos.ImageLoader;
 import com.example.lottos.databinding.FragmentEditEventScreenBinding;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+
 
 
 import java.time.LocalDateTime;
@@ -39,6 +41,7 @@ public class EditEventScreen extends Fragment {
     private String eventId;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private Uri selectedPosterUri = null;
+    private FirebaseFirestore db;
 
     private final ActivityResultLauncher<String> pickImageLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri != null) {
@@ -62,7 +65,8 @@ public class EditEventScreen extends Fragment {
         userName = args.getUserName();
         eventId = args.getEventId();
 
-        repo = new EventRepository();
+        db = FirebaseFirestore.getInstance();
+        repo = new EventRepository(db);
         manager = new OrganizerEventManager();
 
         loadEventInfo();

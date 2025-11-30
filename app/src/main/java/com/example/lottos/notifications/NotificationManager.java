@@ -13,10 +13,18 @@ import java.util.List;
 import java.util.Locale;
 
 public class NotificationManager {
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final FirebaseFirestore db;
     private static final String TAG = "NotificationManager";
 
-    // This is your existing NotificationModel, which we keep.
+    public NotificationManager() {
+        this.db = FirebaseFirestore.getInstance();
+    }
+
+    public NotificationManager(FirebaseFirestore db) {
+        this.db = db;
+    }
+
+
     public static class NotificationModel {
         public final String id;
         public final String content;
@@ -45,10 +53,6 @@ public class NotificationManager {
         void onSuccess(List<NotificationModel> list);
         void onError(Exception e);
     }
-
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // + NEW METHOD FOR THE ADMIN SCREEN
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     /**
      * Fetches ALL notifications from the collection, ordered by time.
      * This is the new method for the admin user.

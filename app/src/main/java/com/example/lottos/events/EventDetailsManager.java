@@ -20,8 +20,18 @@ import java.util.function.Consumer;
  * - Run lottery
  */
 public class EventDetailsManager {
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final EventRepository repo = new EventRepository();
+    private final FirebaseFirestore db;
+    private final EventRepository repo;
+
+    public EventDetailsManager() {
+        this.db = FirebaseFirestore.getInstance();
+        this.repo = new EventRepository(this.db);
+    }
+
+    public EventDetailsManager(FirebaseFirestore db, EventRepository repo) {
+        this.db = db;
+        this.repo = repo;
+    }
 
     public interface LoadCallback {
         void onSuccess(Map<String, Object> eventData, List<String> waitlistUsers, Map<String, Object> userData);

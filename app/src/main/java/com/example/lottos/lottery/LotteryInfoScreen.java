@@ -28,7 +28,7 @@ public class LotteryInfoScreen extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // This binds to the layout file: fragment_lottery_info_screen.xml
+
         binding = FragmentLotteryInfoScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -37,7 +37,7 @@ public class LotteryInfoScreen extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // --- ROBUST CREDENTIAL AND STATE HANDLING ---
+
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
 

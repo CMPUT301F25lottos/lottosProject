@@ -34,7 +34,7 @@ public class ViewUsersScreen extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentViewUsersBinding.inflate(inflater, container, false);
-        db = FirebaseFirestore.getInstance(); // Initialize Firestore directly
+        db = FirebaseFirestore.getInstance();
         return binding.getRoot();
     }
 
@@ -68,7 +68,6 @@ public class ViewUsersScreen extends Fragment {
         binding.rvUsers.setAdapter(userAdapter);
     }
 
-    // THIS IS THE METHOD FROM EVENTDETAILSSCREEN, ADAPTED FOR USERS
     private void showDeleteConfirmationDialog(UserAdapter.UserItem userItem) {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete User")
@@ -81,8 +80,6 @@ public class ViewUsersScreen extends Fragment {
                 .show();
     }
 
-    // THIS METHOD PERFORMS THE DELETION DIRECTLY, LIKE IN EVENTDETAILSSCREEN
-    // IT DOES NOT USE USERSANAGER
     private void deleteUserFromFirestore(UserAdapter.UserItem userItem) {
         db.collection("users").document(userItem.userId)
                 .delete()
@@ -152,12 +149,11 @@ public class ViewUsersScreen extends Fragment {
         binding.btnEventHistory.setImageResource(R.drawable.outline_article_person_24); // Stays as "View Users" icon
         binding.btnEventHistory.setOnClickListener(v -> {
             Toast.makeText(getContext(), "User list reloaded.", Toast.LENGTH_SHORT).show();
-            fetchUsernames(); // The action is to reload the user list
+            fetchUsernames();
         });
 
         binding.btnOpenEvents.setImageResource(R.drawable.outline_add_photo_alternate_24);
         binding.btnOpenEvents.setOnClickListener(v -> {
-            // THIS IS THE CORRECTED LINE:
             NavHostFragment.findNavController(this)
                     .navigate(ViewUsersScreenDirections.actionToAllImagesFragment(loggedInUserName));
         });

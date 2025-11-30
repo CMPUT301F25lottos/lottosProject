@@ -38,6 +38,10 @@ public class UserAuthenticator {
         this.usersRef = db.collection("users");
     }
 
+    public UserAuthenticator(FirebaseFirestore db) {
+        this.usersRef = db.collection("users");
+    }
+
     public void checkUserLogin(@NonNull String userName, @NonNull String password, @NonNull AuthListener listener) {
         DocumentReference userDoc = usersRef.document(userName);
         userDoc.get().addOnCompleteListener(task -> {

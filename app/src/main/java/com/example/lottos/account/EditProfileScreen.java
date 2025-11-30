@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.databinding.FragmentEditProfileScreenBinding;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 /**
  * This fragment is the main fragment that lets a user view and update their profile information.
@@ -34,24 +35,17 @@ public class EditProfileScreen extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // REVERTED: Get userName from navigation arguments, as originally intended.
         if (getArguments() != null) {
             userName = EditProfileScreenArgs.fromBundle(getArguments()).getUserName();
         }
-
-        // Safety check in case arguments are null
         if (userName == null) {
             Toast.makeText(getContext(), "User not found, returning to profile.", Toast.LENGTH_LONG).show();
-            // Navigate back safely without a userName if possible, or to a login screen.
-            // For now, we will try to navigate back to the profile screen without arguments, which may fail.
-            // A better solution would be navigating to the login screen.
             NavHostFragment.findNavController(this).popBackStack();
             return;
         }
 
-        profileManager = new UserProfileManager();
-        loadUserInfo();
+        FirebaseFirestore firestoreInstance = FirebaseFirestore.getInstance();
+        UserProfileManager manager = new UserProfileManager(firestoreInstance);        loadUserInfo();
         setupNavButtons();
     }
 
@@ -59,7 +53,7 @@ public class EditProfileScreen extends Fragment {
         profileManager.loadUserProfile(userName, new UserProfileManager.ProfileLoadListener() {
             @Override
             public void onProfileLoaded(String name, String email, String phone) {
-                if (binding == null) return; // Ensure view is still valid
+                if (binding == null) return;
                 binding.etName.setText(name);
                 binding.etEmail.setText(email);
                 binding.etPhone.setText(phone);

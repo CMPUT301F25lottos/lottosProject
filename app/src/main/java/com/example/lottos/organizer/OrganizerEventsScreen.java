@@ -16,6 +16,7 @@ import com.example.lottos.EventRepository;
 import com.example.lottos.databinding.FragmentOrganizerEventsScreenBinding;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore; // 1. Add this import
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,8 @@ public class OrganizerEventsScreen extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         userName = OrganizerEventsScreenArgs.fromBundle(getArguments()).getUserName();
-        repo = new EventRepository();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        repo = new EventRepository(db);
 
         RecyclerView rv = binding.rvOrganizerEvents;
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));

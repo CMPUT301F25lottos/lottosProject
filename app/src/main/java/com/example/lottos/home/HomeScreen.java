@@ -141,8 +141,7 @@ public class HomeScreen extends Fragment {
     private void loadEventsForUser() {
         manager.loadOpenEventsForUser(userName, new EntrantEventManager.EventsCallback() {
             @Override
-            public void onSuccess(List<EntrantEventManager.EventModel> list,
-                                  List<String> waitlisted) {
+            public void onSuccess(List<EntrantEventManager.EventModel> list, List<String> waitlisted) {
                 updateAdapterWithEvents(list);
             }
 
@@ -156,8 +155,7 @@ public class HomeScreen extends Fragment {
     private void loadAllEventsForAdmin() {
         manager.loadAllOpenEvents(new EntrantEventManager.EventsCallback() {
             @Override
-            public void onSuccess(List<EntrantEventManager.EventModel> list,
-                                  List<String> waitlisted) {
+            public void onSuccess(List<EntrantEventManager.EventModel> list, List<String> waitlisted) {
                 updateAdapterWithEvents(list);
             }
 
@@ -167,7 +165,6 @@ public class HomeScreen extends Fragment {
             }
         });
     }
-
     private void updateAdapterWithEvents(List<EntrantEventManager.EventModel> eventModelList) {
         eventItems.clear();
 
@@ -176,15 +173,7 @@ public class HomeScreen extends Fragment {
             String posterUrl = evt.posterUrl;
 
             eventItems.add(
-                    new EventListAdapter.EventItem(
-                            evt.id,
-                            evt.name,
-                            evt.isOpen,
-                            evt.location,
-                            evt.startTime,
-                            evt.endTime,
-                            posterUrl
-                    )
+                    new EventListAdapter.EventItem(evt.id, evt.name, evt.isOpen, evt.location, evt.startTime, evt.endTime, posterUrl)
             );
         }
 
@@ -244,14 +233,6 @@ public class HomeScreen extends Fragment {
                             .navigate(HomeScreenDirections.actionHomeScreenToOrganizerEventsScreen(userName)));
         }
     }
-
-
-
-
-
-
-
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();

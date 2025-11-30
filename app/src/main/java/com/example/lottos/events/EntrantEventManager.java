@@ -25,8 +25,17 @@ import com.google.firebase.firestore.Query;
  * No UI code here.
  */
 public class EntrantEventManager {
-    private final EventRepository repo = new EventRepository();
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final EventRepository repo;
+    private final FirebaseFirestore db;
+    public EntrantEventManager(EventRepository repo, FirebaseFirestore db) {
+        this.repo = repo;
+        this.db = db;
+    }
+
+    public EntrantEventManager() {
+        this.db = FirebaseFirestore.getInstance();
+        this.repo = new EventRepository(this.db);
+    }
 
     public static class EventModel {
         public String id;
