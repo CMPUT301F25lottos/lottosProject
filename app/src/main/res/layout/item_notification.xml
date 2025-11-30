@@ -44,6 +44,15 @@ android:focusable="true">
             app:layout_constraintStart_toEndOf="@id/tvDate"
             app:layout_constraintTop_toTopOf="parent">
 
+            <TextView
+                android:id="@+id/tvNotificationSenderInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="12sp"
+                android:textStyle="italic"
+                tools:text="From: Admin" />
+
             <!-- This new RelativeLayout helps position the sender name to the top-right -->
             <RelativeLayout
                 android:layout_width="match_parent"
