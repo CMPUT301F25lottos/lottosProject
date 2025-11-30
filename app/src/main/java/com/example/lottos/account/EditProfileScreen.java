@@ -45,7 +45,7 @@ public class EditProfileScreen extends Fragment {
         }
 
         FirebaseFirestore firestoreInstance = FirebaseFirestore.getInstance();
-        UserProfileManager manager = new UserProfileManager(firestoreInstance);        loadUserInfo();
+        profileManager = new UserProfileManager(firestoreInstance);
         setupNavButtons();
     }
 
