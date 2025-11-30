@@ -14,31 +14,37 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Handles organizer-side logic for creating/updating/deleting events
- * and linking them to the organizer user document.
- */
 public class OrganizerEventManager {
 
     private final EventRepository repo;
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
-    public OrganizerEventManager(EventRepository repo, FirebaseFirestore db, FirebaseAuth auth) {
+
+    /**
+     * ✅ No-arg constructor – used by your Fragments:
+     *   new OrganizerEventManager()
+     */
+    public OrganizerEventManager() {
+        // If your EventRepository needs a db, wire it here
+        FirebaseFirestore dbInstance = FirebaseFirestore.getInstance();
+        this.db = dbInstance;
+        this.repo = new EventRepository(dbInstance); // or new EventRepository() if that exists
+        this.auth = FirebaseAuth.getInstance();
+    }
+
+    /**
+     * ✅ Full constructor – for dependency injection / testing
+     */
+    public OrganizerEventManager(EventRepository repo,
+                                 FirebaseFirestore db,
+                                 FirebaseAuth auth) {
         this.repo = repo;
         this.db = db;
         this.auth = auth;
     }
 
-    /**
-     * Creates a new event document + links it to the organizer.
-     *
-     * @param event            Event entity
-     * @param registerEndTime  Registration end time
-     * @param waitListCapacity Waitlist capacity (nullable)
-     * @param filterWords      List of filter keywords (stored as array in Firestore)
-     * @param onSuccess        Callback on success
-     * @param onError          Callback on error
-     */
+    // ---------------- core methods below ----------------
+
     public void createEvent(
             Event event,
             LocalDateTime registerEndTime,
@@ -67,10 +73,8 @@ public class OrganizerEventManager {
             map.put("waitListCapacity", waitListCapacity);
         }
 
-        if (filterWords != null && !filterWords.isEmpty()) {
-            // Stored as Firestore array
-            map.put("filterWords", filterWords);
-        }
+        // ✅ store filterWords array in Firestore
+        map.put("filterWords", filterWords);
 
         map.put("startTime", toTimestamp(event.getStartTime()));
         map.put("endTime", toTimestamp(event.getEndTime()));
@@ -88,7 +92,6 @@ public class OrganizerEventManager {
         repo.createEvent(eventId, map, () -> {
             db.collection("users")
                     .document(event.getOrganizer())
-                    // Use the injected db instance
                     .update("organizedEvents.events", FieldValue.arrayUnion(eventId))
                     .addOnSuccessListener(v -> onSuccess.run())
                     .addOnFailureListener(onError::run);
@@ -110,9 +113,7 @@ public class OrganizerEventManager {
     }
 
     private Timestamp toTimestamp(LocalDateTime ldt) {
-        if (ldt == null) {
-            return null;
-        }
+        if (ldt == null) return null;
         java.util.Date date =
                 java.util.Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
         return new Timestamp(date);
