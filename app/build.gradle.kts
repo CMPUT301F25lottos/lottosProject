@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
+    implementation(libs.firebase.installations)
 
     // CORE LIBS - No changes needed.
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")

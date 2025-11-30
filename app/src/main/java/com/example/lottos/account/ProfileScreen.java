@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.R;
+import com.example.lottos.auth.UserSession;
 import com.example.lottos.databinding.FragmentProfileScreenBinding;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -43,7 +44,6 @@ public class ProfileScreen extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
 
-        // Argument and SharedPreferences loading for robust userName retrieval
         if (getArguments() != null) {
             userName = ProfileScreenArgs.fromBundle(getArguments()).getUserName();
         }
@@ -57,9 +57,10 @@ public class ProfileScreen extends Fragment {
         }
 
         FirebaseFirestore firestoreInstance = FirebaseFirestore.getInstance();
-        UserProfileManager manager = new UserProfileManager(firestoreInstance);
+        profileManager = new UserProfileManager(firestoreInstance);
+
         loadUserRole();
-        loadProfile(); // Initial profile load
+        loadProfile();
         setupNavButtons();
         updateAdminButtonUI();
 
@@ -133,14 +134,10 @@ public class ProfileScreen extends Fragment {
     }
 
     private void loadProfile() {
-        // This method now correctly decides which view to show
         if (isAdmin) {
-            // If in admin mode, show the special admin view and stop.
             setAdminProfileView();
             return;
         }
-
-        // If not admin, proceed to load the regular user's profile.
         if (userName == null) return;
         profileManager.loadUserProfile(userName, new UserProfileManager.ProfileLoadListener() {
             @Override
@@ -171,7 +168,6 @@ public class ProfileScreen extends Fragment {
         binding.tvEmail.setText("Email: Admin");
         binding.tvPhoneNumber.setText("Phone Number: Admin");
 
-        // Hide buttons that don't apply to the admin view
         binding.btnEdit.setVisibility(View.GONE);
         binding.btnDelete.setVisibility(View.GONE);
     }
@@ -202,20 +198,31 @@ public class ProfileScreen extends Fragment {
 
     private void deleteUser() {
         if (userName == null) return;
+
         profileManager.deleteUser(userName, new UserProfileManager.DeleteListener() {
             @Override
             public void onDeleteSuccess() {
-                Toast.makeText(getContext(), "Profile deleted successfully.", Toast.LENGTH_SHORT).show();
+                UserSession.logout(requireContext());
+
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.remove("isAdmin");
+                editor.apply();
+
+                Toast.makeText(getContext(), "Account deleted successfully.", Toast.LENGTH_SHORT).show();
+
                 NavHostFragment.findNavController(ProfileScreen.this)
                         .navigate(ProfileScreenDirections.actionProfileScreenToWelcomeScreen());
             }
+
             @Override
-            public void onDeleteFailure(String errorMessage) { Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show(); }
+            public void onDeleteFailure(String errorMessage) {
+                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
+
     private void setupNavButtons() {
-        // --- Static Buttons that don't change based on role ---
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(ProfileScreenDirections.actionProfileScreenToHomeScreen(userName))
@@ -226,9 +233,7 @@ public class ProfileScreen extends Fragment {
                         .navigate(ProfileScreenDirections.actionProfileScreenToEditProfileScreen(userName))
         );
 
-        binding.btnLogout.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(ProfileScreenDirections.actionProfileScreenToWelcomeScreen()));
+
 
         binding.btnNotification.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
@@ -238,16 +243,12 @@ public class ProfileScreen extends Fragment {
         binding.btnDelete.setOnClickListener(v -> showDeleteConfirmation());
 
 
-        // --- DYNAMIC BUTTONS based on the 'isAdmin' flag ---
         if (isAdmin) {
-            // ADMIN MODE
-            // 1. "Event History" icon becomes "View Users"
             binding.btnEventHistory.setImageResource(R.drawable.outline_article_person_24);
             binding.btnEventHistory.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
                             .navigate(ProfileScreenDirections.actionProfileScreenToViewUsersScreen(userName)));
 
-            // 2. "Open Events" icon becomes "View Images"
             binding.btnOpenEvents.setImageResource(R.drawable.outline_add_photo_alternate_24);
             binding.btnOpenEvents.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
@@ -255,15 +256,12 @@ public class ProfileScreen extends Fragment {
 
             );
         } else {
-            // REGULAR USER MODE
-            // 1. "Event History" icon is the standard history icon
             binding.btnEventHistory.setImageResource(R.drawable.ic_history);
             binding.btnEventHistory.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
                             .navigate(ProfileScreenDirections.actionProfileScreenToEventHistoryScreen(userName))
             );
 
-            // 2. "Open Events" icon is the standard event icon
             binding.btnOpenEvents.setImageResource(R.drawable.ic_event);
             binding.btnOpenEvents.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)

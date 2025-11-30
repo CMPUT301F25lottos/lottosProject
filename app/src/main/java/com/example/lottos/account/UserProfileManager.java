@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull; // Import this
 
+import com.example.lottos.auth.UserAuthenticator;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -88,11 +89,11 @@ public class UserProfileManager {
     }
 
     public void deleteUser(String userName, DeleteListener listener) {
-        db.collection("users").document(userName).delete()
-                .addOnSuccessListener(aVoid -> listener.onDeleteSuccess())
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Delete failed", e);
-                    listener.onDeleteFailure("Failed to delete profile.");
-                });
+        UserAuthenticator auth = new UserAuthenticator(db);
+
+        auth.deleteUserAndDevice(userName,
+                () -> listener.onDeleteSuccess(),
+                () -> listener.onDeleteFailure("Failed to delete user and device link"));
     }
+
 }
