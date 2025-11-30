@@ -27,25 +27,28 @@
         android:id="@+id/rvReceivedNotification"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="16dp"
         android:clipToPadding="false"
-        tools:listitem="@layout/item_notification"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        android:padding="16dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@id/btnSendNotification"
+        app:layout_constraintEnd_toEndOf="parent"
+
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        tools:listitem="@layout/item_notification" />
 
     <Button
         android:id="@+id/btnSendNotification"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Send Notification"
-        android:gravity="center"
+        android:layout_marginBottom="8dp"
         android:backgroundTint="@color/navy"
-        android:layout_marginBottom="12dp"
+        android:gravity="center"
+        android:text="Send Notification"
+        app:layout_constraintTop_toBottomOf="@id/rvReceivedNotification"
         app:layout_constraintBottom_toTopOf="@id/navigationBar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <LinearLayout
         android:id="@+id/navigationBar"

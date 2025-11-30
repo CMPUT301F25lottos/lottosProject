@@ -64,7 +64,7 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
 
         if (isAdmin) {
             binding.tvTitle.setText("All Notifications");
-            binding.btnSendNotification.setVisibility(View.GONE);
+            binding.btnSendNotification.setVisibility(View.VISIBLE);
             loadAllNotificationsForAdmin();
         } else {
             binding.tvTitle.setText("My Notifications");
@@ -74,12 +74,17 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
     }
 
 
+
+
     private void setupRecyclerView() {
         adapter = new NotificationAdapter(notificationItems, this);
         adapter.setAdminView(isAdmin);
+        adapter.setCurrentUserName(userName); // ADD THIS LINE
         binding.rvReceivedNotification.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.rvReceivedNotification.setAdapter(adapter);
     }
+
+
 
     private void loadAllNotificationsForAdmin() {
         notificationManager.loadAllNotifications(new NotificationManager.NotificationCallback() {
@@ -133,21 +138,31 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
     @Override
     public void onNotificationClick(NotificationAdapter.NotificationItem item) {
         if (!isAdded()) return;
-        Toast.makeText(getContext(), "Notification from: " + item.sender, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getContext(), "Notification from: " + item.sender, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onDelete(NotificationAdapter.NotificationItem item) {
-        if (!isAdded()) return;
-        int position = notificationItems.indexOf(item);
-        if (position == -1) return;
+    public void onDelete(NotificationAdapter.NotificationItem item, int position) {
+        // This method now accepts the position directly from the adapter
+        if (!isAdded() || adapter == null) return;
+
+
+        if (position < 0 || position >= notificationItems.size()) {
+            return;
+        }
 
         notificationManager.deleteNotificationById(item.id, () -> {
             if (!isAdded()) return;
+
+
             notificationItems.remove(position);
             adapter.notifyItemRemoved(position);
+
+
+            adapter.notifyItemRangeChanged(position, notificationItems.size());
         });
     }
+
 
 
 

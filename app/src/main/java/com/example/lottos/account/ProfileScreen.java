@@ -3,7 +3,8 @@ package com.example.lottos.account;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;import android.util.Log;
+import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +43,7 @@ public class ProfileScreen extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
 
+        // Argument and SharedPreferences loading for robust userName retrieval
         if (getArguments() != null) {
             userName = ProfileScreenArgs.fromBundle(getArguments()).getUserName();
         }
@@ -57,7 +59,7 @@ public class ProfileScreen extends Fragment {
         FirebaseFirestore firestoreInstance = FirebaseFirestore.getInstance();
         UserProfileManager manager = new UserProfileManager(firestoreInstance);
         loadUserRole();
-        loadProfile();
+        loadProfile(); // Initial profile load
         setupNavButtons();
         updateAdminButtonUI();
 
@@ -95,7 +97,6 @@ public class ProfileScreen extends Fragment {
     }
 
     private void loadUserRole() {
-        // We also check the SharedPreferences here to be certain
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
     }
 
@@ -115,7 +116,8 @@ public class ProfileScreen extends Fragment {
 
         Toast.makeText(getContext(), "Admin mode activated!", Toast.LENGTH_SHORT).show();
         updateAdminButtonUI();
-        setupNavButtons(); // Refresh nav buttons for admin mode
+        setupNavButtons();
+        loadProfile(); // Refresh the profile view to show Admin details
     }
 
     private void switchToUserMode() {
@@ -126,25 +128,67 @@ public class ProfileScreen extends Fragment {
 
         Toast.makeText(getContext(), "Switched to user mode.", Toast.LENGTH_SHORT).show();
         updateAdminButtonUI();
-        setupNavButtons(); // Refresh nav buttons for user mode
+        setupNavButtons();
+        loadProfile(); // Refresh the profile view to show User details
     }
 
     private void loadProfile() {
+        // This method now correctly decides which view to show
+        if (isAdmin) {
+            // If in admin mode, show the special admin view and stop.
+            setAdminProfileView();
+            return;
+        }
+
+        // If not admin, proceed to load the regular user's profile.
         if (userName == null) return;
         profileManager.loadUserProfile(userName, new UserProfileManager.ProfileLoadListener() {
             @Override
             public void onProfileLoaded(String name, String email, String phone) {
-                if (binding == null) return; // Check if view is still valid
-                binding.tvUsername.setText("Username: " + userName);
-                binding.tvName.setText("Name: " + name);
-                binding.tvEmail.setText("Email: " + email);
-                binding.tvPhoneNumber.setText("Phone Number: " + phone);
+                if (binding == null) return;
+                setUserProfileView(name, email, phone);
             }
+
             @Override
-            public void onProfileNotFound() { Toast.makeText(getContext(), "User not found.", Toast.LENGTH_SHORT).show(); }
+            public void onProfileNotFound() {
+                Toast.makeText(getContext(), "User not found.", Toast.LENGTH_SHORT).show();
+            }
+
             @Override
-            public void onError(String errorMessage) { Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show(); }
+            public void onError(String errorMessage) {
+                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+            }
         });
+    }
+
+    /**
+     * Sets the UI to display "Admin" credentials and hides user-specific buttons.
+     */
+    private void setAdminProfileView() {
+        if (binding == null) return;
+        binding.tvUsername.setText("Mode: Admin");
+        binding.tvName.setText("Name: Admin");
+        binding.tvEmail.setText("Email: Admin");
+        binding.tvPhoneNumber.setText("Phone Number: Admin");
+
+        // Hide buttons that don't apply to the admin view
+        binding.btnEdit.setVisibility(View.GONE);
+        binding.btnDelete.setVisibility(View.GONE);
+    }
+
+    /**
+     * Sets the UI to display the regular user's profile information.
+     */
+    private void setUserProfileView(String name, String email, String phone) {
+        if (binding == null) return;
+        binding.tvUsername.setText("Username: " + userName);
+        binding.tvName.setText("Name: " + name);
+        binding.tvEmail.setText("Email: " + email);
+        binding.tvPhoneNumber.setText("Phone Number: " + phone);
+
+        // Make sure user-specific buttons are visible
+        binding.btnEdit.setVisibility(View.VISIBLE);
+        binding.btnDelete.setVisibility(View.VISIBLE);
     }
 
     private void showDeleteConfirmation() {
@@ -204,19 +248,11 @@ public class ProfileScreen extends Fragment {
                             .navigate(ProfileScreenDirections.actionProfileScreenToViewUsersScreen(userName)));
 
             // 2. "Open Events" icon becomes "View Images"
-            binding.btnOpenEvents.setImageResource(R.drawable.outline_add_photo_alternate_24); // This line changes the icon
+            binding.btnOpenEvents.setImageResource(R.drawable.outline_add_photo_alternate_24);
             binding.btnOpenEvents.setOnClickListener(v ->
-                    // NAVIGATE to the All Images screen
                     NavHostFragment.findNavController(this)
                             .navigate(ProfileScreenDirections.actionToAllImagesFragment(userName))
 
-            );
-
-            binding.btnOpenEvents.setImageResource(R.drawable.outline_add_photo_alternate_24); // This line changes the icon
-            binding.btnOpenEvents.setOnClickListener(v ->
-                    // THIS LINE IS PERFECT. IT PERFORMS THE NAVIGATION.
-                    NavHostFragment.findNavController(this)
-                            .navigate(ProfileScreenDirections.actionToAllImagesFragment(userName))
             );
         } else {
             // REGULAR USER MODE
@@ -228,15 +264,13 @@ public class ProfileScreen extends Fragment {
             );
 
             // 2. "Open Events" icon is the standard event icon
-            binding.btnOpenEvents.setImageResource(R.drawable.ic_event); // This line sets the correct user icon
+            binding.btnOpenEvents.setImageResource(R.drawable.ic_event);
             binding.btnOpenEvents.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)
                             .navigate(ProfileScreenDirections.actionProfileScreenToOrganizerEventsScreen(userName))
             );
         }
     }
-
-
 
     @Override
     public void onDestroyView() {
