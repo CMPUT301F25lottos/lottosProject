@@ -55,7 +55,6 @@ public class AllImagesAdapter extends RecyclerView.Adapter<AllImagesAdapter.Imag
 
         holder.btnDelete.setOnClickListener(v -> {
             if (listener != null) {
-                // We'll pass the whole object in case we need the ID later
                 listener.onDeleteClick(currentItem);
             }
         });
