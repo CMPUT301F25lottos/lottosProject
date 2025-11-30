@@ -1,7 +1,7 @@
 package com.example.lottos.organizer;
 
-import com.example.lottos.entities.Event;
 import com.example.lottos.EventRepository;
+import com.example.lottos.entities.Event;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldValue;
@@ -9,7 +9,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Handles organizer-side logic for creating/updating/deleting events
@@ -26,18 +29,21 @@ public class OrganizerEventManager {
         this.auth = auth;
     }
 
-    public OrganizerEventManager() {
-        this.db = FirebaseFirestore.getInstance();
-        this.repo = new EventRepository(this.db);
-        this.auth = FirebaseAuth.getInstance();
-    }
-
-
-    /** Creates a new event document + links it to the organizer. */
+    /**
+     * Creates a new event document + links it to the organizer.
+     *
+     * @param event            Event entity
+     * @param registerEndTime  Registration end time
+     * @param waitListCapacity Waitlist capacity (nullable)
+     * @param filterWords      List of filter keywords (stored as array in Firestore)
+     * @param onSuccess        Callback on success
+     * @param onError          Callback on error
+     */
     public void createEvent(
             Event event,
             LocalDateTime registerEndTime,
             Integer waitListCapacity,
+            List<String> filterWords,
             Runnable onSuccess,
             EventRepository.OnError onError
     ) {
@@ -59,6 +65,11 @@ public class OrganizerEventManager {
 
         if (waitListCapacity != null) {
             map.put("waitListCapacity", waitListCapacity);
+        }
+
+        if (filterWords != null && !filterWords.isEmpty()) {
+            // Stored as Firestore array
+            map.put("filterWords", filterWords);
         }
 
         map.put("startTime", toTimestamp(event.getStartTime()));
@@ -85,11 +96,16 @@ public class OrganizerEventManager {
         }, onError);
     }
 
-    public void updateEvent(String eventId, Map<String, Object> updates, Runnable onSuccess, EventRepository.OnError onError) {
+    public void updateEvent(String eventId,
+                            Map<String, Object> updates,
+                            Runnable onSuccess,
+                            EventRepository.OnError onError) {
         repo.updateEvent(eventId, updates, onSuccess, onError);
     }
 
-    public void deleteEvent(String eventId, Runnable onSuccess, EventRepository.OnError onError) {
+    public void deleteEvent(String eventId,
+                            Runnable onSuccess,
+                            EventRepository.OnError onError) {
         repo.deleteEvent(eventId, onSuccess, onError);
     }
 

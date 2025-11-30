@@ -4,6 +4,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -39,29 +40,38 @@ public class Event {
 
     private String posterUrl;
 
+    private List<String> filterWords;
 
 
-    public Event(String eventName, String organizer,
-                 LocalDateTime startTime, LocalDateTime endTime,
-                 String description, String location,
-                 int selectionCap, LocalDateTime EndRegisterTime) {
+
+    public Event(String eventName,
+                 String organizer,
+                 LocalDateTime startTime,
+                 LocalDateTime endTime,
+                 String description,
+                 String location,
+                 int selectionCap,
+                 LocalDateTime EndRegisterTime,
+                 List<String> filterWords) {
+
         this.EventId = UUID.randomUUID().toString();
         this.eventName = eventName;
         this.organizer = organizer;
         this.startTime = startTime;
         this.endTime = endTime;
         this.description = description;
-        // this place should have a photo URL or something
         this.location = location;
         this.selectionCap = selectionCap;
         this.waitList = new UserList();
         this.selectedList = new UserList();
         this.cancelledList = new UserList();
         this.enrolledList = new UserList();
-        this.isOpen=true;
-        this.EndRegisterTime=EndRegisterTime;
+        this.isOpen = true;
+        this.EndRegisterTime = EndRegisterTime;
         this.posterUrl = null;
+        this.filterWords = filterWords;
     }
+
     public boolean isOrganizer() {
         FirebaseUser cur = FirebaseAuth.getInstance().getCurrentUser();
         return cur != null && Objects.equals(cur.getUid(), organizer);
@@ -269,6 +279,15 @@ public class Event {
     public String getPosterUrl() {return posterUrl;}
 
     public void setPosterUrl(String posterUrl) {this.posterUrl = posterUrl;}
+
+    public List<String> getFilterWords() {
+        return filterWords;
+    }
+
+    public void setFilterWords(List<String> filterWords) {
+        this.filterWords = filterWords;
+    }
+
 
 
     @Override
