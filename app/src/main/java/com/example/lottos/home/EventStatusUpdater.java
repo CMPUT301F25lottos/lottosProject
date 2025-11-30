@@ -22,6 +22,10 @@ public class EventStatusUpdater {
     private static final String TAG = "EventStatusUpdater";
     private final CollectionReference eventsRef;
 
+    public EventStatusUpdater(FirebaseFirestore db) {
+        this.eventsRef = db.collection("open events");
+    }
+
     public interface UpdateListener {
         void onUpdateSuccess(int updatedCount);
         void onUpdateFailure(String errorMessage);
@@ -31,6 +35,7 @@ public class EventStatusUpdater {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         eventsRef = db.collection("open events");
     }
+
 
     public void updateEventStatuses(UpdateListener listener) {
 

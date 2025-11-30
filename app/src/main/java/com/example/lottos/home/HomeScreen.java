@@ -231,15 +231,7 @@ public class HomeScreen extends Fragment {
             String posterUrl = evt.posterUrl;
 
             eventItems.add(
-                    new EventListAdapter.EventItem(
-                            evt.id,
-                            evt.name,
-                            evt.isOpen,
-                            evt.location,
-                            evt.startTime,
-                            evt.endTime,
-                            posterUrl
-                    )
+                    new EventListAdapter.EventItem(evt.id, evt.name, evt.isOpen, evt.location, evt.startTime, evt.endTime, posterUrl)
             );
         }
 

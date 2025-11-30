@@ -20,8 +20,14 @@ import java.util.Map;
  */
 public class OrganizerEventManager {
 
-    private final EventRepository repo = new EventRepository();
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final EventRepository repo;
+    private final FirebaseFirestore db;
+    private final FirebaseAuth auth;
+    public OrganizerEventManager(EventRepository repo, FirebaseFirestore db, FirebaseAuth auth) {
+        this.repo = repo;
+        this.db = db;
+        this.auth = auth;
+    }
 
     /**
      * Creates a new event document + links it to the organizer.
@@ -48,7 +54,7 @@ public class OrganizerEventManager {
         map.put("eventId", eventId);
         map.put("eventName", event.getEventName());
         map.put("organizer", event.getOrganizer());
-        map.put("organizerUid", FirebaseAuth.getInstance().getUid());
+        map.put("organizerUid", auth.getUid());
         map.put("description", event.getDescription());
         map.put("location", event.getLocation());
         map.put("selectionCap", event.getSelectionCap());
@@ -82,6 +88,7 @@ public class OrganizerEventManager {
         repo.createEvent(eventId, map, () -> {
             db.collection("users")
                     .document(event.getOrganizer())
+                    // Use the injected db instance
                     .update("organizedEvents.events", FieldValue.arrayUnion(eventId))
                     .addOnSuccessListener(v -> onSuccess.run())
                     .addOnFailureListener(onError::run);

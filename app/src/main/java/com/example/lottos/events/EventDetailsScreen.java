@@ -142,10 +142,9 @@ public class EventDetailsScreen extends Fragment {
         binding.tvDescription.setText(safe(data.get("description")));
         binding.tvCapacity.setText("Event Capacity: " + safe(data.get("selectionCap")));
 
-        // 🔹 FIXED: capacity is top-level, not inside waitList
         String capacity = "No Restriction";
 
-        Object wlCapacityObj = data.get("waitListCapacity");  // ⬅ TOP-LEVEL
+        Object wlCapacityObj = data.get("waitListCapacity");
 
         if (wlCapacityObj instanceof Number) {
             capacity = String.valueOf(((Number) wlCapacityObj).intValue());
@@ -199,7 +198,6 @@ public class EventDetailsScreen extends Fragment {
 
         boolean hasLimit = capacity > 0;
         boolean isFull   = hasLimit && currentWaitSize >= capacity;
-        // -------------------------------
 
         binding.btnBack.setVisibility(View.VISIBLE);
 
@@ -207,20 +205,16 @@ public class EventDetailsScreen extends Fragment {
             binding.btnJoin.setVisibility(View.VISIBLE);
 
             if (isWaitlisted) {
-                // User is already on waitlist -> allow leaving, even if full.
                 binding.btnJoin.setEnabled(true);
                 binding.btnJoin.setText("Leave Waitlist");
                 binding.btnJoin.setOnClickListener(v -> leaveWaitlist());
 
             } else {
-                // User NOT on waitlist yet
                 if (isFull) {
-                    // Waitlist reached capacity -> block joining
                     binding.btnJoin.setEnabled(false);
                     binding.btnJoin.setText("Waitlist Full");
                     binding.btnJoin.setOnClickListener(null); // no-op
                 } else {
-                    // Space available -> allow join
                     binding.btnJoin.setEnabled(true);
                     binding.btnJoin.setText("Join Waitlist");
                     binding.btnJoin.setOnClickListener(v -> joinWaitlist());

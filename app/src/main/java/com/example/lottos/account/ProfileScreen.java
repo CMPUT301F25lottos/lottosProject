@@ -18,6 +18,7 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.R;
 import com.example.lottos.databinding.FragmentProfileScreenBinding;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileScreen extends Fragment {
     private FragmentProfileScreenBinding binding;
@@ -32,6 +33,7 @@ public class ProfileScreen extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentProfileScreenBinding.inflate(inflater, container, false);
+
         sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         return binding.getRoot();
     }
@@ -39,6 +41,7 @@ public class ProfileScreen extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
 
         // Argument and SharedPreferences loading for robust userName retrieval
         if (getArguments() != null) {
@@ -53,7 +56,8 @@ public class ProfileScreen extends Fragment {
             return;
         }
 
-        profileManager = new UserProfileManager();
+        FirebaseFirestore firestoreInstance = FirebaseFirestore.getInstance();
+        UserProfileManager manager = new UserProfileManager(firestoreInstance);
         loadUserRole();
         loadProfile(); // Initial profile load
         setupNavButtons();
