@@ -20,11 +20,20 @@ public class UserStatusUpdater {
 
     private static final String TAG = "UserStatusUpdater";
 
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    // 👇 make sure these match your Firestore
-    private final CollectionReference eventsRef = db.collection("open events");
-    private final CollectionReference notificationsRef = db.collection("notification");
+    private final FirebaseFirestore db;
+    private final CollectionReference eventsRef;
+    private final CollectionReference notificationsRef;
+    public UserStatusUpdater() {
+        this.db = FirebaseFirestore.getInstance();
+        this.eventsRef = db.collection("open events");
+        this.notificationsRef = db.collection("notification");
+    }
 
+    public UserStatusUpdater(FirebaseFirestore db) {
+        this.db = db;
+        this.eventsRef = db.collection("open events");
+        this.notificationsRef = db.collection("notification");
+    }
     public interface UpdateListener {
         void onUpdateSuccess(int updatedCount);
         void onUpdateFailure(String errorMessage);

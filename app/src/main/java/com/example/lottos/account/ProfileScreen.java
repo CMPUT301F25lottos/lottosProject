@@ -17,6 +17,7 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.R;
 import com.example.lottos.databinding.FragmentProfileScreenBinding;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileScreen extends Fragment {
     private FragmentProfileScreenBinding binding;
@@ -31,7 +32,7 @@ public class ProfileScreen extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentProfileScreenBinding.inflate(inflater, container, false);
-        // Initialize SharedPreferences here
+
         sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         return binding.getRoot();
     }
@@ -40,24 +41,21 @@ public class ProfileScreen extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // --- ROBUST USERNAME LOADING (Original Strategy) ---
-        // First, try to get userName from navigation arguments as intended.
+
         if (getArguments() != null) {
             userName = ProfileScreenArgs.fromBundle(getArguments()).getUserName();
         }
-        // If it's still null (which happens on credential loss), get it from SharedPreferences as a fallback.
         if (userName == null) {
             userName = sharedPreferences.getString("userName", null);
         }
-        // If it's *still* null, then there is a real problem.
         if (userName == null) {
             Toast.makeText(getContext(), "FATAL: Credentials lost. Please log in again.", Toast.LENGTH_LONG).show();
             NavHostFragment.findNavController(this).navigate(ProfileScreenDirections.actionProfileScreenToWelcomeScreen());
             return;
         }
-        // --- END OF FIX ---
 
-        profileManager = new UserProfileManager();
+        FirebaseFirestore firestoreInstance = FirebaseFirestore.getInstance();
+        UserProfileManager manager = new UserProfileManager(firestoreInstance);
         loadUserRole();
         loadProfile();
         setupNavButtons();
