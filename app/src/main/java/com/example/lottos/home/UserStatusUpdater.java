@@ -92,8 +92,9 @@ public class UserStatusUpdater {
                         batch.update(
                                 eventDocRef,
                                 "cancelledList.users",
-                                FieldValue.arrayUnion(selectedUsers.toArray(new String[0]))
+                                FieldValue.arrayUnion(selectedUsers.toArray())
                         );
+
 
 
                         batch.update(

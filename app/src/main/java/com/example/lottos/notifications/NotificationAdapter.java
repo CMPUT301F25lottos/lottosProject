@@ -112,8 +112,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         }
         // --- End of Modified Block ---
 
-        // Show delete button only for admins
-        holder.btnDelete.setVisibility(isAdminView ? View.VISIBLE : View.GONE);
 
         if (n.timestamp != null && !n.timestamp.isEmpty()) {
             holder.tvDate.setText(n.timestamp);
@@ -130,7 +128,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             }
         });
 
-        // MODIFIED: The delete listener now passes the item AND its adapter position
         holder.btnDelete.setOnClickListener(v -> {
             if (listener != null) {
                 int pos = holder.getBindingAdapterPosition();
