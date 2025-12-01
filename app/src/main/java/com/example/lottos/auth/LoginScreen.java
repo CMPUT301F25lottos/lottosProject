@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.lottos.R;
 import com.example.lottos.databinding.FragmentLoginScreenBinding;
 
 /**
@@ -50,10 +51,22 @@ public class LoginScreen extends Fragment {
             authenticator.checkUserLogin(userName, password, new UserAuthenticator.AuthListener() {
                 @Override
                 public void onSuccess(String userName) {
+
+                    if (!isAdded() || getView() == null) return;
+
+                    if (NavHostFragment.findNavController(LoginScreen.this)
+                            .getCurrentDestination().getId() != R.id.LoginScreen) {
+                        return;
+                    }
+
+                    UserSession.saveUser(requireContext(), userName);
+
                     Toast.makeText(getContext(), "Welcome back, " + userName + "!", Toast.LENGTH_SHORT).show();
+
                     NavHostFragment.findNavController(LoginScreen.this)
                             .navigate(LoginScreenDirections.actionLoginScreenToHomeScreen(userName));
                 }
+
 
                 @Override
                 public void onFailure(String errorMessage) {

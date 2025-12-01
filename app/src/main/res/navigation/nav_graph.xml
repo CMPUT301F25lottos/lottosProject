@@ -228,6 +228,11 @@
             app:destination="@+id/OrganizerEventsScreen" />
         <action
             android:id="@+id/action_EventDetailsScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_editEventScreen"
+            app:destination="@id/EditEventScreen" />
+
             app:destination="@+id/EventHistoryScreen" />
         <action
             android:id="@+id/action_EventDetailsScreen_to_viewUsersScreen"
@@ -491,6 +496,13 @@
             android:id="@+id/action_OrganizerEventDetailsScreen_to_HomeScreen"
             app:destination="@id/HomeScreen" />
         <action
+            android:id="@+id/actionOrganizerEventDetailsScreenToGeoLocationMapScreen"
+            app:destination="@id/geoLocationMapScreen">
+            <argument
+                android:name="eventId"
+                app:argType="string" />
+        </action>
+        <action
             android:id="@+id/action_OrganizerEventDetailsScreen_to_OrganizerEventsScreen"
             app:destination="@id/OrganizerEventsScreen" />
         <action
@@ -532,11 +544,16 @@
             app:destination="@id/viewUsersScreen" />
     </fragment>
 
+    <fragment
+        android:id="@+id/geoLocationMapScreen"
+        android:name="com.example.lottos.GeoLocationMapScreen"
+        android:label="GeoLocationMapScreen"
+        tools:layout="@layout/fragment_geo_location_map_screen">
 
-
-
-
-
+        <argument
+            android:name="eventId"
+            app:argType="string" />
+    </fragment>
 
 </navigation>
 

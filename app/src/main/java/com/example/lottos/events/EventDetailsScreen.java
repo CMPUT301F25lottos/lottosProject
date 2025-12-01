@@ -1,5 +1,7 @@
 package com.example.lottos.events;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -19,7 +21,15 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+
 import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
@@ -40,6 +50,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.content.ContextCompat;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 /**
  * UI-only Fragment for event details.
@@ -55,6 +72,25 @@ public class EventDetailsScreen extends Fragment {
     private boolean isAdmin = false;
     private EventDetailsManager manager;
     private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
+    private boolean isGeolocationRequired = false; // Story 2 state read from event
+    private FusedLocationProviderClient fusedLocationClient;
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    // Permission granted, now attempt to get location
+                    attemptJoinWaitlistWithLocation();
+                } else {
+                    // Permission denied
+                    toast("Location permission is required for this event.");
+                }
+            });
+
+    private void toast(String message) {
+        if (getContext() != null) {
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        }
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -71,6 +107,9 @@ public class EventDetailsScreen extends Fragment {
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
 
         manager = new EventDetailsManager();
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+
         return binding.getRoot();
     }
 
@@ -78,9 +117,7 @@ public class EventDetailsScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(EventDetailsScreen.this).navigateUp()
-        );
+
         setupNavButtons();
 
         if (isAdmin) {
@@ -147,10 +184,12 @@ public class EventDetailsScreen extends Fragment {
         binding.tvDescription.setText(safe(data.get("description")));
         binding.tvCapacity.setText("Event Capacity: " + safe(data.get("selectionCap")));
 
-        // 🔹 FIXED: capacity is top-level, not inside waitList
+        Object geoReqObj = data.get("geolocationRequired");
+        isGeolocationRequired = Boolean.TRUE.equals(geoReqObj);
+
         String capacity = "No Restriction";
 
-        Object wlCapacityObj = data.get("waitListCapacity");  // ⬅ TOP-LEVEL
+        Object wlCapacityObj = data.get("waitListCapacity");
 
         if (wlCapacityObj instanceof Number) {
             capacity = String.valueOf(((Number) wlCapacityObj).intValue());
@@ -175,7 +214,6 @@ public class EventDetailsScreen extends Fragment {
         );
     }
 
-
     private String safe(Object o) {
         return o == null ? "" : o.toString();
     }
@@ -191,7 +229,9 @@ public class EventDetailsScreen extends Fragment {
         List<String> selectedEvents   = readUserList(userData, "selectedEvents");
         List<String> waitlistedEvents = readUserList(userData, "waitListedEvents");
         boolean isWaitlisted = waitlistedEvents.contains(eventName);
-        boolean isSelected   = selectedEvents.contains(eventName);
+        boolean isSelected = selectedEvents.contains(eventName);
+
+        // boolean isSelected   = selectedEvents.contains(eventName);
 
         // Show QR code if user is selected/enrolled
         if (isSelected) {
@@ -211,30 +251,27 @@ public class EventDetailsScreen extends Fragment {
             capacity = ((Number) capObj).intValue();
         }
 
+        // Entrant join/leave
+
         boolean hasLimit = capacity > 0;
         boolean isFull   = hasLimit && currentWaitSize >= capacity;
-        // -------------------------------
 
-        binding.btnBack.setVisibility(View.VISIBLE);
+
 
         if (isOpen) {
             binding.btnJoin.setVisibility(View.VISIBLE);
 
             if (isWaitlisted) {
-                // User is already on waitlist -> allow leaving, even if full.
                 binding.btnJoin.setEnabled(true);
                 binding.btnJoin.setText("Leave Waitlist");
                 binding.btnJoin.setOnClickListener(v -> leaveWaitlist());
 
             } else {
-                // User NOT on waitlist yet
                 if (isFull) {
-                    // Waitlist reached capacity -> block joining
                     binding.btnJoin.setEnabled(false);
                     binding.btnJoin.setText("Waitlist Full");
                     binding.btnJoin.setOnClickListener(null); // no-op
                 } else {
-                    // Space available -> allow join
                     binding.btnJoin.setEnabled(true);
                     binding.btnJoin.setText("Join Waitlist");
                     binding.btnJoin.setOnClickListener(v -> joinWaitlist());
@@ -277,7 +314,13 @@ public class EventDetailsScreen extends Fragment {
         }
 
     }
-
+    private void openEditEvent() {
+        NavHostFragment.findNavController(this)
+                .navigate(EventDetailsScreenDirections
+                        .actionEventDetailsScreenToEditEventScreen(userName, eventName));
+    }
+    // Reads nested structure like:
+    // "selectedEvents": { "events": [ ... ] }
 
     private List<String> readUserList(Map<String, Object> userData, String key) {
         if (userData == null) return new ArrayList<>();
@@ -318,7 +361,39 @@ public class EventDetailsScreen extends Fragment {
     }
 
     private void joinWaitlist() {
-        manager.joinWaitlist(eventName, userName,
+        if (isGeolocationRequired) {
+            // Check if permission is already granted
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                attemptJoinWaitlistWithLocation();
+            } else {
+                // Request permission using the launcher defined above
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+            }
+        } else {
+            // If location is NOT required, use dummy coordinates (0, 0)
+            performJoinWaitlist(0.0, 0.0);
+        }
+    }
+
+    @SuppressWarnings({"MissingPermission"}) // Permission is checked by caller
+    private void attemptJoinWaitlistWithLocation() {
+        // Attempt to get the user's last known location
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(requireActivity(), location -> {
+                    if (location != null) {
+                        performJoinWaitlist(location.getLatitude(), location.getLongitude());
+                    } else {
+                        toast("Could not get location. Try again.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    toast("Location service error: " + e.getMessage());
+                });
+    }
+
+    private void performJoinWaitlist(double lat, double lon) {
+        // Call the updated manager method with location
+        manager.joinWaitlist(eventName, userName, lat, lon,
                 () -> {
                     toast("Joined waitlist");
                     loadEvent();
@@ -390,10 +465,6 @@ public class EventDetailsScreen extends Fragment {
         if (binding.btnDeleteEvent != null) {
             binding.btnDeleteEvent.setVisibility(View.GONE);
         }
-    }
-
-    private void toast(String msg) {
-        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
     }
 
     @Override

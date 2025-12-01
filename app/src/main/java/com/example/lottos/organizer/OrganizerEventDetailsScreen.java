@@ -8,12 +8,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable; // Import this
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.lottos.TimeUtils;
 import com.example.lottos.databinding.FragmentOrganizerEventDetailsScreenBinding;
-import com.google.firebase.Timestamp;
+import com.example.lottos.organizer.CsvExportManager; // Import this
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -28,6 +29,7 @@ import java.util.Map;
 public class OrganizerEventDetailsScreen extends Fragment {
     private FragmentOrganizerEventDetailsScreenBinding binding;
     private OrganizerEventDetailsManager manager;
+    private CsvExportManager csvExportManager; // <-- 1. Add CsvExportManager field
     private String userName;
     private String eventId;
 
@@ -44,14 +46,24 @@ public class OrganizerEventDetailsScreen extends Fragment {
         }
 
         manager = new OrganizerEventDetailsManager();
+        csvExportManager = new CsvExportManager(requireContext()); // <-- 2. Initialize the manager
         return binding.getRoot();
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) { // Make sure @Nullable is imported
         super.onViewCreated(view, savedInstanceState);
         loadEvent();
         setupNavButtons();
+
+        binding.btnViewWaitlistMap.setOnClickListener(v -> handleViewWaitlistMap());
+    }
+
+    private void handleViewWaitlistMap() {
+        // Navigate to the map view, passing the event ID
+        NavHostFragment.findNavController(this)
+                .navigate(OrganizerEventDetailsScreenDirections
+                        .actionOrganizerEventDetailsScreenToGeoLocationMapScreen(eventId));
     }
 
     private void loadEvent() {
@@ -145,29 +157,48 @@ public class OrganizerEventDetailsScreen extends Fragment {
 
         binding.btnLottery.setVisibility(View.GONE);
         binding.btnLottery.setOnClickListener(null);
+        binding.btnExportCsv.setVisibility(View.GONE); // <-- 3. Hide export button by default
+        binding.btnExportCsv.setOnClickListener(null);
 
-        if (isOrganizer && !hasRunLottery && waitUsers != null && !waitUsers.isEmpty()) {
-            binding.btnLottery.setVisibility(View.VISIBLE);
+        if (isOrganizer) { // Actions for the organizer
+            binding.btnExportCsv.setVisibility(View.VISIBLE); // <-- 4. Show export button for organizer
+            binding.btnExportCsv.setOnClickListener(v -> {
+                csvExportManager.exportEnrolledUsers(eventData, new CsvExportManager.CsvExportCallback() {
+                    @Override
+                    public void onSuccess(String path) {
+                        toast("CSV exported successfully");
+                    }
 
-            binding.btnLottery.setOnClickListener(v -> {
-                if (isOpen) {
-                    toast("Registration is still open. You can run the lottery after it closes.");
-                    return;
-                }
-
-                binding.btnLottery.setEnabled(false);
-
-                manager.runLottery(eventId, waitUsers,
-                        () -> {
-                            toast("Lottery completed");
-                            binding.btnLottery.setEnabled(true);
-                            loadEvent();
-                        },
-                        e -> {
-                            toast("Lottery failed: " + e.getMessage());
-                            binding.btnLottery.setEnabled(true);
-                        });
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        toast("Export failed: " + errorMessage);
+                    }
+                });
             });
+
+            if (!hasRunLottery && waitUsers != null && !waitUsers.isEmpty()) {
+                binding.btnLottery.setVisibility(View.VISIBLE);
+
+                binding.btnLottery.setOnClickListener(v -> {
+                    if (isOpen) {
+                        toast("Registration is still open. You can run the lottery after it closes.");
+                        return;
+                    }
+
+                    binding.btnLottery.setEnabled(false);
+
+                    manager.runLottery(eventId, waitUsers,
+                            () -> {
+                                toast("Lottery completed");
+                                binding.btnLottery.setEnabled(true);
+                                loadEvent();
+                            },
+                            e -> {
+                                toast("Lottery failed: " + e.getMessage());
+                                binding.btnLottery.setEnabled(true);
+                            });
+                });
+            }
         }
     }
 

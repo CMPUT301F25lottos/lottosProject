@@ -14,8 +14,18 @@ import java.util.Map;
 
 public class OrganizerEventDetailsManager {
 
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final EventRepository repo = new EventRepository();
+    private final FirebaseFirestore db;
+    private final EventRepository repo;
+
+    public OrganizerEventDetailsManager(FirebaseFirestore db, EventRepository repo) {
+        this.db = db;
+        this.repo = repo;
+    }
+
+    public OrganizerEventDetailsManager() {
+        this.db = FirebaseFirestore.getInstance();
+        this.repo = new EventRepository(this.db);
+    }
 
     public interface LoadCallback {
         void onSuccess(Map<String, Object> eventData, List<String> waitlistUsers, List<String> selectedUsers, List<String> notSelectedUsers, List<String> enrolledUsers, List<String> cancelledUsers);
@@ -151,7 +161,7 @@ public class OrganizerEventDetailsManager {
 
     private void sendLotteryNotifications(WriteBatch batch, String eventName, String organizer, List<String> selectedUsers, List<String> notSelectedUsers) {
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        //FirebaseFirestore db = FirebaseFirestore.getInstance();
         com.google.firebase.Timestamp now = com.google.firebase.Timestamp.now();
 
         for (String user : selectedUsers) {

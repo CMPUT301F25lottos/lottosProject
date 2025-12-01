@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.lottos.R;
 import com.example.lottos.databinding.FragmentNotificationScreenBinding;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +42,12 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = requireActivity()
+                .getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+
+        // If using view binding:
+        SwitchMaterial stShowNotification = binding.stShowNotification;
+
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
 
         if (getArguments() != null) {
@@ -54,32 +60,64 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
 
         if (userName == null) {
             Toast.makeText(getContext(), "Credentials not found. Please log in.", Toast.LENGTH_LONG).show();
-            NavHostFragment.findNavController(this).popBackStack(R.id.WelcomeScreen, false);
+            NavHostFragment.findNavController(this)
+                    .popBackStack(R.id.WelcomeScreen, false);
             return;
         }
 
-        notificationManager = new NotificationManager();
-        setupRecyclerView();
-        setupNavButtons();
-
+        // 🔹 Set title + send button based on admin
         if (isAdmin) {
             binding.tvTitle.setText("All Notifications");
-            binding.btnSendNotification.setVisibility(View.GONE);
-            loadAllNotificationsForAdmin();
+            binding.btnSendNotification.setVisibility(View.VISIBLE);
         } else {
             binding.tvTitle.setText("My Notifications");
             binding.btnSendNotification.setVisibility(View.VISIBLE);
+        }
+
+        setupNavButtons();
+
+        setupRecyclerView();
+
+        notificationManager = new NotificationManager();
+
+        // Load notifications initially (you can choose default ON/OFF)
+        loadNotifications();
+
+        // Switch behaviour: show/hide notifications
+        stShowNotification.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // Show list and (re)load notifications
+                binding.rvReceivedNotification.setVisibility(View.VISIBLE);
+                loadNotifications();
+            } else {
+                // Hide list
+                binding.rvReceivedNotification.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    // Helper to load based on admin/user
+    private void loadNotifications() {
+        if (isAdmin) {
+            loadAllNotificationsForAdmin();
+        } else {
             loadNotificationsForUser();
         }
     }
 
 
+
+
+
     private void setupRecyclerView() {
         adapter = new NotificationAdapter(notificationItems, this);
         adapter.setAdminView(isAdmin);
+        adapter.setCurrentUserName(userName); // ADD THIS LINE
         binding.rvReceivedNotification.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.rvReceivedNotification.setAdapter(adapter);
     }
+
+
 
     private void loadAllNotificationsForAdmin() {
         notificationManager.loadAllNotifications(new NotificationManager.NotificationCallback() {
@@ -137,17 +175,27 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
     }
 
     @Override
-    public void onDelete(NotificationAdapter.NotificationItem item) {
-        if (!isAdded()) return;
-        int position = notificationItems.indexOf(item);
-        if (position == -1) return;
+    public void onDelete(NotificationAdapter.NotificationItem item, int position) {
+        // This method now accepts the position directly from the adapter
+        if (!isAdded() || adapter == null) return;
+
+
+        if (position < 0 || position >= notificationItems.size()) {
+            return;
+        }
 
         notificationManager.deleteNotificationById(item.id, () -> {
             if (!isAdded()) return;
+
+
             notificationItems.remove(position);
             adapter.notifyItemRemoved(position);
+
+
+            adapter.notifyItemRangeChanged(position, notificationItems.size());
         });
     }
+
 
 
 

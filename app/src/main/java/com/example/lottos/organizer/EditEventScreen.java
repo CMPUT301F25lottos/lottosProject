@@ -1,12 +1,12 @@
 package com.example.lottos.organizer;
 
-
 import android.net.Uri;
 import android.os.Bundle;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.MultiAutoCompleteTextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -19,10 +19,11 @@ import com.example.lottos.EventRepository;
 import com.example.lottos.ImageLoader;
 import com.example.lottos.databinding.FragmentEditEventScreenBinding;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -30,8 +31,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class EditEventScreen extends Fragment {
+
     private FragmentEditEventScreenBinding binding;
     private EventRepository repo;
     private OrganizerEventManager manager;
@@ -39,8 +40,31 @@ public class EditEventScreen extends Fragment {
     private String eventId;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private Uri selectedPosterUri = null;
+    private FirebaseFirestore db;
 
-    private final ActivityResultLauncher<String> pickImageLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+    // 🔹 Preset keywords for the multi-select autocomplete
+    private static final String[] PRESET_KEYWORDS = new String[] {
+            "Sports",
+            "Music",
+            "Food",
+            "Arts and Crafts",
+            "Charity",
+            "Cultural",
+            "Workshop",
+            "Party",
+            "Study",
+            "Networking",
+            "Family",
+            "Seniors",
+            "Teens",
+            "Health",
+            "Kids",
+            "Movie",
+            "Other"
+    };
+
+    private final ActivityResultLauncher<String> pickImageLauncher =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri != null) {
                     selectedPosterUri = uri;
                     binding.imgEventPoster.setImageURI(uri);
@@ -48,31 +72,42 @@ public class EditEventScreen extends Fragment {
             });
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container,
+                             Bundle savedInstanceState) {
 
         binding = FragmentEditEventScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view,
+                              Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         EditEventScreenArgs args = EditEventScreenArgs.fromBundle(getArguments());
         userName = args.getUserName();
         eventId = args.getEventId();
 
-        repo = new EventRepository();
-        manager = new OrganizerEventManager();
+        db = FirebaseFirestore.getInstance();
+        repo = new EventRepository(db);
+        manager = new OrganizerEventManager(repo, db, FirebaseAuth.getInstance());
+
+        // 🔹 Setup the MultiAutoCompleteTextView for filter keywords
+        setupFilterKeywordField();
 
         loadEventInfo();
 
         DateTimePickerHelper helper = new DateTimePickerHelper(requireContext());
-        binding.etStartTime.setOnClickListener(v -> helper.showDateTimePicker(binding.etStartTime));
-        binding.etEndTime.setOnClickListener(v -> helper.showDateTimePicker(binding.etEndTime));
-        binding.etRegisterEndTime.setOnClickListener(v -> helper.showDateTimePicker(binding.etRegisterEndTime));
+        binding.etStartTime.setOnClickListener(
+                v -> helper.showDateTimePicker(binding.etStartTime));
+        binding.etEndTime.setOnClickListener(
+                v -> helper.showDateTimePicker(binding.etEndTime));
+        binding.etRegisterEndTime.setOnClickListener(
+                v -> helper.showDateTimePicker(binding.etRegisterEndTime));
 
-        binding.imgEventPoster.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
+        binding.imgEventPoster.setOnClickListener(
+                v -> pickImageLauncher.launch("image/*"));
 
         binding.btnSave.setOnClickListener(v -> updateEventInfo());
         binding.btnCancel.setOnClickListener(v -> goBack());
@@ -80,6 +115,25 @@ public class EditEventScreen extends Fragment {
         binding.btnBack.setOnClickListener(v -> goBack());
 
         setupNavButtons();
+    }
+
+    /**
+     * Setup the MultiAutoCompleteTextView so the user can select multiple preset keywords.
+     * Uses comma as the separator.
+     */
+    private void setupFilterKeywordField() {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                PRESET_KEYWORDS
+        );
+
+        MultiAutoCompleteTextView etFilter = binding.etFilter;
+        etFilter.setAdapter(adapter);
+        etFilter.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
+
+        // Optional: show dropdown when they tap the field
+        etFilter.setOnClickListener(v -> etFilter.showDropDown());
     }
 
     private void loadEventInfo() {
@@ -116,7 +170,18 @@ public class EditEventScreen extends Fragment {
                         binding.imgEventPoster,
                         com.example.lottos.R.drawable.sample_event
                 );
-            } else Toast.makeText(getContext(), "Event not found.", Toast.LENGTH_SHORT).show();
+
+                // 🔹 Load existing filter keywords (comma-separated) into the MultiAutoCompleteTextView
+                String existingKeywords = snapshot.getString("filterKeywords");
+                if (existingKeywords != null && !existingKeywords.isEmpty()) {
+                    binding.etFilter.setText(existingKeywords);
+                    // Move cursor to end
+                    binding.etFilter.setSelection(existingKeywords.length());
+                }
+
+            } else {
+                Toast.makeText(getContext(), "Event not found.", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -132,6 +197,9 @@ public class EditEventScreen extends Fragment {
 
         String capStr = binding.etCapacity.getText().toString().trim();
         String wlStr = binding.etWaitListCapacity.getText().toString().trim();
+
+        // 🔹 Read the comma-separated keywords from the MultiAutoCompleteTextView
+        String filterKeywords = binding.etFilter.getText().toString().trim();
 
         if (name.isEmpty() || location.isEmpty()) {
             Toast.makeText(getContext(), "Name & location required.", Toast.LENGTH_SHORT).show();
@@ -180,6 +248,10 @@ public class EditEventScreen extends Fragment {
         if (end != null) updates.put("endTime", toTimestamp(end));
         if (reg != null) updates.put("registerEndTime", toTimestamp(reg));
 
+        // 🔹 Save the keywords as one comma-separated string in Firestore
+        // Example value: "Sports, Music, Kids"
+        updates.put("filterKeywords", filterKeywords);
+
         if (selectedPosterUri != null) {
             uploadPosterAndUpdate(updates);
         } else {
@@ -227,19 +299,23 @@ public class EditEventScreen extends Fragment {
     private void setupNavButtons() {
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
-                        .navigate(EditEventScreenDirections.actionEditEventScreenToProfileScreen(userName)));
+                        .navigate(EditEventScreenDirections
+                                .actionEditEventScreenToProfileScreen(userName)));
 
         binding.btnNotification.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
-                        .navigate(EditEventScreenDirections.actionEditEventScreenToNotificationScreen(userName)));
+                        .navigate(EditEventScreenDirections
+                                .actionEditEventScreenToNotificationScreen(userName)));
 
         binding.btnOpenEvents.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
-                        .navigate(EditEventScreenDirections.actionEditEventScreenToOrganizerEventsScreen(userName)));
+                        .navigate(EditEventScreenDirections
+                                .actionEditEventScreenToOrganizerEventsScreen(userName)));
 
         binding.btnEventHistory.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
-                        .navigate(EditEventScreenDirections.actionEditEventScreenToEventHistoryScreen(userName)));
+                        .navigate(EditEventScreenDirections
+                                .actionEditEventScreenToEventHistoryScreen(userName)));
     }
 
     private void goBack() {
@@ -249,17 +325,22 @@ public class EditEventScreen extends Fragment {
     }
 
     private LocalDateTime timestampToLocal(Timestamp ts) {
-        return ts.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        return ts.toDate().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
     }
 
     private Timestamp toTimestamp(LocalDateTime ldt) {
-        return new Timestamp(java.util.Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant()));
+        return new Timestamp(
+                java.util.Date.from(
+                        ldt.atZone(ZoneId.systemDefault()).toInstant()
+                )
+        );
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
-
     }
 }

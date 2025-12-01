@@ -1,5 +1,6 @@
 package com.example.lottos;
 
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -8,7 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 public class EventRepository {
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final FirebaseFirestore db;
+    private final CollectionReference eventsCollection;
+
+    public EventRepository(FirebaseFirestore db) {
+        this.db = db;
+        this.eventsCollection = db.collection("open events");
+    }
 
     public DocumentReference getEvent(String eventId) {
         return db.collection("open events").document(eventId);
