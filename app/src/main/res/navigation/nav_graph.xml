@@ -214,6 +214,7 @@
         <argument
             android:name="eventName"
             app:argType="string" />
+
         <action
             android:id="@+id/action_EventDetailsScreen_to_HomeScreen"
             app:destination="@+id/HomeScreen" />
@@ -550,10 +551,36 @@
         android:label="GeoLocationMapScreen"
         tools:layout="@layout/fragment_geo_location_map_screen">
 
+        <!-- REQUIRED ARGUMENTS -->
         <argument
             android:name="eventId"
             app:argType="string" />
+        <argument
+            android:name="userName"
+            app:argType="string" />
+
+        <!-- BOTTOM NAVIGATION ACTIONS -->
+        <action
+            android:id="@+id/action_geoLocationMapScreen_to_HomeScreen"
+            app:destination="@id/HomeScreen" />
+
+        <action
+            android:id="@+id/action_geoLocationMapScreen_to_OrganizerEventsScreen"
+            app:destination="@id/OrganizerEventsScreen" />
+
+        <action
+            android:id="@+id/action_geoLocationMapScreen_to_NotificationScreen"
+            app:destination="@id/NotificationScreen" />
+
+        <action
+            android:id="@+id/action_geoLocationMapScreen_to_EventHistoryScreen"
+            app:destination="@id/EventHistoryScreen" />
+
+        <action
+            android:id="@+id/action_geoLocationMapScreen_to_ProfileScreen"
+            app:destination="@id/ProfileScreen" />
     </fragment>
+
 
 </navigation>
 

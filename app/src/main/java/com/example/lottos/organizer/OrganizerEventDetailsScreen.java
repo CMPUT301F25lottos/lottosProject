@@ -4,17 +4,19 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable; // Import this
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lottos.TimeUtils;
 import com.example.lottos.databinding.FragmentOrganizerEventDetailsScreenBinding;
-import com.example.lottos.organizer.CsvExportManager; // Import this
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -22,20 +24,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * UI-only Fragment for organizer-specific event details.
- * All Firestore / business logic lives in OrganizerEventDetailsManager.
- */
 public class OrganizerEventDetailsScreen extends Fragment {
+
     private FragmentOrganizerEventDetailsScreenBinding binding;
     private OrganizerEventDetailsManager manager;
-    private CsvExportManager csvExportManager; // <-- 1. Add CsvExportManager field
+    private CsvExportManager csvExportManager;
     private String userName;
     private String eventId;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
         binding = FragmentOrganizerEventDetailsScreenBinding.inflate(inflater, container, false);
 
         if (getArguments() != null) {
@@ -46,30 +44,36 @@ public class OrganizerEventDetailsScreen extends Fragment {
         }
 
         manager = new OrganizerEventDetailsManager();
-        csvExportManager = new CsvExportManager(requireContext()); // <-- 2. Initialize the manager
+        csvExportManager = new CsvExportManager(requireContext());
         return binding.getRoot();
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) { // Make sure @Nullable is imported
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         loadEvent();
         setupNavButtons();
+        setupSectionToggles();
 
         binding.btnViewWaitlistMap.setOnClickListener(v -> handleViewWaitlistMap());
     }
 
     private void handleViewWaitlistMap() {
-        // Navigate to the map view, passing the event ID
         NavHostFragment.findNavController(this)
                 .navigate(OrganizerEventDetailsScreenDirections
-                        .actionOrganizerEventDetailsScreenToGeoLocationMapScreen(eventId));
+                        .actionOrganizerEventDetailsScreenToGeoLocationMapScreen(eventId, userName));
     }
 
     private void loadEvent() {
         manager.loadEvent(eventId, new OrganizerEventDetailsManager.LoadCallback() {
             @Override
-            public void onSuccess(Map<String, Object> eventData, List<String> waitlistUsers, List<String> selectedUsers, List<String> notSelectedUsers, List<String> enrolledUsers, List<String> cancelledUsers) {
+            public void onSuccess(Map<String, Object> eventData,
+                                  List<String> waitlistUsers,
+                                  List<String> selectedUsers,
+                                  List<String> notSelectedUsers,
+                                  List<String> enrolledUsers,
+                                  List<String> cancelledUsers) {
 
                 renderHeader(eventData);
 
@@ -79,11 +83,11 @@ public class OrganizerEventDetailsScreen extends Fragment {
                 binding.tvEnrolledHeader.setText("Enrolled (" + enrolledUsers.size() + ")");
                 binding.tvCancelledHeader.setText("Cancelled (" + cancelledUsers.size() + ")");
 
-                renderListSection(binding.tvWaitlistEmpty,  waitlistUsers,  "No users on waitlist.");
-                renderListSection(binding.tvSelectedEmpty,  selectedUsers,  "No selected users yet.");
-                renderListSection(binding.tvNotSelectedEmpty, notSelectedUsers, "No not-selected users yet.");
-                renderListSection(binding.tvEnrolledEmpty,  enrolledUsers,  "No enrolled users yet.");
-                renderListSection(binding.tvCancelledEmpty, cancelledUsers, "No cancelled users yet.");
+                showRecyclerView(binding.rvWaitlist, binding.tvWaitlistEmpty, waitlistUsers);
+                showRecyclerView(binding.rvSelected, binding.tvSelectedEmpty, selectedUsers);
+                showRecyclerView(binding.rvNotSelected, binding.tvNotSelectedEmpty, notSelectedUsers);
+                showRecyclerView(binding.rvEnrolled, binding.tvEnrolledEmpty, enrolledUsers);
+                showRecyclerView(binding.rvCancelled, binding.tvCancelledEmpty, cancelledUsers);
 
                 updateUI(eventData, waitlistUsers);
             }
@@ -99,82 +103,117 @@ public class OrganizerEventDetailsScreen extends Fragment {
         if (data == null) return;
 
         binding.tvEventName.setText(safe(data.get("eventName")));
-        binding.tvEventLocation.setText("Location: " + safe(data.get("location")));
+        binding.tvEventLocation.setText("Event Location: " + safe(data.get("location")));
 
         Date start = TimeUtils.toDate(data.get("startTime"));
-        Date end   = TimeUtils.toDate(data.get("endTime"));
+        Date end = TimeUtils.toDate(data.get("endTime"));
 
         String dateText = "Date: N/A";
         String timeText = "Time: N/A";
 
         if (start != null && end != null) {
-
-            SimpleDateFormat dayFmt  = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+            SimpleDateFormat dayFmt = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
             SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
-            String startDay   = dayFmt.format(start);
-            String endDay     = dayFmt.format(end);
-            String startTime  = timeFmt.format(start);
-            String endTime    = timeFmt.format(end);
+            String startDay = dayFmt.format(start);
+            String endDay = dayFmt.format(end);
+            String startTime = timeFmt.format(start);
+            String endTime = timeFmt.format(end);
 
             dateText = "Date: " + startDay + " ~ " + endDay;
-
             timeText = "Time: " + startTime + " ~ " + endTime;
         }
 
-        binding.tvEventDate.setText(dateText);
-        binding.tvEventTime.setText(timeText);
+        // 🔻 replace the old two setText calls with this block:
+        binding.tvEventDateTime.setText(dateText + " | " + timeText);
+
+        if (start != null && end != null) {
+            SimpleDateFormat regFmt = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault());
+            String regText = "Registration Period: " +
+                    regFmt.format(start) + " ~ " + regFmt.format(end);
+            binding.tvRegisterPeriod.setText(regText);
+        } else {
+            binding.tvRegisterPeriod.setText("Registration Period: N/A");
+        }
     }
 
 
-    private void renderListSection(TextView contentView, List<String> users, String emptyMessage) {
-
-        if (contentView == null) return;
+    private void showRecyclerView(RecyclerView rv, TextView emptyLabel, List<String> users) {
 
         if (users == null || users.isEmpty()) {
-            contentView.setVisibility(View.VISIBLE);
-            contentView.setText(emptyMessage);
+            rv.setVisibility(View.GONE);
+            emptyLabel.setVisibility(View.VISIBLE);
+            emptyLabel.setTag("empty");
             return;
         }
 
-        StringBuilder sb = new StringBuilder();
-        for (String u : users) {
-            sb.append("• ").append(u).append("\n");
-        }
+        emptyLabel.setVisibility(View.GONE);
+        emptyLabel.setTag(null);
+        rv.setVisibility(View.VISIBLE);
 
-        contentView.setVisibility(View.VISIBLE);
-        contentView.setText(sb.toString().trim());
+        // 🔥 THIS WAS MISSING — REQUIRED FOR ANY LIST TO SHOW
+        rv.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        rv.setAdapter(new UserListAdapter(users));
+    }
+
+
+    private void setupSectionToggles() {
+        setupToggle(binding.sectionWaitlist, binding.iconWaitlistToggle, binding.rvWaitlist, binding.tvWaitlistEmpty);
+        setupToggle(binding.sectionSelected, binding.iconSelectedToggle, binding.rvSelected, binding.tvSelectedEmpty);
+        setupToggle(binding.sectionNotSelected, binding.iconNotSelectedToggle, binding.rvNotSelected, binding.tvNotSelectedEmpty);
+        setupToggle(binding.sectionEnrolled, binding.iconEnrolledToggle, binding.rvEnrolled, binding.tvEnrolledEmpty);
+        setupToggle(binding.sectionCancelled, binding.iconCancelledToggle, binding.rvCancelled, binding.tvCancelledEmpty);
+    }
+
+    private void setupToggle(View sectionLayout, ImageView icon, View recycler, View emptyLabel) {
+
+        sectionLayout.setOnClickListener(v -> {
+            boolean isOpen = recycler.getVisibility() == View.VISIBLE;
+
+            if (isOpen) {
+                recycler.setVisibility(View.GONE);
+                emptyLabel.setVisibility(View.GONE);
+                icon.setRotation(0);
+            } else {
+                recycler.setVisibility(View.VISIBLE);
+
+                if ("empty".equals(emptyLabel.getTag())) {
+                    emptyLabel.setVisibility(View.VISIBLE);
+                }
+
+                icon.setRotation(180);
+            }
+        });
     }
 
     private void updateUI(Map<String, Object> eventData, List<String> waitUsers) {
-
         if (eventData == null) return;
 
-        boolean isOpen     = Boolean.TRUE.equals(eventData.get("IsOpen"));
+        boolean isOpen = Boolean.TRUE.equals(eventData.get("IsOpen"));
         boolean hasRunLottery = Boolean.TRUE.equals(eventData.get("IsLottery"));
-        String organizer   = safe(eventData.get("organizer"));
+        String organizer = safe(eventData.get("organizer"));
         boolean isOrganizer = organizer.equalsIgnoreCase(userName);
 
         binding.btnLottery.setVisibility(View.GONE);
-        binding.btnLottery.setOnClickListener(null);
-        binding.btnExportCsv.setVisibility(View.GONE); // <-- 3. Hide export button by default
-        binding.btnExportCsv.setOnClickListener(null);
+        binding.btnExportCsv.setVisibility(View.GONE);
 
-        if (isOrganizer) { // Actions for the organizer
-            binding.btnExportCsv.setVisibility(View.VISIBLE); // <-- 4. Show export button for organizer
-            binding.btnExportCsv.setOnClickListener(v -> {
-                csvExportManager.exportEnrolledUsers(eventData, new CsvExportManager.CsvExportCallback() {
-                    @Override
-                    public void onSuccess(String path) {
-                        toast("CSV exported successfully");
-                    }
+        if (isOrganizer) {
+            binding.btnExportCsv.setVisibility(View.VISIBLE);
 
-                    @Override
-                    public void onFailure(String errorMessage) {
-                        toast("Export failed: " + errorMessage);
-                    }
-                });
-            });
+            binding.btnExportCsv.setOnClickListener(v ->
+                    csvExportManager.exportEnrolledUsers(eventData,
+                            new CsvExportManager.CsvExportCallback() {
+                                @Override
+                                public void onSuccess(String path) {
+                                    toast("CSV exported successfully");
+                                }
+
+                                @Override
+                                public void onFailure(String errorMessage) {
+                                    toast("Export failed: " + errorMessage);
+                                }
+                            }));
 
             if (!hasRunLottery && waitUsers != null && !waitUsers.isEmpty()) {
                 binding.btnLottery.setVisibility(View.VISIBLE);
@@ -205,6 +244,7 @@ public class OrganizerEventDetailsScreen extends Fragment {
     private String safe(Object o) {
         return o == null ? "" : o.toString();
     }
+
     private void setupNavButtons() {
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
@@ -231,6 +271,7 @@ public class OrganizerEventDetailsScreen extends Fragment {
                         .navigate(OrganizerEventDetailsScreenDirections
                                 .actionOrganizerEventDetailsScreenToProfileScreen(userName)));
     }
+
     private void toast(String msg) {
         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
     }

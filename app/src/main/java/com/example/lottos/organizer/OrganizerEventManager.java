@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 public class OrganizerEventManager {
 
@@ -22,59 +21,66 @@ public class OrganizerEventManager {
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
 
-    /**
-     * ✅ No-arg constructor – used by your Fragments:
-     *   new OrganizerEventManager()
-     */
+    /** DEFAULT CONSTRUCTOR USED BY UI */
     public OrganizerEventManager() {
-        // If your EventRepository needs a db, wire it here
         FirebaseFirestore dbInstance = FirebaseFirestore.getInstance();
         this.db = dbInstance;
-        this.repo = new EventRepository(dbInstance); // or new EventRepository() if that exists
+        this.repo = new EventRepository(dbInstance);
         this.auth = FirebaseAuth.getInstance();
     }
 
+    /** CALLBACK FOR MAP LOCATION LOADING */
     public interface LocationsCallback {
         void onSuccess(Map<String, Map<String, Double>> locations);
         void onError(Exception e);
     }
 
-    public void getEntrantLocations(String eventId, LocationsCallback callback) {
-        db.collection("events").document(eventId).collection("geoLocations")
+    // -------------------------------------------------------------
+    // 🔥 FIXED: LOAD GEOLOCATIONS USING EVENT NAME AS THE DOCUMENT ID
+    // -------------------------------------------------------------
+    public void getEntrantLocations(String eventName, LocationsCallback callback) {
+
+        db.collection("open events")
+                .document(eventName)                // ✔ eventName instead of eventId
+                .collection("geo_locations")
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    Map<String, Map<String, Double>> locationData = new HashMap<>();
+                .addOnSuccessListener(querySnapshot -> {
 
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        String userName = doc.getId(); // Document ID is the username
+                    Map<String, Map<String, Double>> results = new HashMap<>();
 
+                    if (querySnapshot == null || querySnapshot.isEmpty()) {
+                        callback.onSuccess(results);
+                        return;
+                    }
+
+                    for (DocumentSnapshot doc : querySnapshot) {
+                        String userId = doc.getId();
                         Double lat = doc.getDouble("latitude");
                         Double lon = doc.getDouble("longitude");
 
-                        if (lat != null && lon != null) {
-                            Map<String, Double> coords = new HashMap<>();
-                            coords.put("latitude", lat);
-                            coords.put("longitude", lon);
-                            locationData.put(userName, coords);
-                        }
+                        if (lat == null || lon == null) continue;
+                        if (lat == 0.0 && lon == 0.0) continue;
+
+                        Map<String, Double> coords = new HashMap<>();
+                        coords.put("latitude", lat);
+                        coords.put("longitude", lon);
+                        results.put(userId, coords);
                     }
-                    callback.onSuccess(locationData);
+
+                    callback.onSuccess(results);
                 })
                 .addOnFailureListener(callback::onError);
     }
 
-    /**
-     * ✅ Full constructor – for dependency injection / testing
-     */
-    public OrganizerEventManager(EventRepository repo,
-                                 FirebaseFirestore db,
-                                 FirebaseAuth auth) {
+    // -------------------------------------------------------------
+    // CORE EVENT MANAGEMENT METHODS (UNCHANGED)
+    // -------------------------------------------------------------
+
+    public OrganizerEventManager(EventRepository repo, FirebaseFirestore db, FirebaseAuth auth) {
         this.repo = repo;
         this.db = db;
         this.auth = auth;
     }
-
-    // ---------------- core methods below ----------------
 
     public void createEvent(
             Event event,
@@ -86,7 +92,8 @@ public class OrganizerEventManager {
             EventRepository.OnError onError
     ) {
 
-        String eventId = event.getEventId();
+        String eventId = event.getEventName();
+        // ✔ You ALREADY use eventName as the Firestore document key.
 
         Map<String, Object> map = new HashMap<>();
         map.put("eventId", eventId);
@@ -100,20 +107,16 @@ public class OrganizerEventManager {
         map.put("IsLottery", false);
 
         map.put("geolocationRequired", geolocationRequired);
-
         map.put("posterUrl", event.getPosterUrl());
 
         if (waitListCapacity != null) {
             map.put("waitListCapacity", waitListCapacity);
         }
 
-        // ✅ store filterWords array in Firestore
         map.put("filterWords", filterWords);
-
         map.put("startTime", toTimestamp(event.getStartTime()));
         map.put("endTime", toTimestamp(event.getEndTime()));
         map.put("registerEndTime", toTimestamp(registerEndTime));
-
         map.put("createdAt", Timestamp.now());
 
         map.put("waitList", makeWaitListMap());
@@ -167,26 +170,31 @@ public class OrganizerEventManager {
         return m;
     }
 
-    public void saveEntrantLocation(String eventId,
-                                    String userId,
-                                    double latitude,
-                                    double longitude,
-                                    Runnable onSuccess,
-                                    EventRepository.OnError onError) {
+    // -------------------------------------------------------------
+    // 🔥 FIXED: SAVE LOCATION USING EVENT NAME, NOT EVENT ID
+    // -------------------------------------------------------------
+    public void saveEntrantLocation(
+            String eventName,
+            String userId,
+            double latitude,
+            double longitude,
+            Runnable onSuccess,
+            EventRepository.OnError onError
+    ) {
 
         Map<String, Object> locationData = new HashMap<>();
         locationData.put("userId", userId);
-        locationData.put("joinTimestamp", Timestamp.now());
         locationData.put("latitude", latitude);
         locationData.put("longitude", longitude);
+        locationData.put("timestamp", Timestamp.now());
 
         db.collection("open events")
-                .document(eventId)
-                // New sub-collection to store location data
+                .document(eventName)                // ✔ matches getEntrantLocations()
                 .collection("geo_locations")
                 .document(userId)
                 .set(locationData)
                 .addOnSuccessListener(v -> onSuccess.run())
                 .addOnFailureListener(onError::run);
     }
+
 }

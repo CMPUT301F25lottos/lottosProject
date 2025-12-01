@@ -42,25 +42,10 @@ public class EditEventScreen extends Fragment {
     private Uri selectedPosterUri = null;
     private FirebaseFirestore db;
 
-    // 🔹 Preset keywords for the multi-select autocomplete
     private static final String[] PRESET_KEYWORDS = new String[] {
-            "Sports",
-            "Music",
-            "Food",
-            "Arts and Crafts",
-            "Charity",
-            "Cultural",
-            "Workshop",
-            "Party",
-            "Study",
-            "Networking",
-            "Family",
-            "Seniors",
-            "Teens",
-            "Health",
-            "Kids",
-            "Movie",
-            "Other"
+            "Sports", "Music", "Food", "Arts and Crafts", "Charity", "Cultural",
+            "Workshop", "Party", "Study", "Networking", "Family",
+            "Seniors", "Teens", "Health", "Kids", "Movie", "Other"
     };
 
     private final ActivityResultLauncher<String> pickImageLauncher =
@@ -93,9 +78,7 @@ public class EditEventScreen extends Fragment {
         repo = new EventRepository(db);
         manager = new OrganizerEventManager(repo, db, FirebaseAuth.getInstance());
 
-        // 🔹 Setup the MultiAutoCompleteTextView for filter keywords
         setupFilterKeywordField();
-
         loadEventInfo();
 
         DateTimePickerHelper helper = new DateTimePickerHelper(requireContext());
@@ -117,10 +100,6 @@ public class EditEventScreen extends Fragment {
         setupNavButtons();
     }
 
-    /**
-     * Setup the MultiAutoCompleteTextView so the user can select multiple preset keywords.
-     * Uses comma as the separator.
-     */
     private void setupFilterKeywordField() {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 requireContext(),
@@ -131,8 +110,6 @@ public class EditEventScreen extends Fragment {
         MultiAutoCompleteTextView etFilter = binding.etFilter;
         etFilter.setAdapter(adapter);
         etFilter.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
-
-        // Optional: show dropdown when they tap the field
         etFilter.setOnClickListener(v -> etFilter.showDropDown());
     }
 
@@ -164,6 +141,7 @@ public class EditEventScreen extends Fragment {
                 if (reg != null)
                     binding.etRegisterEndTime.setText(timestampToLocal(reg).format(formatter));
 
+                // Poster
                 String url = snapshot.getString("posterUrl");
                 ImageLoader.load(
                         url,
@@ -171,13 +149,16 @@ public class EditEventScreen extends Fragment {
                         com.example.lottos.R.drawable.sample_event
                 );
 
-                // 🔹 Load existing filter keywords (comma-separated) into the MultiAutoCompleteTextView
+                // Filter keywords
                 String existingKeywords = snapshot.getString("filterKeywords");
                 if (existingKeywords != null && !existingKeywords.isEmpty()) {
                     binding.etFilter.setText(existingKeywords);
-                    // Move cursor to end
                     binding.etFilter.setSelection(existingKeywords.length());
                 }
+
+                // 🔹 LOAD GEOLOCATION REQUIRED
+                Boolean geo = snapshot.getBoolean("geolocationRequired");
+                binding.switchGeolocationRequired.setChecked(geo != null && geo);
 
             } else {
                 Toast.makeText(getContext(), "Event not found.", Toast.LENGTH_SHORT).show();
@@ -198,7 +179,6 @@ public class EditEventScreen extends Fragment {
         String capStr = binding.etCapacity.getText().toString().trim();
         String wlStr = binding.etWaitListCapacity.getText().toString().trim();
 
-        // 🔹 Read the comma-separated keywords from the MultiAutoCompleteTextView
         String filterKeywords = binding.etFilter.getText().toString().trim();
 
         if (name.isEmpty() || location.isEmpty()) {
@@ -233,7 +213,7 @@ public class EditEventScreen extends Fragment {
         }
 
         if (reg != null && start != null && !start.isAfter(reg)) {
-            Toast.makeText(getContext(), "Register-end must be before start.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Registration end must be before start.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -248,9 +228,11 @@ public class EditEventScreen extends Fragment {
         if (end != null) updates.put("endTime", toTimestamp(end));
         if (reg != null) updates.put("registerEndTime", toTimestamp(reg));
 
-        // 🔹 Save the keywords as one comma-separated string in Firestore
-        // Example value: "Sports, Music, Kids"
         updates.put("filterKeywords", filterKeywords);
+
+        // 🔹 SAVE GEOLOCATION FLAG
+        boolean geoRequired = binding.switchGeolocationRequired.isChecked();
+        updates.put("geolocationRequired", geoRequired);
 
         if (selectedPosterUri != null) {
             uploadPosterAndUpdate(updates);
