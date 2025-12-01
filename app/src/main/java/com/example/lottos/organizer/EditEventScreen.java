@@ -31,6 +31,21 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A Fragment that provides a form for an organizer to edit an existing event.
+ *
+ * Role: This screen allows the creator of an event to modify its details.
+ * Its responsibilities include:
+ * <ul>
+ *     <li>Loading the current details of a specific event from Firestore and populating the form fields.</li>
+ *     <li>Providing UI for editing all mutable event properties, such as name, capacity, and times.</li>
+ *     <li>Allowing the organizer to change or add a new event poster image.</li>
+ *     <li>Validating all the entered data before saving.</li>
+ *     <li>Handling the update logic, including uploading a new poster to Firebase Storage if necessary.</li>
+ *     <li>Providing an option to delete the event entirely.</li>
+ *     <li>Managing navigation back to the organizer's event list.</li>
+ * </ul>
+ */
 public class EditEventScreen extends Fragment {
 
     private FragmentEditEventScreenBinding binding;
@@ -42,12 +57,17 @@ public class EditEventScreen extends Fragment {
     private Uri selectedPosterUri = null;
     private FirebaseFirestore db;
 
+    // A predefined list of keywords for the filter suggestions dropdown.
     private static final String[] PRESET_KEYWORDS = new String[] {
             "Sports", "Music", "Food", "Arts and Crafts", "Charity", "Cultural",
             "Workshop", "Party", "Study", "Networking", "Family",
             "Seniors", "Teens", "Health", "Kids", "Movie", "Other"
     };
 
+    /**
+     * An ActivityResultLauncher to handle the result of the image selection intent.
+     * When an image is picked, its URI is stored and the preview ImageView is updated.
+     */
     private final ActivityResultLauncher<String> pickImageLauncher =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri != null) {
@@ -56,6 +76,15 @@ public class EditEventScreen extends Fragment {
                 }
             });
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     * Inflates the layout for this fragment.
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The View for the fragment's UI.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
@@ -65,6 +94,13 @@ public class EditEventScreen extends Fragment {
         return binding.getRoot();
     }
 
+    /**
+     * Called immediately after onCreateView() has returned. This is where
+     * fragment initialization, such as setting up UI components and listeners, is performed.
+     *
+     * @param view The View returned by onCreateView().
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     */
     @Override
     public void onViewCreated(@NonNull View view,
                               Bundle savedInstanceState) {
@@ -78,6 +114,7 @@ public class EditEventScreen extends Fragment {
         repo = new EventRepository(db);
         manager = new OrganizerEventManager(repo, db, FirebaseAuth.getInstance());
 
+        // Setup the MultiAutoCompleteTextView for filter keywords.
         setupFilterKeywordField();
         loadEventInfo();
 
@@ -100,6 +137,11 @@ public class EditEventScreen extends Fragment {
         setupNavButtons();
     }
 
+    /**
+     * Configures the MultiAutoCompleteTextView for filter keywords.
+     * It uses a CommaTokenizer to allow for multiple, comma-separated keywords and
+     * an adapter with preset suggestions.
+     */
     private void setupFilterKeywordField() {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 requireContext(),
@@ -110,9 +152,15 @@ public class EditEventScreen extends Fragment {
         MultiAutoCompleteTextView etFilter = binding.etFilter;
         etFilter.setAdapter(adapter);
         etFilter.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
+
+        // Shows the suggestion dropdown when the user taps the field.
         etFilter.setOnClickListener(v -> etFilter.showDropDown());
     }
 
+    /**
+     * Fetches the current data for the event from Firestore and populates
+     * the form's input fields with the existing values.
+     */
     private void loadEventInfo() {
         DocumentReference doc = repo.getEvent(eventId);
         doc.get().addOnSuccessListener(snapshot -> {
@@ -166,6 +214,9 @@ public class EditEventScreen extends Fragment {
         });
     }
 
+    /**
+     * Gathers all data from the form fields, validates it, and then initiates the update process.
+     */
     private void updateEventInfo() {
 
         String name = binding.etEventName.getText().toString().trim();
@@ -179,6 +230,7 @@ public class EditEventScreen extends Fragment {
         String capStr = binding.etCapacity.getText().toString().trim();
         String wlStr = binding.etWaitListCapacity.getText().toString().trim();
 
+        // Read the comma-separated keywords from the MultiAutoCompleteTextView.
         String filterKeywords = binding.etFilter.getText().toString().trim();
 
         if (name.isEmpty() || location.isEmpty()) {
@@ -228,6 +280,7 @@ public class EditEventScreen extends Fragment {
         if (end != null) updates.put("endTime", toTimestamp(end));
         if (reg != null) updates.put("registerEndTime", toTimestamp(reg));
 
+        // Save the keywords as one comma-separated string in Firestore.
         updates.put("filterKeywords", filterKeywords);
 
         // 🔹 SAVE GEOLOCATION FLAG
@@ -241,6 +294,11 @@ public class EditEventScreen extends Fragment {
         }
     }
 
+    /**
+     * If a new poster was selected, this method uploads it to Firebase Storage
+     * and then applies all other updates to the event document.
+     * @param updates The map of field updates to apply to the Firestore document.
+     */
     private void uploadPosterAndUpdate(Map<String, Object> updates) {
         String path = "event_posters/" + eventId + ".jpg";
         StorageReference ref = FirebaseStorage.getInstance().getReference(path);
@@ -257,6 +315,10 @@ public class EditEventScreen extends Fragment {
                                 Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Commits the map of updates to the event document in Firestore.
+     * @param updates The map containing the fields and new values to be updated.
+     */
     private void applyUpdate(Map<String, Object> updates) {
         manager.updateEvent(eventId, updates,
                 () -> {
@@ -268,6 +330,9 @@ public class EditEventScreen extends Fragment {
                         Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Permanently deletes the current event from Firestore.
+     */
     private void deleteEvent() {
         manager.deleteEvent(eventId,
                 () -> {
@@ -278,6 +343,9 @@ public class EditEventScreen extends Fragment {
                         "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Sets up the OnClickListeners for the standard bottom navigation bar.
+     */
     private void setupNavButtons() {
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
@@ -300,18 +368,31 @@ public class EditEventScreen extends Fragment {
                                 .actionEditEventScreenToEventHistoryScreen(userName)));
     }
 
+    /**
+     * Navigates the user back to the organizer's main event list screen.
+     */
     private void goBack() {
         NavHostFragment.findNavController(this)
                 .navigate(EditEventScreenDirections
                         .actionEditEventScreenToOrganizerEventsScreen(userName));
     }
 
+    /**
+     * Converts a Firebase Timestamp object to a local LocalDateTime object.
+     * @param ts The Firebase Timestamp to convert.
+     * @return The corresponding LocalDateTime.
+     */
     private LocalDateTime timestampToLocal(Timestamp ts) {
         return ts.toDate().toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
     }
 
+    /**
+     * Converts a local LocalDateTime object to a Firebase Timestamp object.
+     * @param ldt The LocalDateTime to convert.
+     * @return The corresponding Firebase Timestamp.
+     */
     private Timestamp toTimestamp(LocalDateTime ldt) {
         return new Timestamp(
                 java.util.Date.from(
@@ -320,6 +401,10 @@ public class EditEventScreen extends Fragment {
         );
     }
 
+    /**
+     * Called when the view previously created by onCreateView has been detached from the fragment.
+     * Clears the view binding object to prevent memory leaks.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

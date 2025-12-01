@@ -25,6 +25,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A Fragment that provides a UI for organizers and admins to send bulk notifications.
+ *
+ * Role: This screen allows authorized users (organizers or admins) to compose a message
+ * and send it to a specific group of participants within one of their events.
+ * Key responsibilities include:
+ * <ul>
+ *     <li>Loading a list of events managed by the current user (or all events for an admin).</li>
+ *     <li>Providing dropdowns to select a target event and a specific user group (e.g., waitList, selectedList).</li>
+ *     <li>Allowing the user to input a custom message.</li>
+ *     <li>Handling the logic to fetch the user list for the selected group and create individual notification documents for each user in a batch.</li>
+ * </ul>
+ */
 public class SendNotificationScreen extends Fragment {
 
     private FragmentSendNotificationScreenBinding binding;
@@ -38,12 +51,29 @@ public class SendNotificationScreen extends Fragment {
     private final List<String> groups = List.of("waitList", "selectedList", "cancelledList");
     private ArrayAdapter<String> groupAdapter;
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     * This is where the layout is inflated from its XML definition and the view binding is initialized.
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The root view for the fragment's UI.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentSendNotificationScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
+    /**
+     * Called immediately after onCreateView has returned, but before any saved state has been restored into the view.
+     * This method initializes the fragment's logic, including setting up adapters for the dropdowns,
+     * loading the initial event data, and configuring UI button listeners.
+     *
+     * @param view The View returned by onCreateView.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     */
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -61,6 +91,9 @@ public class SendNotificationScreen extends Fragment {
         binding.btnSendMessage.setOnClickListener(v -> sendNotification());
     }
 
+    /**
+     * Initializes and configures the ArrayAdapters for the event and group selection spinners (dropdowns).
+     */
     private void setupAdapters() {
         eventAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_item, eventNames);
@@ -73,6 +106,11 @@ public class SendNotificationScreen extends Fragment {
         binding.spGroupSelect.setAdapter(groupAdapter);
     }
 
+    /**
+     * Fetches the list of events from Firestore to populate the event selection spinner.
+     * If the user is an admin, it loads all events. If the user is an organizer,
+     * it loads only the events where they are listed as the organizer.
+     */
     private void loadEvents() {
         Query query;
         if (isAdmin) {
@@ -115,6 +153,11 @@ public class SendNotificationScreen extends Fragment {
     }
 
 
+    /**
+     * Gathers the selected event, group, and message content, then sends the notification.
+     * It fetches the user list from the specified group within the selected event's document
+     * and creates a new notification document in the 'notification' collection for each user.
+     */
     private void sendNotification() {
         if (eventIds.isEmpty()) {
             Toast.makeText(requireContext(), "You have no events to send notifications for.", Toast.LENGTH_SHORT).show();
@@ -161,14 +204,7 @@ public class SendNotificationScreen extends Fragment {
                         notif.put("content", message);
                         notif.put("eventName", eventName);
                         notif.put("receiver", receiver);
-
-                        // ===================================================================
-                        // THIS IS THE CORRECTED LINE THAT WAS MISSING
-                        // If the user is an admin, the sender is "Admin".
-                        // Otherwise, it's their personal username.
                         notif.put("sender", isAdmin ? "Admin" : userName);
-                        // ===================================================================
-
                         notif.put("timestamp", FieldValue.serverTimestamp());
 
                         db.collection("notification")
@@ -194,6 +230,9 @@ public class SendNotificationScreen extends Fragment {
     }
 
 
+    /**
+     * Sets up the OnClickListeners for all the navigation buttons in the fragment's standard bottom navigation bar.
+     */
     private void setupNavButtons() {
         binding.btnNotification.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
@@ -221,6 +260,10 @@ public class SendNotificationScreen extends Fragment {
         );
     }
 
+    /**
+     * Called when the view previously created by onCreateView has been detached from the fragment.
+     * The view binding object is cleared here to prevent memory leaks.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

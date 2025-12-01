@@ -15,13 +15,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Manages the business logic for event operations performed by an organizer.
+ *
+ * Role: This class acts as a bridge between the organizer-facing UI (like
+ * {@link CreateEventScreen} or {@link EditEventScreen}) and the underlying data sources
+ * (Firestore and {@link EventRepository}). Its key responsibilities include:
+ * <ul>
+ *     <li>Constructing the full event document data map for creating new events.</li>
+ *     <li>Delegating create, update, and delete operations to the EventRepository.</li>
+ *     <li>Handling organizer-specific logic, such as updating an organizer's personal list of managed events.</li>
+ *     <li>Fetching and saving event-specific geolocation data for attendees.</li>
+ *     <li>Providing helper methods for data conversion (e.g., LocalDateTime to Timestamp).</li>
+ * </ul>
+ */
 public class OrganizerEventManager {
 
     private final EventRepository repo;
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
 
-    /** DEFAULT CONSTRUCTOR USED BY UI */
+    /**
+     * Default no-argument constructor used by Fragments for easy instantiation.
+     * It initializes its own instances of Firestore, the EventRepository, and FirebaseAuth.
+     */
     public OrganizerEventManager() {
         FirebaseFirestore dbInstance = FirebaseFirestore.getInstance();
         this.db = dbInstance;
@@ -29,9 +46,20 @@ public class OrganizerEventManager {
         this.auth = FirebaseAuth.getInstance();
     }
 
-    /** CALLBACK FOR MAP LOCATION LOADING */
+    /**
+     * A callback interface for asynchronous fetching of location data.
+     */
     public interface LocationsCallback {
+        /**
+         * Called on successful retrieval of location data.
+         * @param locations A map where the key is the username and the value is another map
+         *                  containing "latitude" and "longitude" keys.
+         */
         void onSuccess(Map<String, Map<String, Double>> locations);
+        /**
+         * Called when an error occurs during the data fetching.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -43,6 +71,15 @@ public class OrganizerEventManager {
         db.collection("open events")
                 .document(eventName)                // ✔ eventName instead of eventId
                 .collection("geo_locations")
+    /**
+     * Retrieves the stored geographic locations of all entrants for a specific event.
+     * It reads from the `geo_locations` sub-collection of an event document.
+     *
+     * @param eventId The unique ID of the event for which to fetch locations.
+     * @param callback The callback to handle the successfully retrieved map of locations or an error.
+     */
+    public void getEntrantLocations(String eventId, LocationsCallback callback) {
+        db.collection("open events").document(eventId).collection("geo_locations")
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
 
@@ -72,16 +109,35 @@ public class OrganizerEventManager {
                 .addOnFailureListener(callback::onError);
     }
 
-    // -------------------------------------------------------------
-    // CORE EVENT MANAGEMENT METHODS (UNCHANGED)
-    // -------------------------------------------------------------
-
-    public OrganizerEventManager(EventRepository repo, FirebaseFirestore db, FirebaseAuth auth) {
+    /**
+     * Full constructor for dependency injection, primarily used for testing.
+     * Allows providing mock or custom instances of its dependencies.
+     * @param repo The EventRepository to use for data operations.
+     * @param db The FirebaseFirestore instance to use.
+     * @param auth The FirebaseAuth instance to use.
+     */
+    public OrganizerEventManager(EventRepository repo,
+                                 FirebaseFirestore db,
+                                 FirebaseAuth auth) {
         this.repo = repo;
         this.db = db;
         this.auth = auth;
     }
 
+    /**
+     * Creates a new event in Firestore.
+     * This method builds the complete data map for the event document, including initializing
+     * all user lists, and then calls the repository to perform the creation. Upon success,
+     * it also updates the organizer's user document to add this new event to their organized list.
+     *
+     * @param event The Event entity containing the core details.
+     * @param registerEndTime The specific date and time when registration closes.
+     * @param waitListCapacity The maximum number of users allowed on the waitlist (can be null).
+     * @param filterWords A list of keywords for event filtering.
+     * @param geolocationRequired A boolean indicating if attendees must provide their location to check in.
+     * @param onSuccess A callback to be executed upon successful creation of the event.
+     * @param onError A callback to handle any errors that occur during the process.
+     */
     public void createEvent(
             Event event,
             LocalDateTime registerEndTime,
@@ -136,6 +192,15 @@ public class OrganizerEventManager {
         }, onError);
     }
 
+    /**
+     * Updates an existing event document in Firestore.
+     * Delegates the call directly to the EventRepository.
+     *
+     * @param eventId The unique ID of the event to update.
+     * @param updates A map of fields and their new values to be updated.
+     * @param onSuccess A callback to run on successful update.
+     * @param onError A callback to handle any errors.
+     */
     public void updateEvent(String eventId,
                             Map<String, Object> updates,
                             Runnable onSuccess,
@@ -143,12 +208,26 @@ public class OrganizerEventManager {
         repo.updateEvent(eventId, updates, onSuccess, onError);
     }
 
+    /**
+     * Deletes an event document from Firestore.
+     * Delegates the call directly to the EventRepository.
+     *
+     * @param eventId The unique ID of the event to delete.
+     * @param onSuccess A callback to run on successful deletion.
+     * @param onError A callback to handle any errors.
+     */
     public void deleteEvent(String eventId,
                             Runnable onSuccess,
                             EventRepository.OnError onError) {
         repo.deleteEvent(eventId, onSuccess, onError);
     }
 
+    /**
+     * Converts a {@link LocalDateTime} object to a Firebase {@link Timestamp}.
+     * Returns null if the input is null.
+     * @param ldt The LocalDateTime to convert.
+     * @return The corresponding Firebase Timestamp, or null.
+     */
     private Timestamp toTimestamp(LocalDateTime ldt) {
         if (ldt == null) return null;
         java.util.Date date =
@@ -156,6 +235,10 @@ public class OrganizerEventManager {
         return new Timestamp(date);
     }
 
+    /**
+     * Creates a default map structure for an event's waitlist.
+     * @return A map with predefined keys and an empty user list.
+     */
     private Map<String, Object> makeWaitListMap() {
         Map<String, Object> m = new HashMap<>();
         m.put("closeDate", "");
@@ -164,23 +247,33 @@ public class OrganizerEventManager {
         return m;
     }
 
+    /**
+     * Creates a default map structure for a generic user list (e.g., enrolled, selected).
+     * @return A map with a "users" key and an empty list.
+     */
     private Map<String, Object> makeUserListMap() {
         Map<String, Object> m = new HashMap<>();
         m.put("users", new ArrayList<String>());
         return m;
     }
 
-    // -------------------------------------------------------------
-    // 🔥 FIXED: SAVE LOCATION USING EVENT NAME, NOT EVENT ID
-    // -------------------------------------------------------------
-    public void saveEntrantLocation(
-            String eventName,
-            String userId,
-            double latitude,
-            double longitude,
-            Runnable onSuccess,
-            EventRepository.OnError onError
-    ) {
+    /**
+     * Saves an entrant's geographic location to a sub-collection within the event document.
+     * This is typically used for check-in purposes.
+     *
+     * @param eventId The ID of the event the user is checking into.
+     * @param userId The username of the entrant.
+     * @param latitude The entrant's current latitude.
+     * @param longitude The entrant's current longitude.
+     * @param onSuccess A callback to run on success.
+     * @param onError A callback to handle failures.
+     */
+    public void saveEntrantLocation(String eventId,
+                                    String userId,
+                                    double latitude,
+                                    double longitude,
+                                    Runnable onSuccess,
+                                    EventRepository.OnError onError) {
 
         Map<String, Object> locationData = new HashMap<>();
         locationData.put("userId", userId);

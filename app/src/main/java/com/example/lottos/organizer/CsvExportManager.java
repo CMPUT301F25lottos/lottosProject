@@ -12,19 +12,52 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Manages the creation and sharing of CSV files for event data.
+ *
+ * Role: This class is a utility responsible for taking raw event data,
+ * extracting a specific list of users (e.g., enrolled users), formatting this
+ * data into a CSV string, and saving it to a file in the app's external
+ * storage. After creating the file, it automatically triggers a system "Share"
+ * intent, allowing the user to send the CSV file to other apps like email or
+ * cloud storage.
+ */
 public class CsvExportManager {
 
+    /**
+     * A callback interface to report the outcome of the CSV export operation.
+     */
     public interface CsvExportCallback {
+        /**
+         * Called when the CSV file is successfully created and saved.
+         * @param path The absolute path to the newly created CSV file.
+         */
         void onSuccess(String path);
+        /**
+         * Called when an error occurs during the export process.
+         * @param errorMessage A message describing the failure.
+         */
         void onFailure(String errorMessage);
     }
 
     private final Context context;
 
+    /**
+     * Constructs a new CsvExportManager.
+     * @param context The Android context, required for file operations and starting activities.
+     */
     public CsvExportManager(Context context) {
         this.context = context;
     }
 
+    /**
+     * Exports the list of enrolled users for a given event to a CSV file.
+     * It extracts the enrolled users, builds a CSV-formatted string, saves it to a file,
+     * and then initiates a share action.
+     *
+     * @param eventData A map containing the data for the event, including the 'enrolledList'.
+     * @param callback The callback to be invoked with the result of the operation.
+     */
     public void exportEnrolledUsers(Map<String, Object> eventData, CsvExportCallback callback) {
         // 1. Extract enrolled users from event data
         Map<String, Object> enrolled = (Map<String, Object>) eventData.get("enrolledList");
@@ -66,6 +99,12 @@ public class CsvExportManager {
         }
     }
 
+    /**
+     * Creates and starts an Intent to share a given file.
+     * It uses a FileProvider to create a secure, shareable URI for the file.
+     *
+     * @param file The CSV file to be shared.
+     */
     private void shareCsvFile(File file) {
         Uri uri = FileProvider.getUriForFile(
                 context,
@@ -81,6 +120,13 @@ public class CsvExportManager {
         context.startActivity(Intent.createChooser(intent, "Share CSV"));
     }
 
+    /**
+     * A helper method to safely convert an object to its string representation.
+     * Returns an empty string if the object is null.
+     *
+     * @param o The object to convert.
+     * @return The string value of the object, or "" if the object is null.
+     */
     private String safe(Object o) {
         return o == null ? "" : String.valueOf(o);
     }

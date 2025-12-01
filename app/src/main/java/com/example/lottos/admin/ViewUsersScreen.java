@@ -23,14 +23,43 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A Fragment for administrators to view and manage all users in the system.
+ * It fetches a list of all registered users from Firestore and displays them in a RecyclerView.
+ * For each user, it shows their username and statistics about their event activity.
+ * It also provides functionality to delete users from the system.
+ */
 public class ViewUsersScreen extends Fragment {
 
+    /**
+     * The binding object for the fragment's layout (fragment_view_users.xml).
+     */
     private FragmentViewUsersBinding binding;
+    /**
+     * The adapter for the RecyclerView that displays the list of users.
+     */
     private UserAdapter userAdapter;
+    /**
+     * The list of UserItem objects that backs the RecyclerView adapter.
+     */
     private final List<UserAdapter.UserItem> userItemList = new ArrayList<>();
+    /**
+     * The instance of the Firebase Firestore database.
+     */
     private FirebaseFirestore db;
+    /**
+     * The username of the currently logged-in administrator.
+     */
     private String loggedInUserName;
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     * Initializes view binding and the Firestore instance.
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The root View for the fragment's UI.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentViewUsersBinding.inflate(inflater, container, false);
@@ -38,6 +67,12 @@ public class ViewUsersScreen extends Fragment {
         return binding.getRoot();
     }
 
+    /**
+     * Called immediately after onCreateView() has returned, but before any saved state has been restored into the view.
+     * This method handles retrieving user credentials, setting up the RecyclerView and navigation, and fetching the user list.
+     * @param view The View returned by onCreateView().
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -61,6 +96,10 @@ public class ViewUsersScreen extends Fragment {
         fetchUsernames();
     }
 
+    /**
+     * Initializes the RecyclerView, its LayoutManager, and the UserAdapter.
+     * The adapter is provided with a listener to handle delete actions.
+     */
     private void setupRecyclerView() {
         // Create the adapter and pass the listener for the delete action.
         userAdapter = new UserAdapter(userItemList, this::showDeleteConfirmationDialog);
@@ -68,6 +107,10 @@ public class ViewUsersScreen extends Fragment {
         binding.rvUsers.setAdapter(userAdapter);
     }
 
+    /**
+     * Displays a confirmation dialog to the administrator before deleting a user.
+     * @param userItem The user item that is being considered for deletion.
+     */
     private void showDeleteConfirmationDialog(UserAdapter.UserItem userItem) {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete User")
@@ -80,6 +123,11 @@ public class ViewUsersScreen extends Fragment {
                 .show();
     }
 
+    /**
+     * Deletes a specified user's document from the "users" collection in Firestore.
+     * On success, it refreshes the user list. On failure, it shows an error toast.
+     * @param userItem The user item to be deleted.
+     */
     private void deleteUserFromFirestore(UserAdapter.UserItem userItem) {
         db.collection("users").document(userItem.userId)
                 .delete()
@@ -94,6 +142,10 @@ public class ViewUsersScreen extends Fragment {
                 });
     }
 
+    /**
+     * Fetches all documents from the "users" collection in Firestore. For each user, it calculates
+     * the number of events they have joined and created, then populates the RecyclerView.
+     */
     private void fetchUsernames() {
         db.collection("users").get().addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult() != null) {
@@ -135,6 +187,10 @@ public class ViewUsersScreen extends Fragment {
         });
     }
 
+    /**
+     * Sets up click listeners for all navigation buttons in the bottom navigation bar.
+     * This configures the admin-specific navigation actions.
+     */
     private void setupNavButtons() {
 
         binding.btnHome.setOnClickListener(v -> NavHostFragment.findNavController(this)
@@ -159,8 +215,10 @@ public class ViewUsersScreen extends Fragment {
         });
     }
 
-
-
+    /**
+     * Called when the view previously created by onCreateView() has been detached from the fragment.
+     * This is where the view binding is cleaned up to prevent memory leaks.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
