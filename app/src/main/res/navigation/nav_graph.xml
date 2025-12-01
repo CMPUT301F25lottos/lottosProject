@@ -228,6 +228,11 @@
             app:destination="@+id/OrganizerEventsScreen" />
         <action
             android:id="@+id/action_EventDetailsScreen_to_EventHistoryScreen"
+            app:destination="@+id/EventHistoryScreen"/>
+        <action
+            android:id="@+id/action_EventDetailsScreen_to_editEventScreen"
+            app:destination="@id/EditEventScreen" />
+
             app:destination="@+id/EventHistoryScreen" />
         <action
             android:id="@+id/action_EventDetailsScreen_to_viewUsersScreen"

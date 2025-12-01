@@ -111,11 +111,12 @@ public class OrganizerEventsScreen extends Fragment {
                 });
     }
 
-    private void openEditEventScreen(String eventId) {
+    private void openEventDetailsScreen(String eventId) {
         NavHostFragment.findNavController(this)
                 .navigate(OrganizerEventsScreenDirections
-                        .actionOrganizerEventsScreenToEditEventScreen(userName, eventId));
+                        .actionOrganizerEventsScreenToEventDetailsScreen(userName, eventId));
     }
+
 
     private void openOrganizerEventDetailsScreen(String eventId) {
         NavHostFragment.findNavController(this)

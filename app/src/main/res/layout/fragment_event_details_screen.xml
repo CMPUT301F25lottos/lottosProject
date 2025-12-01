@@ -339,6 +339,21 @@
 
 
         <Button
+            android:id="@+id/btnEditEvent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit Event"
+            android:visibility="gone"
+            android:backgroundTint="@color/navy"
+
+            android:layout_marginTop="16dp"/>
+        <Button
+            android:id="@+id/btnExportCsv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Export CSV"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="@color/navy"/>
             android:id="@+id/btnDeleteEvent"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -347,6 +362,13 @@
             android:text="Delete Event"
             android:textColor="@android:color/white"
             android:layout_marginStart="8dp"/>
+
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/navy"
+            android:text="Back" />
 
     </LinearLayout>
 

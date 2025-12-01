@@ -1,5 +1,7 @@
 package com.example.lottos.events;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -14,7 +16,15 @@ import com.example.lottos.TimeUtils;
 import com.example.lottos.databinding.FragmentEventDetailsScreenBinding;
 import com.google.firebase.Timestamp;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+
 import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
@@ -168,6 +178,69 @@ public class EventDetailsScreen extends Fragment {
                 com.example.lottos.R.drawable.sample_event
         );
     }
+    private void exportCsv(Map<String, Object> eventData,
+                           List<String> waitUsers,
+                           Map<String, Object> userData) {
+
+        Map<String, Object> enrolled = (Map<String, Object>) eventData.get("enrolledList");
+        List<String> enrolledUsers = new ArrayList<>();
+
+        if (enrolled != null && enrolled.get("users") instanceof List) {
+            enrolledUsers = (List<String>) enrolled.get("users");
+        }
+
+        if (enrolledUsers.isEmpty()) {
+            toast("No enrolled users to export.");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Event Name,")
+                .append("Organizer,")
+                .append("Total Enrolled\n");
+
+        sb.append(safe(eventData.get("eventName"))).append(",")
+                .append(safe(eventData.get("organizer"))).append(",")
+                .append(enrolledUsers.size()).append("\n\n");
+
+        sb.append("Enrolled Users\n");
+
+        for (String user : enrolledUsers) {
+            sb.append(user).append("\n");
+        }
+
+        String fileName = safe(eventData.get("eventName")) + "_enrolled.csv";
+
+        try {
+            // Save file to external storage
+            File file = new File(requireContext().getExternalFilesDir(null), fileName);
+            FileWriter writer = new FileWriter(file);
+            writer.append(sb.toString());
+            writer.flush();
+            writer.close();
+
+            toast("CSV exported: " + file.getAbsolutePath());
+            shareCsvFile(file);
+
+        } catch (Exception e) {
+            toast("Export failed: " + e.getMessage());
+
+        }
+    }
+    private void shareCsvFile(File file) {
+        Uri uri = FileProvider.getUriForFile(
+                requireContext(),
+                requireContext().getPackageName() + ".provider",
+                file);
+
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/csv");
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        startActivity(Intent.createChooser(intent, "Share CSV"));
+    }
+
 
 
     private String safe(Object o) {
@@ -185,6 +258,14 @@ public class EventDetailsScreen extends Fragment {
         List<String> selectedEvents   = readUserList(userData, "selectedEvents");
         List<String> waitlistedEvents = readUserList(userData, "waitListedEvents");
         boolean isWaitlisted = waitlistedEvents.contains(eventName);
+        boolean isSelected = selectedEvents.contains(eventName);
+        if (isOrganizer) {
+            binding.btnExportCsv.setVisibility(View.VISIBLE);
+            binding.btnExportCsv.setOnClickListener(v -> {
+                exportCsv(eventData, waitUsers, userData);
+            });
+        }
+        binding.btnBack.setVisibility(View.VISIBLE);
         boolean isSelected   = selectedEvents.contains(eventName);
 
         // --- WAITLIST CAPACITY LOGIC ---
@@ -195,6 +276,11 @@ public class EventDetailsScreen extends Fragment {
         if (capObj instanceof Number) {
             capacity = ((Number) capObj).intValue();
         }
+        if (isOrganizer) {
+            binding.btnEditEvent.setVisibility(View.VISIBLE);
+            binding.btnEditEvent.setOnClickListener(v -> openEditEvent());
+        }
+        // Entrant join/leave
 
         boolean hasLimit = capacity > 0;
         boolean isFull   = hasLimit && currentWaitSize >= capacity;
@@ -236,7 +322,13 @@ public class EventDetailsScreen extends Fragment {
             binding.btnDecline.setVisibility(View.GONE);
         }
     }
-
+    private void openEditEvent() {
+        NavHostFragment.findNavController(this)
+                .navigate(EventDetailsScreenDirections
+                        .actionEventDetailsScreenToEditEventScreen(userName, eventName));
+    }
+    // Reads nested structure like:
+    // "selectedEvents": { "events": [ ... ] }
 
     private List<String> readUserList(Map<String, Object> userData, String key) {
         if (userData == null) return new ArrayList<>();
