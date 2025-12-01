@@ -54,6 +54,8 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.zxing:core:3.5.2")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation(libs.firebase.installations)
 
     // CORE LIBS - No changes needed.

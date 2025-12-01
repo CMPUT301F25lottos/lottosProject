@@ -3,6 +3,7 @@ package com.example.lottos.organizer;
 import com.example.lottos.EventRepository;
 import com.example.lottos.lottery.LotterySystem;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
@@ -218,7 +219,81 @@ public class OrganizerEventDetailsManager {
                 })
                 .addOnFailureListener(onError::accept);
     }
+    private List<String> extractUsers(DocumentSnapshot snap, String key) {
+        List<String> result = new ArrayList<>();
 
+        Object parent = snap.get(key);
+        if (!(parent instanceof Map)) {
+            return result;
+        }
+
+        Map<?, ?> parentMap = (Map<?, ?>) parent;
+        Object listObj = parentMap.get("users");
+
+        if (listObj instanceof List<?>) {
+            for (Object u : (List<?>) listObj) {
+                if (u != null) result.add(u.toString());
+            }
+        }
+
+        return result;
+    }
+
+    public void replaceDeclinedUser(
+            String eventId,
+            String declinedUser,
+            Runnable onSuccess,
+            java.util.function.Consumer<Exception> onError) {
+
+        DocumentReference eventRef = repo.getEvent(eventId);
+
+        db.runTransaction(transaction -> {
+                    DocumentSnapshot snap = transaction.get(eventRef);
+
+                    if (!snap.exists()) {
+                        throw new Exception("Event not found");
+                    }
+
+                    List<String> selected = extractUsers(snap, "selectedList");
+                    List<String> notSelected = extractUsers(snap, "notSelectedList");
+
+                    selected.remove(declinedUser);
+
+                    String promoted = null;
+                    if (!notSelected.isEmpty()) {
+                        promoted = notSelected.remove(0);
+                        selected.add(promoted);
+                    }
+
+                    Map<String, Object> selectedMap = new HashMap<>();
+                    selectedMap.put("users", selected);
+
+                    Map<String, Object> notSelectedMap = new HashMap<>();
+                    notSelectedMap.put("users", notSelected);
+
+                    transaction.update(eventRef, "selectedList", selectedMap);
+                    transaction.update(eventRef, "notSelectedList", notSelectedMap);
+
+                    transaction.update(eventRef, "cancelledList.users",
+                            FieldValue.arrayUnion(declinedUser));
+
+                    if (promoted != null) {
+                        DocumentReference notifRef = db.collection("notification").document();
+                        Map<String, Object> data = new HashMap<>();
+                        data.put("receiver", promoted);
+                        data.put("eventName", snap.getString("eventName"));
+                        data.put("content", "You have been selected after another user declined.");
+                        data.put("timestamp", com.google.firebase.Timestamp.now());
+                        data.put("sender", snap.getString("organizer"));
+
+                        transaction.set(notifRef, data);
+                    }
+
+                    return null;
+
+                }).addOnSuccessListener(v -> onSuccess.run())
+                .addOnFailureListener(onError::accept);
+    }
 
     /**
      * Adds notification creation operations to the provided WriteBatch.
