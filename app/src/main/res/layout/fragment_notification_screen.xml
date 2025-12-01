@@ -17,10 +17,23 @@
         android:textColor="@color/navy"
         android:textSize="40sp"
         android:textStyle="bold"
-        android:padding="16dp"
+        android:paddingTop="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/stShowNotification"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show Notification"
+        android:checked="true"
+        app:thumbTint="@color/navy"
+        app:trackTint="@color/navy"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        android:layout_marginEnd="16dp" />
+
 
 
     <androidx.recyclerview.widget.RecyclerView
@@ -28,13 +41,12 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:padding="16dp"
+        android:padding="8dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@id/btnSendNotification"
         app:layout_constraintEnd_toEndOf="parent"
-
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintTop_toBottomOf="@id/stShowNotification"
         tools:listitem="@layout/item_notification" />
 
     <Button
@@ -45,7 +57,6 @@
         android:backgroundTint="@color/navy"
         android:gravity="center"
         android:text="Send Notification"
-        app:layout_constraintTop_toBottomOf="@id/rvReceivedNotification"
         app:layout_constraintBottom_toTopOf="@id/navigationBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
