@@ -2,6 +2,7 @@ package com.example.lottos.events;
 
 import com.example.lottos.EventRepository;
 import com.example.lottos.lottery.LotterySystem;
+import com.example.lottos.organizer.OrganizerEventManager;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -48,6 +49,12 @@ public class EventDetailsManager {
                 return;
             }
 
+            Map<String, Object> eventData = eventSnap.getData();
+            if (eventData == null) {
+                cb.onError(new Exception("Event data is null"));
+                return;
+            }
+
             final List<String> waitlistUsers = new ArrayList<>();
             Object mapObj = eventSnap.get("waitList");
 
@@ -60,7 +67,7 @@ public class EventDetailsManager {
 
             userDoc.get().addOnSuccessListener(userSnap -> {
                 Map<String, Object> userData = userSnap.getData();
-                cb.onSuccess(eventSnap.getData(), waitlistUsers, userData);
+                cb.onSuccess(eventData, waitlistUsers, userData);
             }).addOnFailureListener(cb::onError);
 
         }).addOnFailureListener(cb::onError);
@@ -72,8 +79,7 @@ public class EventDetailsManager {
                 .addOnFailureListener(onError::accept);
     }
 
-    public void joinWaitlist(String eventName, String userName, Runnable onSuccess, EventRepository.OnError onError) {
-
+    public void joinWaitlist(String eventName, String userName, double latitude, double longitude, Runnable onSuccess, EventRepository.OnError onError) {
         DocumentReference eventDoc = repo.getEvent(eventName);
         DocumentReference userDoc = db.collection("users").document(userName);
 
@@ -88,7 +94,17 @@ public class EventDetailsManager {
                     tx.update(userDoc, "waitListedEvents.events", FieldValue.arrayUnion(eventName));
                     return null;
 
-                }).addOnSuccessListener(v -> onSuccess.run())
+                }).addOnSuccessListener(v -> {
+                    OrganizerEventManager organizerManager = new OrganizerEventManager();
+
+                    organizerManager.saveEntrantLocation(eventName, userName, latitude, longitude,
+                            () -> onSuccess.run(),
+                            e -> {
+                                System.err.println("Warning: Failed to save geo location: " + e.getMessage());
+                                onSuccess.run();
+                            });
+
+                })
                 .addOnFailureListener(e -> onError.run(e));
     }
 

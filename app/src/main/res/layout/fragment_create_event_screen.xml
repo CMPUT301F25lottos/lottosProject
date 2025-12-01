@@ -137,6 +137,17 @@
                 android:inputType="text"
                 android:completionThreshold="0" />
 
+            <Switch
+                android:id="@+id/switchGeolocationRequired"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Require Entrant Geolocation"
+                android:textSize="16sp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                tools:ignore="RtlSymmetry" />
+
             <!-- Action buttons inside scroll (so they move with content) -->
             <LinearLayout
                 android:id="@+id/actionButtons"

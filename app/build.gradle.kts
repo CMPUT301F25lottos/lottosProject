@@ -54,6 +54,8 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.zxing:core:3.5.2")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation(libs.firebase.installations)
 
     // CORE LIBS - No changes needed.
@@ -66,6 +68,9 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.16")
     // For testing Navigation components locally.
     testImplementation("androidx.navigation:navigation-testing:2.7.7")
+
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
 
 
     // --- INSTRUMENTATION TESTS (src/androidTest) ---

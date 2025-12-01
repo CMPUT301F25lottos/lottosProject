@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,10 @@ import com.example.lottos.ImageLoader;
 import com.example.lottos.TimeUtils;
 import com.example.lottos.databinding.FragmentEventDetailsScreenBinding;
 import com.google.firebase.Timestamp;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -45,6 +50,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.content.ContextCompat;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 /**
  * UI-only Fragment for event details.
@@ -60,6 +72,25 @@ public class EventDetailsScreen extends Fragment {
     private boolean isAdmin = false;
     private EventDetailsManager manager;
     private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
+    private boolean isGeolocationRequired = false; // Story 2 state read from event
+    private FusedLocationProviderClient fusedLocationClient;
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    // Permission granted, now attempt to get location
+                    attemptJoinWaitlistWithLocation();
+                } else {
+                    // Permission denied
+                    toast("Location permission is required for this event.");
+                }
+            });
+
+    private void toast(String message) {
+        if (getContext() != null) {
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        }
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -76,6 +107,9 @@ public class EventDetailsScreen extends Fragment {
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
 
         manager = new EventDetailsManager();
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+
         return binding.getRoot();
     }
 
@@ -150,6 +184,9 @@ public class EventDetailsScreen extends Fragment {
         binding.tvDescription.setText(safe(data.get("description")));
         binding.tvCapacity.setText("Event Capacity: " + safe(data.get("selectionCap")));
 
+        Object geoReqObj = data.get("geolocationRequired");
+        isGeolocationRequired = Boolean.TRUE.equals(geoReqObj);
+
         String capacity = "No Restriction";
 
         Object wlCapacityObj = data.get("waitListCapacity");
@@ -195,6 +232,15 @@ public class EventDetailsScreen extends Fragment {
         boolean isSelected = selectedEvents.contains(eventName);
 
         // boolean isSelected   = selectedEvents.contains(eventName);
+
+        // Show QR code if user is selected/enrolled
+        if (isSelected) {
+            Bitmap qr = generateQRCode(userName + "_" + eventName);
+            if (qr != null) {
+                binding.ivEventPoster.setImageBitmap(qr);
+            }
+        }
+
 
         // --- WAITLIST CAPACITY LOGIC ---
         int currentWaitSize = (waitUsers != null) ? waitUsers.size() : 0;
@@ -246,6 +292,27 @@ public class EventDetailsScreen extends Fragment {
             binding.btnAccept.setVisibility(View.GONE);
             binding.btnDecline.setVisibility(View.GONE);
         }
+
+        // Show QR code for selected entrant after event is closed
+        if (!isOpen && isSelected) {
+            binding.imageQRCode.setVisibility(View.VISIBLE);
+
+            String qrContent = eventName + ":" + userName;
+            Bitmap qrBitmap = generateQRCode(qrContent);
+
+            if (qrBitmap != null) {
+                binding.imageQRCode.setImageBitmap(qrBitmap);
+            }
+        }
+        // Show QR code if the user is enrolled/selected
+        if (isOpen) {
+            Bitmap qr = generateQRCode(eventName); // generate QR using event name
+            binding.ivEventPoster.setImageBitmap(qr); // set QR in the ImageView
+            binding.ivEventPoster.setVisibility(View.VISIBLE);
+        } else {
+            binding.ivEventPoster.setVisibility(View.GONE); // hide if not selected
+        }
+
     }
     private void openEditEvent() {
         NavHostFragment.findNavController(this)
@@ -294,7 +361,39 @@ public class EventDetailsScreen extends Fragment {
     }
 
     private void joinWaitlist() {
-        manager.joinWaitlist(eventName, userName,
+        if (isGeolocationRequired) {
+            // Check if permission is already granted
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                attemptJoinWaitlistWithLocation();
+            } else {
+                // Request permission using the launcher defined above
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+            }
+        } else {
+            // If location is NOT required, use dummy coordinates (0, 0)
+            performJoinWaitlist(0.0, 0.0);
+        }
+    }
+
+    @SuppressWarnings({"MissingPermission"}) // Permission is checked by caller
+    private void attemptJoinWaitlistWithLocation() {
+        // Attempt to get the user's last known location
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(requireActivity(), location -> {
+                    if (location != null) {
+                        performJoinWaitlist(location.getLatitude(), location.getLongitude());
+                    } else {
+                        toast("Could not get location. Try again.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    toast("Location service error: " + e.getMessage());
+                });
+    }
+
+    private void performJoinWaitlist(double lat, double lon) {
+        // Call the updated manager method with location
+        manager.joinWaitlist(eventName, userName, lat, lon,
                 () -> {
                     toast("Joined waitlist");
                     loadEvent();
@@ -368,14 +467,33 @@ public class EventDetailsScreen extends Fragment {
         }
     }
 
-    private void toast(String msg) {
-        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-    }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
         imageExecutor.shutdown();
     }
+
+    private Bitmap generateQRCode(String text) {
+        try {
+            BitMatrix bitMatrix = new MultiFormatWriter().encode(
+                    text,
+                    BarcodeFormat.QR_CODE,
+                    512, 512
+            );
+            int width = bitMatrix.getWidth();
+            int height = bitMatrix.getHeight();
+            Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+            return bmp;
+        } catch (WriterException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }
