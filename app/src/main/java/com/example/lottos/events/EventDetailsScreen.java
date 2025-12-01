@@ -1,7 +1,6 @@
 package com.example.lottos.events;
 
-import android.content.Intent;
-import android.net.Uri;
+import android.content.Intent;import android.net.Uri;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -54,10 +53,12 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
 /**
- * UI-only Fragment for event details.
+ * A Fragment that displays the detailed information for a single event.
+ * This screen adapts its user interface and available actions based on the user's role (admin vs. regular user)
+ * and their status relative to the event (e.g., on the waitlist, selected, not joined).
+ * It handles event data fetching, user interactions like joining/leaving a waitlist, accepting/declining invites,
+ * and geolocation checks if required by the event.
  * All Firestore & business logic is delegated to EventDetailsManager.
- * - Shows event details for users.
- * - Shows a "Delete Event" button for admins.
  */
 public class EventDetailsScreen extends Fragment {
 
@@ -70,6 +71,10 @@ public class EventDetailsScreen extends Fragment {
     private boolean isGeolocationRequired = false; // Story 2 state read from event
     private FusedLocationProviderClient fusedLocationClient;
 
+    /**
+     * An ActivityResultLauncher that handles the result of a runtime permission request.
+     * It is used here to request the ACCESS_FINE_LOCATION permission.
+     */
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -81,12 +86,24 @@ public class EventDetailsScreen extends Fragment {
                 }
             });
 
+    /**
+     * Displays a short-duration Toast message.
+     * @param message The text to display.
+     */
     private void toast(String message) {
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         }
     }
 
+    /**
+     * Initializes the fragment's view, inflates the layout, and retrieves navigation arguments.
+     * It also initializes the FusedLocationProviderClient for location services.
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The root view of the fragment's layout.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -108,6 +125,12 @@ public class EventDetailsScreen extends Fragment {
         return binding.getRoot();
     }
 
+    /**
+     * Called after the view has been created. This method sets up navigation buttons and determines
+     * whether to load the event view for an admin or a regular user.
+     * @param view The View returned by onCreateView.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     */
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -126,6 +149,10 @@ public class EventDetailsScreen extends Fragment {
         }
     }
 
+    /**
+     * Loads the essential event details for an administrator. This view is simplified
+     * and primarily provides the functionality to delete the event.
+     */
     private void loadBasicEventDataForAdmin() {
         binding.btnDeleteEvent.setOnClickListener(v -> showDeleteConfirmationDialog());
 
@@ -138,6 +165,11 @@ public class EventDetailsScreen extends Fragment {
         }, e -> toast("Failed to load event details: " + e.getMessage()));
     }
 
+    /**
+     * Loads the full event details for a regular user (entrant). This includes the user's
+     * status relative to the event (e.g., on waitlist, selected), which is used to
+     * configure the UI and available actions.
+     */
     private void loadEvent() {
         manager.loadEventForEntrant(eventName, userName,
                 new EventDetailsManager.LoadCallback() {
@@ -153,6 +185,10 @@ public class EventDetailsScreen extends Fragment {
                     }
                 });
     }
+    /**
+     * Populates the UI fields with data retrieved from Firestore.
+     * @param data A map containing the event's properties.
+     */
     private void renderEventData(Map<String, Object> data) {
 
         String posterUrl = (String) data.get("posterUrl");
@@ -200,7 +236,11 @@ public class EventDetailsScreen extends Fragment {
     }
 
 
-
+    /**
+     * Loads the event poster image from a given URL into the ImageView.
+     * Uses a placeholder image if the URL is null or loading fails.
+     * @param url The URL of the event poster.
+     */
     private void loadPoster(String url) {
         ImageLoader.load(
                 url,
@@ -209,9 +249,21 @@ public class EventDetailsScreen extends Fragment {
         );
     }
 
+    /**
+     * Safely converts an object to its string representation, returning an empty string if the object is null.
+     * @param o The object to convert.
+     * @return The string representation or "" if null.
+     */
     private String safe(Object o) {
         return o == null ? "" : o.toString();
     }
+    /**
+     * Updates the UI buttons and their actions based on the user's relationship with the event
+     * (e.g., on waitlist, selected, organizer) and the event's state (open, closed, full).
+     * @param eventData The main data for the event.
+     * @param waitUsers A list of usernames currently on the waitlist.
+     * @param userData  The current user's specific data, including their event lists.
+     */
     private void updateUI(Map<String, Object> eventData,
                           List<String> waitUsers,
                           Map<String, Object> userData) {
@@ -279,14 +331,21 @@ public class EventDetailsScreen extends Fragment {
             binding.btnDecline.setVisibility(View.GONE);
         }
     }
+    /**
+     * Navigates to the edit event screen for the current event.
+     */
     private void openEditEvent() {
         NavHostFragment.findNavController(this)
                 .navigate(EventDetailsScreenDirections
                         .actionEventDetailsScreenToEditEventScreen(userName, eventName));
     }
-    // Reads nested structure like:
-    // "selectedEvents": { "events": [ ... ] }
-
+    /**
+     * Helper method to safely extract a list of event strings from the user's data map.
+     * Reads a nested structure like: "selectedEvents": { "events": [ ... ] }
+     * @param userData The user's data map.
+     * @param key      The key for the list to extract (e.g., "selectedEvents").
+     * @return A list of event names, or an empty list if not found.
+     */
     private List<String> readUserList(Map<String, Object> userData, String key) {
         if (userData == null) return new ArrayList<>();
         Object parent = userData.get(key);
@@ -298,6 +357,9 @@ public class EventDetailsScreen extends Fragment {
         return new ArrayList<>();
     }
 
+    /**
+     * Shows a confirmation dialog to the administrator before deleting an event.
+     */
     private void showDeleteConfirmationDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Confirm Deletion");
@@ -325,6 +387,11 @@ public class EventDetailsScreen extends Fragment {
         dialog.show();
     }
 
+    /**
+     * Initiates the process of joining the waitlist.
+     * If geolocation is required, it first checks for location permissions.
+     * Otherwise, it proceeds directly with dummy coordinates.
+     */
     private void joinWaitlist() {
         if (isGeolocationRequired) {
             // Check if permission is already granted
@@ -340,6 +407,10 @@ public class EventDetailsScreen extends Fragment {
         }
     }
 
+    /**
+     * Attempts to get the user's last known location and then calls the method to join the waitlist.
+     * This is called after location permissions have been confirmed.
+     */
     @SuppressWarnings({"MissingPermission"}) // Permission is checked by caller
     private void attemptJoinWaitlistWithLocation() {
         // Attempt to get the user's last known location
@@ -356,6 +427,11 @@ public class EventDetailsScreen extends Fragment {
                 });
     }
 
+    /**
+     * Performs the final action of joining the waitlist by calling the manager with the user's location.
+     * @param lat The user's latitude.
+     * @param lon The user's longitude.
+     */
     private void performJoinWaitlist(double lat, double lon) {
         // Call the updated manager method with location
         manager.joinWaitlist(eventName, userName, lat, lon,
@@ -366,6 +442,9 @@ public class EventDetailsScreen extends Fragment {
                 e -> toast("Join failed: " + e.getMessage()));
     }
 
+    /**
+     * Handles the action of a user leaving an event's waitlist.
+     */
     private void leaveWaitlist() {
         manager.leaveWaitlist(eventName, userName,
                 () -> {
@@ -375,6 +454,9 @@ public class EventDetailsScreen extends Fragment {
                 e -> toast("Leave failed: " + e.getMessage()));
     }
 
+    /**
+     * Handles the action of a user accepting an invitation to an event.
+     */
     private void acceptInvite() {
         manager.acceptInvite(eventName, userName,
                 () -> {
@@ -384,6 +466,9 @@ public class EventDetailsScreen extends Fragment {
                 e -> toast("Failed to accept invite: " + e.getMessage()));
     }
 
+    /**
+     * Handles the action of a user declining an invitation to an event.
+     */
     private void declineInvite() {
         manager.declineInvite(eventName, userName,
                 () -> {
@@ -393,6 +478,9 @@ public class EventDetailsScreen extends Fragment {
                 e -> toast("Failed to decline invite: " + e.getMessage()));
     }
 
+    /**
+     * Sets up the OnClickListener for all navigation buttons in the top and bottom bars.
+     */
     private void setupNavButtons() {
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this).navigateUp());
@@ -418,6 +506,9 @@ public class EventDetailsScreen extends Fragment {
                                 .actionEventDetailsScreenToEventHistoryScreen(userName)));
     }
 
+    /**
+     * Hides all action buttons in the UI. Useful for resetting state before updating the UI.
+     */
     private void hideAllButtons() {
         binding.btnJoin.setVisibility(View.GONE);
         binding.btnAccept.setVisibility(View.GONE);
@@ -432,6 +523,10 @@ public class EventDetailsScreen extends Fragment {
         }
     }
 
+    /**
+     * Cleans up resources when the view is destroyed.
+     * This includes nullifying the view binding and shutting down the executor service.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

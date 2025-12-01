@@ -21,6 +21,12 @@ import com.example.lottos.auth.UserSession;
 import com.example.lottos.databinding.FragmentProfileScreenBinding;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+/**
+ * A Fragment to display and manage a user's profile information.
+ * It allows users to view their details, edit their profile, or delete their account.
+ * This screen also provides a mechanism to switch between a regular user view and an administrator view,
+ * which changes the available navigation options and displayed information.
+ */
 public class ProfileScreen extends Fragment {
     private FragmentProfileScreenBinding binding;
 
@@ -31,6 +37,13 @@ public class ProfileScreen extends Fragment {
     private SharedPreferences sharedPreferences;
     private boolean isAdmin = false;
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return Return the View for the fragment's UI, or null.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentProfileScreenBinding.inflate(inflater, container, false);
@@ -39,6 +52,12 @@ public class ProfileScreen extends Fragment {
         return binding.getRoot();
     }
 
+    /**
+     * Called immediately after onCreateView has returned, but before any saved state has been restored in to the view.
+     * This is where user data is loaded and UI listeners are set up.
+     * @param view The View returned by onCreateView.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -73,6 +92,9 @@ public class ProfileScreen extends Fragment {
         });
     }
 
+    /**
+     * Displays a dialog prompting the user to enter the administrator password.
+     */
     private void showAdminPasswordDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Enter Admin Password");
@@ -89,6 +111,10 @@ public class ProfileScreen extends Fragment {
         builder.show();
     }
 
+    /**
+     * Verifies the entered password against the stored admin password.
+     * @param password The password entered by the user.
+     */
     private void checkAdminPassword(String password) {
         if (password.equals(ADMIN_PASSWORD)) {
             switchToAdminMode();
@@ -97,10 +123,16 @@ public class ProfileScreen extends Fragment {
         }
     }
 
+    /**
+     * Loads the current user role (admin or regular user) from SharedPreferences.
+     */
     private void loadUserRole() {
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
     }
 
+    /**
+     * Updates the text of the "Switch to Admin/User" button based on the current mode.
+     */
     private void updateAdminButtonUI() {
         if (isAdmin) {
             binding.btnSwitchToAdmin.setText("Switch to User");
@@ -109,6 +141,10 @@ public class ProfileScreen extends Fragment {
         }
     }
 
+    /**
+     * Switches the application state to administrator mode.
+     * This updates SharedPreferences and refreshes the UI to reflect admin privileges.
+     */
     private void switchToAdminMode() {
         isAdmin = true;
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -121,6 +157,10 @@ public class ProfileScreen extends Fragment {
         loadProfile(); // Refresh the profile view to show Admin details
     }
 
+    /**
+     * Switches the application state back to regular user mode.
+     * This updates SharedPreferences and refreshes the UI to reflect user privileges.
+     */
     private void switchToUserMode() {
         isAdmin = false;
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -133,6 +173,10 @@ public class ProfileScreen extends Fragment {
         loadProfile(); // Refresh the profile view to show User details
     }
 
+    /**
+     * Loads the profile information from the data source.
+     * It displays an admin-specific view if in admin mode, otherwise fetches and displays the user's data.
+     */
     private void loadProfile() {
         if (isAdmin) {
             setAdminProfileView();
@@ -174,6 +218,9 @@ public class ProfileScreen extends Fragment {
 
     /**
      * Sets the UI to display the regular user's profile information.
+     * @param name The user's full name.
+     * @param email The user's email address.
+     * @param phone The user's phone number.
      */
     private void setUserProfileView(String name, String email, String phone) {
         if (binding == null) return;
@@ -187,6 +234,9 @@ public class ProfileScreen extends Fragment {
         binding.btnDelete.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Displays a confirmation dialog before deleting the user's profile.
+     */
     private void showDeleteConfirmation() {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete Profile")
@@ -196,6 +246,10 @@ public class ProfileScreen extends Fragment {
                 .show();
     }
 
+    /**
+     * Initiates the user deletion process and handles the result.
+     * On success, it logs the user out and navigates to the welcome screen.
+     */
     private void deleteUser() {
         if (userName == null) return;
 
@@ -214,6 +268,8 @@ public class ProfileScreen extends Fragment {
                         .navigate(ProfileScreenDirections.actionProfileScreenToWelcomeScreen());
             }
 
+
+
             @Override
             public void onDeleteFailure(String errorMessage) {
                 Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
@@ -221,7 +277,10 @@ public class ProfileScreen extends Fragment {
         });
     }
 
-
+    /**
+     * Sets up click listeners for all navigation and action buttons on the screen.
+     * The navigation targets for some buttons change depending on whether the user is in admin mode.
+     */
     private void setupNavButtons() {
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
@@ -270,6 +329,10 @@ public class ProfileScreen extends Fragment {
         }
     }
 
+    /**
+     * Called when the view previously created by onCreateView has been detached from the fragment.
+     * This is where the view binding is cleaned up to prevent memory leaks.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

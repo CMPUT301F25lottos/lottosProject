@@ -3,8 +3,7 @@ package com.example.lottos.notifications;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
+import android.util.Log;import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -23,6 +22,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * A Fragment for displaying and managing a user's notifications.
+ *
+ * Role: This screen is responsible for showing a list of notifications to the user.
+ * It tailors its behavior based on whether the user is a standard user or an administrator.
+ * Key responsibilities include:
+ * <ul>
+ *     <li>Fetching and displaying notifications relevant to the current user (or all notifications for an admin).</li>
+ *     <li>Providing UI elements for navigation to other parts of the app.</li>
+ *     <li>Allowing users to delete their notifications.</li>
+ *     <li>Offering a switch to toggle the visibility of the notification list.</li>
+ *     <li>Adjusting the UI and available actions based on admin status (e.g., showing a "Send Notification" button).</li>
+ * </ul>
+ * It implements the NotificationAdapter.Listener interface to handle user interactions with the list items.
+ */
 public class NotificationScreen extends Fragment implements NotificationAdapter.Listener {
 
     private FragmentNotificationScreenBinding binding;
@@ -32,12 +46,29 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
     private String userName;
     private boolean isAdmin = false;
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     * This is where the layout is inflated and the view binding object is initialized.
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The root view for the fragment's UI.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentNotificationScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
+    /**
+     * Called immediately after onCreateView has returned, but before any saved state has been restored into the view.
+     * This is where the fragment's logic is initialized, including setting up UI components,
+     * retrieving user session data, and loading initial data.
+     *
+     * @param view The View returned by onCreateView.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -96,7 +127,9 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         });
     }
 
-    // Helper to load based on admin/user
+    /**
+     * A helper method that determines whether to load notifications for an admin or a regular user.
+     */
     private void loadNotifications() {
         if (isAdmin) {
             loadAllNotificationsForAdmin();
@@ -105,10 +138,10 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         }
     }
 
-
-
-
-
+    /**
+     * Initializes the RecyclerView, its adapter, and its layout manager.
+     * The adapter is configured based on whether the current user is an admin.
+     */
     private void setupRecyclerView() {
         adapter = new NotificationAdapter(notificationItems, this);
         adapter.setAdminView(isAdmin);
@@ -117,8 +150,10 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         binding.rvReceivedNotification.setAdapter(adapter);
     }
 
-
-
+    /**
+     * Initiates the process of loading all notifications from the database for the admin view.
+     * It uses the NotificationManager and handles the success or failure of the operation.
+     */
     private void loadAllNotificationsForAdmin() {
         notificationManager.loadAllNotifications(new NotificationManager.NotificationCallback() {
             @Override
@@ -135,6 +170,10 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         });
     }
 
+    /**
+     * Initiates the process of loading notifications specifically for the logged-in user.
+     * It uses the NotificationManager and handles the success or failure of the operation.
+     */
     private void loadNotificationsForUser() {
         if (userName == null || userName.isEmpty()) return;
         notificationManager.loadNotificationForUser(userName, new NotificationManager.NotificationCallback() {
@@ -152,6 +191,12 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         });
     }
 
+    /**
+     * Clears the current list of notification items and repopulates it with a new list of data.
+     * The list is reversed to show the most recent notifications first, and the adapter is notified.
+     *
+     * @param models The new list of NotificationModel data to be displayed.
+     */
     private void updateAdapterWithNotifications(List<NotificationManager.NotificationModel> models) {
         notificationItems.clear();
         for (NotificationManager.NotificationModel model : models) {
@@ -168,12 +213,23 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         }
     }
 
+    /**
+     * Callback method from NotificationAdapter.Listener, triggered when a notification item is clicked.
+     * @param item The NotificationItem that was clicked.
+     */
     @Override
     public void onNotificationClick(NotificationAdapter.NotificationItem item) {
         if (!isAdded()) return;
         //Toast.makeText(getContext(), "Notification from: " + item.sender, Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Callback method from NotificationAdapter.Listener, triggered when the delete button on an item is clicked.
+     * It removes the item from the database and then updates the RecyclerView.
+     *
+     * @param item The NotificationItem to be deleted.
+     * @param position The adapter position of the item being deleted.
+     */
     @Override
     public void onDelete(NotificationAdapter.NotificationItem item, int position) {
         // This method now accepts the position directly from the adapter
@@ -196,9 +252,10 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         });
     }
 
-
-
-
+    /**
+     * Sets up the OnClickListeners for all navigation buttons in the fragment's layout.
+     * The navigation targets and icon resources are adjusted based on whether the user is an admin.
+     */
     private void setupNavButtons() {
         // --- Navigation that is the same for all users ---
         binding.btnBack.setOnClickListener(v ->
@@ -246,10 +303,10 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         }
     }
 
-
-
-
-
+    /**
+     * Called when the view previously created by onCreateView has been detached from the fragment.
+     * The view binding object is cleared here to prevent memory leaks.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
