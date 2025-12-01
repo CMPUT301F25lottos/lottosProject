@@ -110,13 +110,11 @@ public class OrganizerEventsScreen extends Fragment {
                             "Error loading events.", Toast.LENGTH_SHORT).show();
                 });
     }
-
-    private void openEventDetailsScreen(String eventId) {
+    private void openEditEventScreen(String eventId) {
         NavHostFragment.findNavController(this)
                 .navigate(OrganizerEventsScreenDirections
-                        .actionOrganizerEventsScreenToEventDetailsScreen(userName, eventId));
+                        .actionOrganizerEventsScreenToEditEventScreen(userName, eventId));
     }
-
 
     private void openOrganizerEventDetailsScreen(String eventId) {
         NavHostFragment.findNavController(this)
@@ -183,6 +181,8 @@ public class OrganizerEventsScreen extends Fragment {
             openOrganizerEventDetailsScreen(selectedEventId);
         });
     }
+
+
 
     @Override
     public void onDestroyView() {
