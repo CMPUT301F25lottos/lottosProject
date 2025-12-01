@@ -41,7 +41,23 @@ public class Event {
     private String posterUrl;
 
     private List<String> filterWords;
+    private boolean geolocationRequired = false;
 
+    /**
+     * Getter method for geolocationRequired
+     * @return True if entrants must submit their location when joining
+     */
+    public boolean isGeolocationRequired() {
+        return geolocationRequired;
+    }
+
+    /**
+     * Setter method for geolocationRequired
+     * @param geolocationRequired The new requirement status to set
+     */
+    public void setGeolocationRequired(boolean geolocationRequired) {
+        this.geolocationRequired = geolocationRequired;
+    }
 
 
     public Event(String eventName,

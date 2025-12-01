@@ -35,6 +35,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.content.ContextCompat;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 /**
  * UI-only Fragment for event details.
@@ -50,6 +57,25 @@ public class EventDetailsScreen extends Fragment {
     private boolean isAdmin = false;
     private EventDetailsManager manager;
     private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
+    private boolean isGeolocationRequired = false; // Story 2 state read from event
+    private FusedLocationProviderClient fusedLocationClient;
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    // Permission granted, now attempt to get location
+                    attemptJoinWaitlistWithLocation();
+                } else {
+                    // Permission denied
+                    toast("Location permission is required for this event.");
+                }
+            });
+
+    private void toast(String message) {
+        if (getContext() != null) {
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        }
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -66,6 +92,9 @@ public class EventDetailsScreen extends Fragment {
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
 
         manager = new EventDetailsManager();
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+
         return binding.getRoot();
     }
 
@@ -141,6 +170,9 @@ public class EventDetailsScreen extends Fragment {
 
         binding.tvDescription.setText(safe(data.get("description")));
         binding.tvCapacity.setText("Event Capacity: " + safe(data.get("selectionCap")));
+
+        Object geoReqObj = data.get("geolocationRequired");
+        isGeolocationRequired = Boolean.TRUE.equals(geoReqObj);
 
         String capacity = "No Restriction";
 
@@ -277,7 +309,39 @@ public class EventDetailsScreen extends Fragment {
     }
 
     private void joinWaitlist() {
-        manager.joinWaitlist(eventName, userName,
+        if (isGeolocationRequired) {
+            // Check if permission is already granted
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                attemptJoinWaitlistWithLocation();
+            } else {
+                // Request permission using the launcher defined above
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+            }
+        } else {
+            // If location is NOT required, use dummy coordinates (0, 0)
+            performJoinWaitlist(0.0, 0.0);
+        }
+    }
+
+    @SuppressWarnings({"MissingPermission"}) // Permission is checked by caller
+    private void attemptJoinWaitlistWithLocation() {
+        // Attempt to get the user's last known location
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(requireActivity(), location -> {
+                    if (location != null) {
+                        performJoinWaitlist(location.getLatitude(), location.getLongitude());
+                    } else {
+                        toast("Could not get location. Try again.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    toast("Location service error: " + e.getMessage());
+                });
+    }
+
+    private void performJoinWaitlist(double lat, double lon) {
+        // Call the updated manager method with location
+        manager.joinWaitlist(eventName, userName, lat, lon,
                 () -> {
                     toast("Joined waitlist");
                     loadEvent();
@@ -349,10 +413,6 @@ public class EventDetailsScreen extends Fragment {
         if (binding.btnDeleteEvent != null) {
             binding.btnDeleteEvent.setVisibility(View.GONE);
         }
-    }
-
-    private void toast(String msg) {
-        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
     }
 
     @Override

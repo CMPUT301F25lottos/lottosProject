@@ -144,6 +144,7 @@ public class CreateEventScreen extends Fragment {
         String capStr   = binding.etCapacity.getText().toString().trim();
         String filter   = binding.etFilter.getText().toString().trim();
         String wlCapStr = binding.etWaitListCapacity.getText().toString().trim();
+        boolean geolocationRequired = binding.switchGeolocationRequired.isChecked();
 
         // Required fields check
         if (eventName.isEmpty() ||
@@ -243,12 +244,14 @@ public class CreateEventScreen extends Fragment {
                 filterWords
         );
 
+        event.setGeolocationRequired(geolocationRequired);
+
 
         // Create with or without poster
         if (selectedPosterUri != null) {
-            uploadPosterAndCreate(event, regEndLdt, waitCap, filterWords);
+            uploadPosterAndCreate(event, regEndLdt, waitCap, filterWords, geolocationRequired);
         } else {
-            finishCreate(event, regEndLdt, waitCap, filterWords);
+            finishCreate(event, regEndLdt, waitCap, filterWords, geolocationRequired);
         }
     }
 
@@ -256,7 +259,8 @@ public class CreateEventScreen extends Fragment {
     private void uploadPosterAndCreate(Event event,
                                        LocalDateTime regEnd,
                                        Integer waitCap,
-                                       List<String> filterWords) {
+                                       List<String> filterWords,
+                                       boolean geolocationRequired) {
 
         String path = "event_posters/" + event.getEventId() + ".jpg";
         StorageReference ref = FirebaseStorage.getInstance().getReference(path);
@@ -265,7 +269,7 @@ public class CreateEventScreen extends Fragment {
                 .addOnSuccessListener(task ->
                         ref.getDownloadUrl().addOnSuccessListener(url -> {
                             event.setPosterUrl(url.toString());
-                            finishCreate(event, regEnd, waitCap, filterWords);
+                            finishCreate(event, regEnd, waitCap, filterWords, geolocationRequired);
                         }))
                 .addOnFailureListener(e ->
                         Toast.makeText(requireContext(),
@@ -276,9 +280,10 @@ public class CreateEventScreen extends Fragment {
     private void finishCreate(Event event,
                               LocalDateTime regEnd,
                               Integer waitCap,
-                              List<String> filterWords) {
+                              List<String> filterWords,
+                              boolean geolocationRequired) {
 
-        manager.createEvent(event, regEnd, waitCap, filterWords,
+        manager.createEvent(event, regEnd, waitCap, filterWords, geolocationRequired,
                 () -> {
                     Toast.makeText(requireContext(),
                             "Event created!",

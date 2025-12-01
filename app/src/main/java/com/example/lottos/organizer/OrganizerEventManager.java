@@ -4,6 +4,7 @@ import com.example.lottos.EventRepository;
 import com.example.lottos.entities.Event;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 public class OrganizerEventManager {
 
@@ -30,6 +32,35 @@ public class OrganizerEventManager {
         this.db = dbInstance;
         this.repo = new EventRepository(dbInstance); // or new EventRepository() if that exists
         this.auth = FirebaseAuth.getInstance();
+    }
+
+    public interface LocationsCallback {
+        void onSuccess(Map<String, Map<String, Double>> locations);
+        void onError(Exception e);
+    }
+
+    public void getEntrantLocations(String eventId, LocationsCallback callback) {
+        db.collection("events").document(eventId).collection("geoLocations")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    Map<String, Map<String, Double>> locationData = new HashMap<>();
+
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        String userName = doc.getId(); // Document ID is the username
+
+                        Double lat = doc.getDouble("latitude");
+                        Double lon = doc.getDouble("longitude");
+
+                        if (lat != null && lon != null) {
+                            Map<String, Double> coords = new HashMap<>();
+                            coords.put("latitude", lat);
+                            coords.put("longitude", lon);
+                            locationData.put(userName, coords);
+                        }
+                    }
+                    callback.onSuccess(locationData);
+                })
+                .addOnFailureListener(callback::onError);
     }
 
     /**
@@ -50,6 +81,7 @@ public class OrganizerEventManager {
             LocalDateTime registerEndTime,
             Integer waitListCapacity,
             List<String> filterWords,
+            boolean geolocationRequired,
             Runnable onSuccess,
             EventRepository.OnError onError
     ) {
@@ -66,6 +98,8 @@ public class OrganizerEventManager {
         map.put("selectionCap", event.getSelectionCap());
         map.put("IsOpen", event.getIsOpen());
         map.put("IsLottery", false);
+
+        map.put("geolocationRequired", geolocationRequired);
 
         map.put("posterUrl", event.getPosterUrl());
 
@@ -131,5 +165,28 @@ public class OrganizerEventManager {
         Map<String, Object> m = new HashMap<>();
         m.put("users", new ArrayList<String>());
         return m;
+    }
+
+    public void saveEntrantLocation(String eventId,
+                                    String userId,
+                                    double latitude,
+                                    double longitude,
+                                    Runnable onSuccess,
+                                    EventRepository.OnError onError) {
+
+        Map<String, Object> locationData = new HashMap<>();
+        locationData.put("userId", userId);
+        locationData.put("joinTimestamp", Timestamp.now());
+        locationData.put("latitude", latitude);
+        locationData.put("longitude", longitude);
+
+        db.collection("open events")
+                .document(eventId)
+                // New sub-collection to store location data
+                .collection("geo_locations")
+                .document(userId)
+                .set(locationData)
+                .addOnSuccessListener(v -> onSuccess.run())
+                .addOnFailureListener(onError::run);
     }
 }

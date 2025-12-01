@@ -52,6 +52,15 @@ public class OrganizerEventDetailsScreen extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         loadEvent();
         setupNavButtons();
+
+        binding.btnViewWaitlistMap.setOnClickListener(v -> handleViewWaitlistMap());
+    }
+
+    private void handleViewWaitlistMap() {
+        // Navigate to the map view, passing the event ID
+        NavHostFragment.findNavController(this)
+                .navigate(OrganizerEventDetailsScreenDirections
+                        .actionOrganizerEventDetailsScreenToGeoLocationMapScreen(eventId));
     }
 
     private void loadEvent() {
