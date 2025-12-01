@@ -67,6 +67,9 @@ dependencies {
     // For testing Navigation components locally.
     testImplementation("androidx.navigation:navigation-testing:2.7.7")
 
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
 
     // --- INSTRUMENTATION TESTS (src/androidTest) ---
     // These run on an Android device or emulator.
