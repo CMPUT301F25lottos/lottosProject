@@ -1,5 +1,7 @@
 package com.example.lottos.events;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -14,7 +16,15 @@ import com.example.lottos.TimeUtils;
 import com.example.lottos.databinding.FragmentEventDetailsScreenBinding;
 import com.google.firebase.Timestamp;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+
 import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
@@ -102,9 +112,7 @@ public class EventDetailsScreen extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        binding.btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(EventDetailsScreen.this).navigateUp()
-        );
+
         setupNavButtons();
 
         if (isAdmin) {
@@ -201,7 +209,6 @@ public class EventDetailsScreen extends Fragment {
         );
     }
 
-
     private String safe(Object o) {
         return o == null ? "" : o.toString();
     }
@@ -217,7 +224,9 @@ public class EventDetailsScreen extends Fragment {
         List<String> selectedEvents   = readUserList(userData, "selectedEvents");
         List<String> waitlistedEvents = readUserList(userData, "waitListedEvents");
         boolean isWaitlisted = waitlistedEvents.contains(eventName);
-        boolean isSelected   = selectedEvents.contains(eventName);
+        boolean isSelected = selectedEvents.contains(eventName);
+
+        // boolean isSelected   = selectedEvents.contains(eventName);
 
         // --- WAITLIST CAPACITY LOGIC ---
         int currentWaitSize = (waitUsers != null) ? waitUsers.size() : 0;
@@ -228,10 +237,12 @@ public class EventDetailsScreen extends Fragment {
             capacity = ((Number) capObj).intValue();
         }
 
+        // Entrant join/leave
+
         boolean hasLimit = capacity > 0;
         boolean isFull   = hasLimit && currentWaitSize >= capacity;
 
-        binding.btnBack.setVisibility(View.VISIBLE);
+
 
         if (isOpen) {
             binding.btnJoin.setVisibility(View.VISIBLE);
@@ -268,7 +279,13 @@ public class EventDetailsScreen extends Fragment {
             binding.btnDecline.setVisibility(View.GONE);
         }
     }
-
+    private void openEditEvent() {
+        NavHostFragment.findNavController(this)
+                .navigate(EventDetailsScreenDirections
+                        .actionEventDetailsScreenToEditEventScreen(userName, eventName));
+    }
+    // Reads nested structure like:
+    // "selectedEvents": { "events": [ ... ] }
 
     private List<String> readUserList(Map<String, Object> userData, String key) {
         if (userData == null) return new ArrayList<>();
