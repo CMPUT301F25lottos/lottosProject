@@ -47,7 +47,7 @@ public class GeoLocationMapScreen extends Fragment implements OnMapReadyCallback
     private GoogleMap mMap;
 
     private String eventId;
-    private String userName;  // Needed for navigation context
+    private String userName;
     private OrganizerEventManager manager;
 
     /**
@@ -76,16 +76,14 @@ public class GeoLocationMapScreen extends Fragment implements OnMapReadyCallback
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get eventId + username
         if (getArguments() != null) {
             GeoLocationMapScreenArgs args = GeoLocationMapScreenArgs.fromBundle(getArguments());
             eventId = args.getEventId();
-            userName = args.getUserName();   // Make sure NavGraph passes this
+            userName = args.getUserName();
         }
 
         manager = new OrganizerEventManager();
 
-        // Initialize Google Map
         SupportMapFragment mapFragment = (SupportMapFragment)
                 getChildFragmentManager().findFragmentById(R.id.map_container);
 
@@ -133,7 +131,6 @@ public class GeoLocationMapScreen extends Fragment implements OnMapReadyCallback
                                 .actionGeoLocationMapScreenToProfileScreen(userName)));
     }
 
-    // ------------------------------ MAP LOGIC -------------------------------- //
 
     /**
      * Callback method that is triggered when the Google Map is ready to be used.
@@ -208,30 +205,7 @@ public class GeoLocationMapScreen extends Fragment implements OnMapReadyCallback
         }
     }
 
-    private void toast(String msg) {
-        if (getContext() == null) return;
-        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
-            // Filter out default/dummy coordinates (e.g., 0.0, 0.0) if they are not meaningful.
-            if (lat != null && lon != null && (lat != 0.0 || lon != 0.0)) {
-                LatLng userLatLng = new LatLng(lat, lon);
-                mMap.addMarker(new MarkerOptions().position(userLatLng).title(userName));
 
-                // Save the first valid location to focus the camera on it.
-                if (firstLocation == null) {
-                    firstLocation = userLatLng;
-                }
-            }
-        }
-
-        // Move camera to the first recorded location if available.
-        if (firstLocation != null) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, 10));
-        } else {
-            // If no valid locations were found, center the map on a generic location and inform the user.
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(39.8283, -98.5795), 2)); // Center of the US
-            toast("No valid geolocation was captured for entrants.");
-        }
-    }
 
     /**
      * A utility method to display a long toast message, checking for a valid context.

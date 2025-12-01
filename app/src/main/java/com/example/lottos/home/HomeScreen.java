@@ -47,15 +47,12 @@ public class HomeScreen extends Fragment {
     private String userName;
     private boolean isAdmin = false;
 
-    // Full event list from Firestore (source of truth for filtering)
     private final List<EntrantEventManager.EventModel> allEvents = new ArrayList<>();
 
-    // Current interest filters + availability filters
     private final List<String> selectedKeywordFilters = new ArrayList<>();
     private Long availabilityFromMillis = null;
     private Long availabilityToMillis = null;
 
-    // List used by the RecyclerView adapter
     private final List<EventListAdapter.EventItem> eventItems = new ArrayList<>();
     private EventListAdapter adapter;
 
@@ -120,9 +117,8 @@ public class HomeScreen extends Fragment {
         manager = new EntrantEventManager();
 
         setupRecycler();
-        setupNavButtons();     // includes btnFilter wiring
+        setupNavButtons();
 
-        // Update statuses → sweep expired selections → then load events
         eventUpdater.updateEventStatuses(new EventStatusUpdater.UpdateListener() {
             @Override
             public void onUpdateSuccess(int updatedCount) {
@@ -213,7 +209,6 @@ public class HomeScreen extends Fragment {
                 allEvents.clear();
                 allEvents.addAll(list);
 
-                // Reset filters when reloading
                 selectedKeywordFilters.clear();
                 availabilityFromMillis = null;
                 availabilityToMillis = null;
@@ -292,18 +287,15 @@ public class HomeScreen extends Fragment {
      * list of events and updates the RecyclerView to show the filtered result.
      */
     private void applyAllFiltersAndUpdate() {
-        // 1) filter by interests
         List<EntrantEventManager.EventModel> filtered =
                 manager.filterEventsByKeywords(allEvents, selectedKeywordFilters);
 
-        // 2) filter by availability
         filtered = manager.filterEventsByAvailability(
                 filtered,
                 availabilityFromMillis,
                 availabilityToMillis
         );
 
-        // 3) push to adapter
         updateAdapterWithEvents(filtered);
     }
 
@@ -328,7 +320,6 @@ public class HomeScreen extends Fragment {
                         .navigate(HomeScreenDirections
                                 .actionHomeScreenToNotificationScreen(userName)));
 
-        // Filter button: keywords + availability via one dialog
         binding.btnFilter.setOnClickListener(v -> showFilterDialog());
 
         if (isAdmin) {
@@ -430,7 +421,6 @@ public class HomeScreen extends Fragment {
         int m = cal.get(Calendar.MONTH);
         int d = cal.get(Calendar.DAY_OF_MONTH);
 
-        // Pick FROM date
         DatePickerDialog fromDialog = new DatePickerDialog(
                 requireContext(),
                 (view, year, month, dayOfMonth) -> {
@@ -439,7 +429,6 @@ public class HomeScreen extends Fragment {
                     fromCal.set(year, month, dayOfMonth, 0, 0, 0);
                     availabilityFromMillis = fromCal.getTimeInMillis();
 
-                    // Now pick TO date
                     DatePickerDialog toDialog = new DatePickerDialog(
                             requireContext(),
                             (view2, year2, month2, dayOfMonth2) -> {

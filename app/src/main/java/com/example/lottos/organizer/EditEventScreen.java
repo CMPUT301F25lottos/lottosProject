@@ -86,10 +86,7 @@ public class EditEventScreen extends Fragment {
      * @return The View for the fragment's UI.
      */
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container,
-                             Bundle savedInstanceState) {
-
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentEditEventScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -102,8 +99,7 @@ public class EditEventScreen extends Fragment {
      * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
      */
     @Override
-    public void onViewCreated(@NonNull View view,
-                              Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         EditEventScreenArgs args = EditEventScreenArgs.fromBundle(getArguments());
@@ -114,7 +110,6 @@ public class EditEventScreen extends Fragment {
         repo = new EventRepository(db);
         manager = new OrganizerEventManager(repo, db, FirebaseAuth.getInstance());
 
-        // Setup the MultiAutoCompleteTextView for filter keywords.
         setupFilterKeywordField();
         loadEventInfo();
 
@@ -152,8 +147,6 @@ public class EditEventScreen extends Fragment {
         MultiAutoCompleteTextView etFilter = binding.etFilter;
         etFilter.setAdapter(adapter);
         etFilter.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
-
-        // Shows the suggestion dropdown when the user taps the field.
         etFilter.setOnClickListener(v -> etFilter.showDropDown());
     }
 
@@ -189,22 +182,15 @@ public class EditEventScreen extends Fragment {
                 if (reg != null)
                     binding.etRegisterEndTime.setText(timestampToLocal(reg).format(formatter));
 
-                // Poster
                 String url = snapshot.getString("posterUrl");
-                ImageLoader.load(
-                        url,
-                        binding.imgEventPoster,
-                        com.example.lottos.R.drawable.sample_event
-                );
+                ImageLoader.load(url, binding.imgEventPoster, com.example.lottos.R.drawable.sample_event);
 
-                // Filter keywords
                 String existingKeywords = snapshot.getString("filterKeywords");
                 if (existingKeywords != null && !existingKeywords.isEmpty()) {
                     binding.etFilter.setText(existingKeywords);
                     binding.etFilter.setSelection(existingKeywords.length());
                 }
 
-                // 🔹 LOAD GEOLOCATION REQUIRED
                 Boolean geo = snapshot.getBoolean("geolocationRequired");
                 binding.switchGeolocationRequired.setChecked(geo != null && geo);
 
@@ -230,7 +216,6 @@ public class EditEventScreen extends Fragment {
         String capStr = binding.etCapacity.getText().toString().trim();
         String wlStr = binding.etWaitListCapacity.getText().toString().trim();
 
-        // Read the comma-separated keywords from the MultiAutoCompleteTextView.
         String filterKeywords = binding.etFilter.getText().toString().trim();
 
         if (name.isEmpty() || location.isEmpty()) {
@@ -280,10 +265,8 @@ public class EditEventScreen extends Fragment {
         if (end != null) updates.put("endTime", toTimestamp(end));
         if (reg != null) updates.put("registerEndTime", toTimestamp(reg));
 
-        // Save the keywords as one comma-separated string in Firestore.
         updates.put("filterKeywords", filterKeywords);
 
-        // 🔹 SAVE GEOLOCATION FLAG
         boolean geoRequired = binding.switchGeolocationRequired.isChecked();
         updates.put("geolocationRequired", geoRequired);
 

@@ -41,9 +41,7 @@ public class WelcomeScreen extends Fragment {
      * @return The root View for the fragment's UI.
      */
     @Override
-    public View onCreateView(
-            @NonNull LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState
     ) {
         binding = FragmentWelcomeScreenBinding.inflate(inflater,container,false);
         return binding.getRoot();
@@ -81,7 +79,6 @@ public class WelcomeScreen extends Fragment {
                                         NavHostFragment.findNavController(WelcomeScreen.this)
                                                 .navigate(WelcomeScreenDirections.actionWelcomeScreenToHomeScreen(user));
                                     } else {
-                                        // If the device is not registered, log the user out.
                                         UserSession.logout(requireContext());
                                     }
                                 })
@@ -95,7 +92,7 @@ public class WelcomeScreen extends Fragment {
                         UserSession.logout(requireContext());
                     });
 
-            return; // Stop further execution while the async check is in progress.
+            return;
         }
 
 

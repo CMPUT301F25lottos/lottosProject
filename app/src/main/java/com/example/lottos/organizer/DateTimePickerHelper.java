@@ -43,16 +43,14 @@ public class DateTimePickerHelper {
     public void showDateTimePicker(EditText target) {
         final Calendar calendar = Calendar.getInstance();
 
-        // 1. Create and show the Date Picker Dialog.
+
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 context,
                 (view, year, month, dayOfMonth) -> {
-                    // This lambda is called when a date is selected.
                     calendar.set(Calendar.YEAR, year);
                     calendar.set(Calendar.MONTH, month);
                     calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
 
-                    // 2. After picking a date, create and show the Time Picker Dialog.
                     TimePickerDialog timePickerDialog = new TimePickerDialog(
                             context,
                             (timeView, hourOfDay, minute) -> {
@@ -60,14 +58,13 @@ public class DateTimePickerHelper {
                                 calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
                                 calendar.set(Calendar.MINUTE, minute);
 
-                                // 3. Format the final Calendar object and update the EditText.
                                 SimpleDateFormat sdf = new SimpleDateFormat(
                                         "yyyy-MM-dd HH:mm", Locale.getDefault());
                                 target.setText(sdf.format(calendar.getTime()));
                             },
                             calendar.get(Calendar.HOUR_OF_DAY),
                             calendar.get(Calendar.MINUTE),
-                            true // Use 24-hour format.
+                            true
                     );
                     timePickerDialog.show();
                 },

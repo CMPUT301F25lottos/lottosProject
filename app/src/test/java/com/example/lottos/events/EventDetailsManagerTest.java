@@ -119,7 +119,7 @@ public class EventDetailsManagerTest {
         when(mockEventSnap.getBoolean("IsOpen")).thenReturn(true);
         when(mockTransaction.get(mockEventDocRef)).thenReturn(mockEventSnap);
 
-        eventDetailsManager.joinWaitlist("testEvent", "testUser", mockOnSuccessRunnable, mockRepoOnError);
+        eventDetailsManager.joinWaitlist("testEvent", "testUser", 0.0, 0.0, mockOnSuccessRunnable, mockRepoOnError);
 
         verify(mockTransaction).update(eq(mockEventDocRef), eq("waitList.users"), any(FieldValue.class));
         verify(mockTransaction).update(eq(mockUserDocRef), eq("waitListedEvents.events"), any(FieldValue.class));

@@ -63,14 +63,7 @@ public class OrganizerEventManager {
         void onError(Exception e);
     }
 
-    // -------------------------------------------------------------
-    // 🔥 FIXED: LOAD GEOLOCATIONS USING EVENT NAME AS THE DOCUMENT ID
-    // -------------------------------------------------------------
-    public void getEntrantLocations(String eventName, LocationsCallback callback) {
 
-        db.collection("open events")
-                .document(eventName)                // ✔ eventName instead of eventId
-                .collection("geo_locations")
     /**
      * Retrieves the stored geographic locations of all entrants for a specific event.
      * It reads from the `geo_locations` sub-collection of an event document.
@@ -116,9 +109,7 @@ public class OrganizerEventManager {
      * @param db The FirebaseFirestore instance to use.
      * @param auth The FirebaseAuth instance to use.
      */
-    public OrganizerEventManager(EventRepository repo,
-                                 FirebaseFirestore db,
-                                 FirebaseAuth auth) {
+    public OrganizerEventManager(EventRepository repo, FirebaseFirestore db, FirebaseAuth auth) {
         this.repo = repo;
         this.db = db;
         this.auth = auth;
@@ -138,19 +129,10 @@ public class OrganizerEventManager {
      * @param onSuccess A callback to be executed upon successful creation of the event.
      * @param onError A callback to handle any errors that occur during the process.
      */
-    public void createEvent(
-            Event event,
-            LocalDateTime registerEndTime,
-            Integer waitListCapacity,
-            List<String> filterWords,
-            boolean geolocationRequired,
-            Runnable onSuccess,
-            EventRepository.OnError onError
+    public void createEvent(Event event, LocalDateTime registerEndTime, Integer waitListCapacity, List<String> filterWords, boolean geolocationRequired, Runnable onSuccess, EventRepository.OnError onError
     ) {
 
         String eventId = event.getEventName();
-        // ✔ You ALREADY use eventName as the Firestore document key.
-
         Map<String, Object> map = new HashMap<>();
         map.put("eventId", eventId);
         map.put("eventName", event.getEventName());
@@ -201,10 +183,7 @@ public class OrganizerEventManager {
      * @param onSuccess A callback to run on successful update.
      * @param onError A callback to handle any errors.
      */
-    public void updateEvent(String eventId,
-                            Map<String, Object> updates,
-                            Runnable onSuccess,
-                            EventRepository.OnError onError) {
+    public void updateEvent(String eventId, Map<String, Object> updates, Runnable onSuccess, EventRepository.OnError onError) {
         repo.updateEvent(eventId, updates, onSuccess, onError);
     }
 
@@ -216,9 +195,7 @@ public class OrganizerEventManager {
      * @param onSuccess A callback to run on successful deletion.
      * @param onError A callback to handle any errors.
      */
-    public void deleteEvent(String eventId,
-                            Runnable onSuccess,
-                            EventRepository.OnError onError) {
+    public void deleteEvent(String eventId, Runnable onSuccess, EventRepository.OnError onError) {
         repo.deleteEvent(eventId, onSuccess, onError);
     }
 
@@ -268,12 +245,7 @@ public class OrganizerEventManager {
      * @param onSuccess A callback to run on success.
      * @param onError A callback to handle failures.
      */
-    public void saveEntrantLocation(String eventId,
-                                    String userId,
-                                    double latitude,
-                                    double longitude,
-                                    Runnable onSuccess,
-                                    EventRepository.OnError onError) {
+    public void saveEntrantLocation(String eventId, String userId, double latitude,double longitude, Runnable onSuccess, EventRepository.OnError onError) {
 
         Map<String, Object> locationData = new HashMap<>();
         locationData.put("userId", userId);
@@ -282,7 +254,7 @@ public class OrganizerEventManager {
         locationData.put("timestamp", Timestamp.now());
 
         db.collection("open events")
-                .document(eventName)                // ✔ matches getEntrantLocations()
+                .document(eventId)                // ✔ matches getEntrantLocations()
                 .collection("geo_locations")
                 .document(userId)
                 .set(locationData)

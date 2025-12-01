@@ -126,7 +126,6 @@ public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> 
     private final List<EventItem> events;
     private final Listener listener;
     private int selectedPosition = RecyclerView.NO_POSITION;
-
     private final ExecutorService imageExecutor = Executors.newFixedThreadPool(3);
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -207,16 +206,14 @@ public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> 
         if (evt.posterUrl != null && !evt.posterUrl.isEmpty()) {
             loadImageInto(holder.eventImage, evt.posterUrl);
         } else {
-            // Set a default placeholder image if no URL is provided.
+
             holder.eventImage.setImageResource(R.drawable.sample_event);
         }
 
-        // Handle clicks on the entire item view for selection.
         holder.itemView.setOnClickListener(v -> {
             int old = selectedPosition;
             selectedPosition = holder.getAdapterPosition();
 
-            // Redraw the previously selected and newly selected items to update their backgrounds.
             if (old != RecyclerView.NO_POSITION) notifyItemChanged(old);
             notifyItemChanged(selectedPosition);
 
@@ -250,10 +247,9 @@ public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> 
      * @param urlString The URL of the image to download.
      */
     private void loadImageInto(ImageView imageView, String urlString) {
-        // Tag the ImageView with the URL to prevent incorrect images from being set
-        // if the view is recycled before the download completes.
+
         imageView.setTag(urlString);
-        imageView.setImageResource(R.drawable.sample_event); // Set initial placeholder
+        imageView.setImageResource(R.drawable.sample_event);
 
         imageExecutor.execute(() -> {
             Bitmap bmp = null;
@@ -265,13 +261,11 @@ public class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.VH> 
                 try (InputStream in = conn.getInputStream()) {
                     bmp = BitmapFactory.decodeStream(in);
                 }
-            } catch (Exception ignored) {} // Errors are ignored; placeholder will remain.
+            } catch (Exception ignored) {}
 
             Bitmap finalBmp = bmp;
-            // Switch back to the main thread to update the UI.
+
             mainHandler.post(() -> {
-                // Only set the bitmap if the download was successful and the view
-                // is still expecting the image from this URL.
                 if (finalBmp != null && urlString.equals(imageView.getTag())) {
                     imageView.setImageBitmap(finalBmp);
                 }
