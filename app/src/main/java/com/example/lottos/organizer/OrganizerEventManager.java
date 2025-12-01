@@ -22,10 +22,6 @@ public class OrganizerEventManager {
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
 
-    /**
-     * ✅ No-arg constructor – used by your Fragments:
-     *   new OrganizerEventManager()
-     */
     public OrganizerEventManager() {
         // If your EventRepository needs a db, wire it here
         FirebaseFirestore dbInstance = FirebaseFirestore.getInstance();
@@ -63,9 +59,6 @@ public class OrganizerEventManager {
                 .addOnFailureListener(callback::onError);
     }
 
-    /**
-     * ✅ Full constructor – for dependency injection / testing
-     */
     public OrganizerEventManager(EventRepository repo,
                                  FirebaseFirestore db,
                                  FirebaseAuth auth) {
@@ -107,7 +100,6 @@ public class OrganizerEventManager {
             map.put("waitListCapacity", waitListCapacity);
         }
 
-        // ✅ store filterWords array in Firestore
         map.put("filterWords", filterWords);
 
         map.put("startTime", toTimestamp(event.getStartTime()));
