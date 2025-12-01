@@ -11,7 +11,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
-import com.example.lottos.R; // Ensure your R file is imported
 import com.example.lottos.databinding.FragmentGeoLocationMapScreenBinding;
 import com.example.lottos.organizer.OrganizerEventManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -24,6 +23,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.Map;
 
 /**
+ * Displays a map showing markers for all entrants who submitted geolocation.
  * A Fragment that displays a Google Map with markers representing the geographic
  * locations of all users who have checked into a specific event.
  *
@@ -45,7 +45,9 @@ public class GeoLocationMapScreen extends Fragment implements OnMapReadyCallback
 
     private FragmentGeoLocationMapScreenBinding binding;
     private GoogleMap mMap;
+
     private String eventId;
+    private String userName;  // Needed for navigation context
     private OrganizerEventManager manager;
 
     /**
@@ -74,24 +76,64 @@ public class GeoLocationMapScreen extends Fragment implements OnMapReadyCallback
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Retrieve the eventId from the navigation arguments
+        // Get eventId + username
         if (getArguments() != null) {
             GeoLocationMapScreenArgs args = GeoLocationMapScreenArgs.fromBundle(getArguments());
             eventId = args.getEventId();
+            userName = args.getUserName();   // Make sure NavGraph passes this
         }
 
         manager = new OrganizerEventManager();
 
-        // Get the SupportMapFragment and request the map object asynchronously.
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
-                .findFragmentById(R.id.map_container);
+        // Initialize Google Map
+        SupportMapFragment mapFragment = (SupportMapFragment)
+                getChildFragmentManager().findFragmentById(R.id.map_container);
 
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
+        } else {
+            toast("Error loading map.");
         }
 
-        binding.btnBack.setOnClickListener(v -> NavHostFragment.findNavController(this).navigateUp());
+        setupBackButton();
+        setupNavButtons();
     }
+
+    private void setupBackButton() {
+        binding.btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(this).navigateUp()
+        );
+    }
+
+    private void setupNavButtons() {
+
+        binding.btnHome.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(GeoLocationMapScreenDirections
+                                .actionGeoLocationMapScreenToHomeScreen(userName)));
+
+        binding.btnOpenEvents.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(GeoLocationMapScreenDirections
+                                .actionGeoLocationMapScreenToOrganizerEventsScreen(userName)));
+
+        binding.btnNotification.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(GeoLocationMapScreenDirections
+                                .actionGeoLocationMapScreenToNotificationScreen(userName)));
+
+        binding.btnEventHistory.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(GeoLocationMapScreenDirections
+                                .actionGeoLocationMapScreenToEventHistoryScreen(userName)));
+
+        binding.btnProfile.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(GeoLocationMapScreenDirections
+                                .actionGeoLocationMapScreenToProfileScreen(userName)));
+    }
+
+    // ------------------------------ MAP LOGIC -------------------------------- //
 
     /**
      * Callback method that is triggered when the Google Map is ready to be used.
@@ -103,38 +145,32 @@ public class GeoLocationMapScreen extends Fragment implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.getUiSettings().setZoomControlsEnabled(true);
-        loadEntrantLocations();
-    }
 
-    /**
-     * Initiates the process of loading entrant locations from the OrganizerEventManager.
-     * It provides a callback to handle the success or failure of the data fetching operation.
-     */
-    private void loadEntrantLocations() {
-        if (eventId == null || manager == null) {
-            toast("Error: Event ID is missing.");
+        if (eventId == null) {
+            toast("Missing event ID.");
             return;
         }
 
-        manager.getEntrantLocations(eventId,
-                new OrganizerEventManager.LocationsCallback() {
-                    @Override
-                    public void onSuccess(Map<String, Map<String, Double>> locations) {
-                        if (locations.isEmpty()) {
-                            toast("No location data recorded for this event.");
-                            // Move camera to a default world view if no data exists.
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(0, 0), 2));
-                            return;
-                        }
-                        plotMarkers(locations);
-                    }
+        loadEntrantLocations();
+    }
 
-                    @Override
-                    public void onError(Exception e) {
-                        toast("Failed to load locations: " + e.getMessage());
-                    }
+    private void loadEntrantLocations() {
+        manager.getEntrantLocations(eventId, new OrganizerEventManager.LocationsCallback() {
+            @Override
+            public void onSuccess(Map<String, Map<String, Double>> locations) {
+                if (locations.isEmpty()) {
+                    toast("No location data recorded for entrants.");
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(0, 0), 2));
+                    return;
                 }
-        );
+                plotMarkers(locations);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                toast("Failed to load geolocation data: " + e.getMessage());
+            }
+        });
     }
 
     /**
@@ -147,12 +183,34 @@ public class GeoLocationMapScreen extends Fragment implements OnMapReadyCallback
         LatLng firstLocation = null;
 
         for (Map.Entry<String, Map<String, Double>> entry : locations.entrySet()) {
-            String userName = entry.getKey();
+            String user = entry.getKey();
             Map<String, Double> coords = entry.getValue();
 
             Double lat = coords.get("latitude");
             Double lon = coords.get("longitude");
 
+            if (lat == null || lon == null) continue;
+            if (lat == 0.0 && lon == 0.0) continue;
+
+            LatLng userLatLng = new LatLng(lat, lon);
+            mMap.addMarker(new MarkerOptions().position(userLatLng).title(user));
+
+            if (firstLocation == null) {
+                firstLocation = userLatLng;
+            }
+        }
+
+        if (firstLocation != null) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, 10));
+        } else {
+            toast("No valid geolocation found.");
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(0, 0), 2));
+        }
+    }
+
+    private void toast(String msg) {
+        if (getContext() == null) return;
+        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
             // Filter out default/dummy coordinates (e.g., 0.0, 0.0) if they are not meaningful.
             if (lat != null && lon != null && (lat != 0.0 || lon != 0.0)) {
                 LatLng userLatLng = new LatLng(lat, lon);

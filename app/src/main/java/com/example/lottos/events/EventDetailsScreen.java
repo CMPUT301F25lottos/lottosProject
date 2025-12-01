@@ -1,61 +1,37 @@
 package com.example.lottos.events;
 
+import android.Manifest;
 import android.content.Intent;import android.net.Uri;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Color;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.example.lottos.ImageLoader;
-import com.example.lottos.TimeUtils;
-import com.example.lottos.databinding.FragmentEventDetailsScreenBinding;
-import com.google.firebase.Timestamp;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
-
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.core.content.FileProvider;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Handler;
-import android.os.Looper;
-
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import android.Manifest;
-import android.content.pm.PackageManager;
-import androidx.core.content.ContextCompat;
+import com.example.lottos.ImageLoader;
+import com.example.lottos.TimeUtils;
+import com.example.lottos.databinding.FragmentEventDetailsScreenBinding;
+import com.example.lottos.events.QRCodeGenerator;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * A Fragment that displays the detailed information for a single event.
@@ -72,8 +48,9 @@ public class EventDetailsScreen extends Fragment {
     private String userName;
     private boolean isAdmin = false;
     private EventDetailsManager manager;
+
+    private boolean isGeolocationRequired = false;
     private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
-    private boolean isGeolocationRequired = false; // Story 2 state read from event
     private FusedLocationProviderClient fusedLocationClient;
 
     /**
@@ -83,21 +60,20 @@ public class EventDetailsScreen extends Fragment {
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    // Permission granted, now attempt to get location
                     attemptJoinWaitlistWithLocation();
                 } else {
-                    // Permission denied
                     toast("Location permission is required for this event.");
                 }
             });
 
+    private void toast(String msg) {
     /**
      * Displays a short-duration Toast message.
      * @param message The text to display.
      */
     private void toast(String message) {
         if (getContext() != null) {
-            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -110,7 +86,9 @@ public class EventDetailsScreen extends Fragment {
      * @return The root view of the fragment's layout.
      */
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container,
+                             Bundle savedInstanceState) {
 
         binding = FragmentEventDetailsScreenBinding.inflate(inflater, container, false);
 
@@ -120,11 +98,10 @@ public class EventDetailsScreen extends Fragment {
             userName = args.getUserName();
         }
 
-        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
-        isAdmin = sharedPreferences.getBoolean("isAdmin", false);
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        isAdmin = prefs.getBoolean("isAdmin", false);
 
         manager = new EventDetailsManager();
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
         return binding.getRoot();
@@ -139,8 +116,6 @@ public class EventDetailsScreen extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-
         setupNavButtons();
 
         if (isAdmin) {
@@ -159,15 +134,12 @@ public class EventDetailsScreen extends Fragment {
      * and primarily provides the functionality to delete the event.
      */
     private void loadBasicEventDataForAdmin() {
-        binding.btnDeleteEvent.setOnClickListener(v -> showDeleteConfirmationDialog());
+        binding.btnDeleteEvent.setOnClickListener(v -> showDeleteDialog());
 
-        manager.getEventDetails(eventName, eventData -> {
-            if (eventData != null) {
-                renderEventData(eventData);
-            } else {
-                toast("Error: Event not found.");
-            }
-        }, e -> toast("Failed to load event details: " + e.getMessage()));
+        manager.getEventDetails(eventName, data -> {
+            if (data != null) renderEventData(data);
+            else toast("Event not found.");
+        }, e -> toast("Failed to load event: " + e.getMessage()));
     }
 
     /**
@@ -179,7 +151,10 @@ public class EventDetailsScreen extends Fragment {
         manager.loadEventForEntrant(eventName, userName,
                 new EventDetailsManager.LoadCallback() {
                     @Override
-                    public void onSuccess(Map<String, Object> eventData, List<String> waitUsers, Map<String, Object> userData) {
+                    public void onSuccess(Map<String, Object> eventData,
+                                          List<String> waitUsers,
+                                          Map<String, Object> userData) {
+
                         renderEventData(eventData);
                         updateUI(eventData, waitUsers, userData);
                     }
@@ -196,51 +171,53 @@ public class EventDetailsScreen extends Fragment {
      */
     private void renderEventData(Map<String, Object> data) {
 
-        String posterUrl = (String) data.get("posterUrl");
-        loadPoster(posterUrl);
+        ImageLoader.load(
+                (String) data.get("posterUrl"),
+                binding.ivEventPoster,
+                com.example.lottos.R.drawable.sample_event
+        );
 
         binding.tvEventName.setText(safe(data.get("eventName")));
         binding.tvLocation.setText(safe(data.get("location")));
-
         binding.tvStartTime.setText(TimeUtils.formatEventTime(data.get("startTime")));
         binding.tvEndTime.setText(" ~ " + TimeUtils.formatEventTime(data.get("endTime")));
+
         binding.tvWLCloseDateTime.setText(
                 "Register End Time: " + TimeUtils.formatEventTime(data.get("registerEndTime"))
         );
 
-        Map<String, Object> waitList = (Map<String, Object>) data.get("waitList");
-        if (waitList != null) {
-            List<?> users = (List<?>) waitList.get("users");
-            int userCount = (users != null) ? users.size() : 0;
-            binding.tvWLCount.setText("Number of Entrants on WaitList: " + userCount);
-        } else {
-            binding.tvWLCount.setText("Number of Entrants on WaitList: 0");
+        Object waitList = data.get("waitList");
+        if (waitList instanceof Map && ((Map<?, ?>) waitList).get("users") instanceof List) {
+            binding.tvWLCount.setText("Number of Entrants on WaitList: " +
+                    ((List<?>) ((Map<?, ?>) waitList).get("users")).size());
         }
 
         binding.tvDescription.setText(safe(data.get("description")));
         binding.tvCapacity.setText("Event Capacity: " + safe(data.get("selectionCap")));
 
-        Object geoReqObj = data.get("geolocationRequired");
-        isGeolocationRequired = Boolean.TRUE.equals(geoReqObj);
+        Object geoReq = data.get("geolocationRequired");
+        isGeolocationRequired = Boolean.TRUE.equals(geoReq);
 
-        String capacity = "No Restriction";
-
-        Object wlCapacityObj = data.get("waitListCapacity");
-
-        if (wlCapacityObj instanceof Number) {
-            capacity = String.valueOf(((Number) wlCapacityObj).intValue());
-        } else if (wlCapacityObj instanceof String) {
-            try {
-                capacity = String.valueOf(Integer.parseInt((String) wlCapacityObj));
-            } catch (NumberFormatException ignored) {
-                // leave as "No Restriction"
-            }
-        }
-
-        binding.tvWLSize.setText("Wait List Capacity: " + capacity);
+        Object cap = data.get("waitListCapacity");
+        binding.tvWLSize.setText("Wait List Capacity: " +
+                (cap instanceof Number ? String.valueOf(cap) : "No Restriction"));
     }
 
+    private String safe(Object o) { return o == null ? "" : o.toString(); }
 
+    private List<String> readUserList(Map<String, Object> userData, String key) {
+        if (userData == null) return new ArrayList<>();
+        Object parent = userData.get(key);
+        if (!(parent instanceof Map)) return new ArrayList<>();
+        Object list = ((Map<?, ?>) parent).get("events");
+        if (list instanceof List) return (List<String>) list;
+        return new ArrayList<>();
+    }
+
+    /** ─────────────────────────────────────────────────────────────
+     *  MAIN UI LOGIC
+     *  Handles: Join/Leave | Accept/Decline | Show QR
+     *  ───────────────────────────────────────────────────────────── */
     /**
      * Loads the event poster image from a given URL into the ImageView.
      * Uses a placeholder image if the URL is null or loading fails.
@@ -274,42 +251,33 @@ public class EventDetailsScreen extends Fragment {
                           Map<String, Object> userData) {
 
         boolean isOpen = Boolean.TRUE.equals(eventData.get("IsOpen"));
-        boolean isLottery = Boolean.TRUE.equals(eventData.get("IsLottery"));
-        String organizer = safe(eventData.get("organizer"));
-        boolean isOrganizer = organizer.equalsIgnoreCase(userName);
+        List<String> selected = readUserList(userData, "selectedEvents");
+        List<String> waitlisted = readUserList(userData, "waitListedEvents");
 
-        List<String> selectedEvents   = readUserList(userData, "selectedEvents");
-        List<String> waitlistedEvents = readUserList(userData, "waitListedEvents");
-        boolean isWaitlisted = waitlistedEvents.contains(eventName);
-        boolean isSelected = selectedEvents.contains(eventName);
+        boolean isSelected = selected.contains(eventName);
+        boolean isWaitlisted = waitlisted.contains(eventName);
 
-        // boolean isSelected   = selectedEvents.contains(eventName);
+        int currentWait = waitUsers != null ? waitUsers.size() : 0;
+        int capacity = (eventData.get("waitListCapacity") instanceof Number)
+                ? ((Number) eventData.get("waitListCapacity")).intValue()
+                : -1;
 
-        // Show QR code if user is selected/enrolled
-        if (isSelected) {
-            Bitmap qr = generateQRCode(userName + "_" + eventName);
-            if (qr != null) {
-                binding.ivEventPoster.setImageBitmap(qr);
-            }
-        }
+        boolean isFull = capacity > 0 && currentWait >= capacity;
 
 
-        // --- WAITLIST CAPACITY LOGIC ---
-        int currentWaitSize = (waitUsers != null) ? waitUsers.size() : 0;
+        /** ───────────────────────────────────────────────
+         *  ALWAYS SHOW QR CODE AT BOTTOM OF PAGE
+         *  ─────────────────────────────────────────────── */
+        String qrContent = userName + "_" + eventName;
+        Bitmap qr = QRCodeGenerator.generate(qrContent, 512);
 
-        int capacity = -1;  // -1 = no limit
-        Object capObj = eventData.get("waitListCapacity");  // top-level field
-        if (capObj instanceof Number) {
-            capacity = ((Number) capObj).intValue();
-        }
-
-        // Entrant join/leave
-
-        boolean hasLimit = capacity > 0;
-        boolean isFull   = hasLimit && currentWaitSize >= capacity;
+        binding.imageQRCode.setVisibility(View.VISIBLE);
+        binding.imageQRCode.setImageBitmap(qr);
 
 
-
+        /** ───────────────────────────────────────────────
+         *  WAITLIST JOIN / LEAVE BUTTONS
+         *  ─────────────────────────────────────────────── */
         if (isOpen) {
             binding.btnJoin.setVisibility(View.VISIBLE);
 
@@ -318,32 +286,39 @@ public class EventDetailsScreen extends Fragment {
                 binding.btnJoin.setText("Leave Waitlist");
                 binding.btnJoin.setOnClickListener(v -> leaveWaitlist());
 
+            } else if (isFull) {
+                binding.btnJoin.setEnabled(false);
+                binding.btnJoin.setText("Waitlist Full");
+
             } else {
-                if (isFull) {
-                    binding.btnJoin.setEnabled(false);
-                    binding.btnJoin.setText("Waitlist Full");
-                    binding.btnJoin.setOnClickListener(null); // no-op
-                } else {
-                    binding.btnJoin.setEnabled(true);
-                    binding.btnJoin.setText("Join Waitlist");
-                    binding.btnJoin.setOnClickListener(v -> joinWaitlist());
-                }
+                binding.btnJoin.setEnabled(true);
+                binding.btnJoin.setText("Join Waitlist");
+                binding.btnJoin.setOnClickListener(v -> joinWaitlist());
             }
+
         } else {
             binding.btnJoin.setVisibility(View.GONE);
         }
 
+        /** ───────────────────────────────────────────────
+         *  ACCEPT / DECLINE UI
+         *  ─────────────────────────────────────────────── */
         if (!isOpen && isSelected) {
             binding.btnAccept.setVisibility(View.VISIBLE);
             binding.btnDecline.setVisibility(View.VISIBLE);
 
             binding.btnAccept.setOnClickListener(v -> acceptInvite());
             binding.btnDecline.setOnClickListener(v -> declineInvite());
-
         } else {
             binding.btnAccept.setVisibility(View.GONE);
             binding.btnDecline.setVisibility(View.GONE);
         }
+    }
+
+
+    /** ─────────────────────────────────────────────────────────────
+     *  JOIN / LEAVE / ACCEPT / DECLINE
+     *  ───────────────────────────────────────────────────────────── */
 
         // Show QR code for selected entrant after event is closed
         if (!isOpen && isSelected) {
@@ -429,15 +404,14 @@ public class EventDetailsScreen extends Fragment {
      */
     private void joinWaitlist() {
         if (isGeolocationRequired) {
-            // Check if permission is already granted
-            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(requireContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
                 attemptJoinWaitlistWithLocation();
             } else {
-                // Request permission using the launcher defined above
                 requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
             }
         } else {
-            // If location is NOT required, use dummy coordinates (0, 0)
             performJoinWaitlist(0.0, 0.0);
         }
     }
@@ -448,7 +422,6 @@ public class EventDetailsScreen extends Fragment {
      */
     @SuppressWarnings({"MissingPermission"}) // Permission is checked by caller
     private void attemptJoinWaitlistWithLocation() {
-        // Attempt to get the user's last known location
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(requireActivity(), location -> {
                     if (location != null) {
@@ -457,9 +430,7 @@ public class EventDetailsScreen extends Fragment {
                         toast("Could not get location. Try again.");
                     }
                 })
-                .addOnFailureListener(e -> {
-                    toast("Location service error: " + e.getMessage());
-                });
+                .addOnFailureListener(e -> toast("Location error: " + e.getMessage()));
     }
 
     /**
@@ -468,7 +439,6 @@ public class EventDetailsScreen extends Fragment {
      * @param lon The user's longitude.
      */
     private void performJoinWaitlist(double lat, double lon) {
-        // Call the updated manager method with location
         manager.joinWaitlist(eventName, userName, lat, lon,
                 () -> {
                     toast("Joined waitlist");
@@ -495,10 +465,10 @@ public class EventDetailsScreen extends Fragment {
     private void acceptInvite() {
         manager.acceptInvite(eventName, userName,
                 () -> {
-                    toast("You are now enrolled!");
+                    toast("Accepted!");
                     loadEvent();
                 },
-                e -> toast("Failed to accept invite: " + e.getMessage()));
+                e -> toast("Failed: " + e.getMessage()));
     }
 
     /**
@@ -507,10 +477,36 @@ public class EventDetailsScreen extends Fragment {
     private void declineInvite() {
         manager.declineInvite(eventName, userName,
                 () -> {
-                    toast("You declined the invite.");
+                    toast("Declined invite.");
                     loadEvent();
                 },
-                e -> toast("Failed to decline invite: " + e.getMessage()));
+                e -> toast("Failed: " + e.getMessage()));
+    }
+
+    /** ─────────────────────────────────────────────────────────────
+     *  DELETE CONFIRMATION
+     *  ───────────────────────────────────────────────────────────── */
+    private void showDeleteDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Confirm Deletion")
+                .setMessage("Are you sure you want to delete this event?")
+                .setPositiveButton("Delete", (d, w) -> {
+                    binding.btnDeleteEvent.setEnabled(false);
+                    binding.btnDeleteEvent.setText("Deleting...");
+
+                    manager.deleteEvent(eventName,
+                            () -> {
+                                toast("Event deleted");
+                                NavHostFragment.findNavController(this).navigateUp();
+                            },
+                            e -> {
+                                toast("Error: " + e.getMessage());
+                                binding.btnDeleteEvent.setEnabled(true);
+                                binding.btnDeleteEvent.setText("Delete Event");
+                            });
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     /**
@@ -519,22 +515,27 @@ public class EventDetailsScreen extends Fragment {
     private void setupNavButtons() {
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this).navigateUp());
+
         binding.btnNotification.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(EventDetailsScreenDirections
                                 .actionEventDetailsScreenToNotificationScreen(userName)));
+
         binding.btnProfile.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(EventDetailsScreenDirections
                                 .actionEventDetailsScreenToProfileScreen(userName)));
+
         binding.btnHome.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(EventDetailsScreenDirections
                                 .actionEventDetailsScreenToHomeScreen(userName)));
+
         binding.btnOpenEvents.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(EventDetailsScreenDirections
                                 .actionEventDetailsScreenToOrganizerEventsScreen(userName)));
+
         binding.btnEventHistory.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(EventDetailsScreenDirections
@@ -565,30 +566,7 @@ public class EventDetailsScreen extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
         imageExecutor.shutdown();
+        binding = null;
     }
-
-    private Bitmap generateQRCode(String text) {
-        try {
-            BitMatrix bitMatrix = new MultiFormatWriter().encode(
-                    text,
-                    BarcodeFormat.QR_CODE,
-                    512, 512
-            );
-            int width = bitMatrix.getWidth();
-            int height = bitMatrix.getHeight();
-            Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
-                }
-            }
-            return bmp;
-        } catch (WriterException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
 }

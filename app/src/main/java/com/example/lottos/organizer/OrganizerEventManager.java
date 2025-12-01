@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 /**
  * Manages the business logic for event operations performed by an organizer.
@@ -41,10 +40,9 @@ public class OrganizerEventManager {
      * It initializes its own instances of Firestore, the EventRepository, and FirebaseAuth.
      */
     public OrganizerEventManager() {
-        // If your EventRepository needs a db, wire it here
         FirebaseFirestore dbInstance = FirebaseFirestore.getInstance();
         this.db = dbInstance;
-        this.repo = new EventRepository(dbInstance); // or new EventRepository() if that exists
+        this.repo = new EventRepository(dbInstance);
         this.auth = FirebaseAuth.getInstance();
     }
 
@@ -65,6 +63,14 @@ public class OrganizerEventManager {
         void onError(Exception e);
     }
 
+    // -------------------------------------------------------------
+    // 🔥 FIXED: LOAD GEOLOCATIONS USING EVENT NAME AS THE DOCUMENT ID
+    // -------------------------------------------------------------
+    public void getEntrantLocations(String eventName, LocationsCallback callback) {
+
+        db.collection("open events")
+                .document(eventName)                // ✔ eventName instead of eventId
+                .collection("geo_locations")
     /**
      * Retrieves the stored geographic locations of all entrants for a specific event.
      * It reads from the `geo_locations` sub-collection of an event document.
@@ -75,23 +81,30 @@ public class OrganizerEventManager {
     public void getEntrantLocations(String eventId, LocationsCallback callback) {
         db.collection("open events").document(eventId).collection("geo_locations")
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    Map<String, Map<String, Double>> locationData = new HashMap<>();
+                .addOnSuccessListener(querySnapshot -> {
 
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        String userName = doc.getId(); // Document ID is the username
+                    Map<String, Map<String, Double>> results = new HashMap<>();
 
+                    if (querySnapshot == null || querySnapshot.isEmpty()) {
+                        callback.onSuccess(results);
+                        return;
+                    }
+
+                    for (DocumentSnapshot doc : querySnapshot) {
+                        String userId = doc.getId();
                         Double lat = doc.getDouble("latitude");
                         Double lon = doc.getDouble("longitude");
 
-                        if (lat != null && lon != null) {
-                            Map<String, Double> coords = new HashMap<>();
-                            coords.put("latitude", lat);
-                            coords.put("longitude", lon);
-                            locationData.put(userName, coords);
-                        }
+                        if (lat == null || lon == null) continue;
+                        if (lat == 0.0 && lon == 0.0) continue;
+
+                        Map<String, Double> coords = new HashMap<>();
+                        coords.put("latitude", lat);
+                        coords.put("longitude", lon);
+                        results.put(userId, coords);
                     }
-                    callback.onSuccess(locationData);
+
+                    callback.onSuccess(results);
                 })
                 .addOnFailureListener(callback::onError);
     }
@@ -135,7 +148,8 @@ public class OrganizerEventManager {
             EventRepository.OnError onError
     ) {
 
-        String eventId = event.getEventId();
+        String eventId = event.getEventName();
+        // ✔ You ALREADY use eventName as the Firestore document key.
 
         Map<String, Object> map = new HashMap<>();
         map.put("eventId", eventId);
@@ -149,7 +163,6 @@ public class OrganizerEventManager {
         map.put("IsLottery", false);
 
         map.put("geolocationRequired", geolocationRequired);
-
         map.put("posterUrl", event.getPosterUrl());
 
         if (waitListCapacity != null) {
@@ -157,11 +170,9 @@ public class OrganizerEventManager {
         }
 
         map.put("filterWords", filterWords);
-
         map.put("startTime", toTimestamp(event.getStartTime()));
         map.put("endTime", toTimestamp(event.getEndTime()));
         map.put("registerEndTime", toTimestamp(registerEndTime));
-
         map.put("createdAt", Timestamp.now());
 
         map.put("waitList", makeWaitListMap());
@@ -266,17 +277,17 @@ public class OrganizerEventManager {
 
         Map<String, Object> locationData = new HashMap<>();
         locationData.put("userId", userId);
-        locationData.put("joinTimestamp", Timestamp.now());
         locationData.put("latitude", latitude);
         locationData.put("longitude", longitude);
+        locationData.put("timestamp", Timestamp.now());
 
         db.collection("open events")
-                .document(eventId)
-                // New sub-collection to store location data
+                .document(eventName)                // ✔ matches getEntrantLocations()
                 .collection("geo_locations")
                 .document(userId)
                 .set(locationData)
                 .addOnSuccessListener(v -> onSuccess.run())
                 .addOnFailureListener(onError::run);
     }
+
 }

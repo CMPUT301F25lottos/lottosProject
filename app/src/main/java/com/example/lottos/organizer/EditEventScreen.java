@@ -59,23 +59,9 @@ public class EditEventScreen extends Fragment {
 
     // A predefined list of keywords for the filter suggestions dropdown.
     private static final String[] PRESET_KEYWORDS = new String[] {
-            "Sports",
-            "Music",
-            "Food",
-            "Arts and Crafts",
-            "Charity",
-            "Cultural",
-            "Workshop",
-            "Party",
-            "Study",
-            "Networking",
-            "Family",
-            "Seniors",
-            "Teens",
-            "Health",
-            "Kids",
-            "Movie",
-            "Other"
+            "Sports", "Music", "Food", "Arts and Crafts", "Charity", "Cultural",
+            "Workshop", "Party", "Study", "Networking", "Family",
+            "Seniors", "Teens", "Health", "Kids", "Movie", "Other"
     };
 
     /**
@@ -130,7 +116,6 @@ public class EditEventScreen extends Fragment {
 
         // Setup the MultiAutoCompleteTextView for filter keywords.
         setupFilterKeywordField();
-
         loadEventInfo();
 
         DateTimePickerHelper helper = new DateTimePickerHelper(requireContext());
@@ -204,6 +189,7 @@ public class EditEventScreen extends Fragment {
                 if (reg != null)
                     binding.etRegisterEndTime.setText(timestampToLocal(reg).format(formatter));
 
+                // Poster
                 String url = snapshot.getString("posterUrl");
                 ImageLoader.load(
                         url,
@@ -211,13 +197,16 @@ public class EditEventScreen extends Fragment {
                         com.example.lottos.R.drawable.sample_event
                 );
 
-                // Load existing filter keywords into the MultiAutoCompleteTextView.
+                // Filter keywords
                 String existingKeywords = snapshot.getString("filterKeywords");
                 if (existingKeywords != null && !existingKeywords.isEmpty()) {
                     binding.etFilter.setText(existingKeywords);
-                    // Move cursor to the end of the text.
                     binding.etFilter.setSelection(existingKeywords.length());
                 }
+
+                // 🔹 LOAD GEOLOCATION REQUIRED
+                Boolean geo = snapshot.getBoolean("geolocationRequired");
+                binding.switchGeolocationRequired.setChecked(geo != null && geo);
 
             } else {
                 Toast.makeText(getContext(), "Event not found.", Toast.LENGTH_SHORT).show();
@@ -276,7 +265,7 @@ public class EditEventScreen extends Fragment {
         }
 
         if (reg != null && start != null && !start.isAfter(reg)) {
-            Toast.makeText(getContext(), "Register-end must be before start.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Registration end must be before start.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -293,6 +282,10 @@ public class EditEventScreen extends Fragment {
 
         // Save the keywords as one comma-separated string in Firestore.
         updates.put("filterKeywords", filterKeywords);
+
+        // 🔹 SAVE GEOLOCATION FLAG
+        boolean geoRequired = binding.switchGeolocationRequired.isChecked();
+        updates.put("geolocationRequired", geoRequired);
 
         if (selectedPosterUri != null) {
             uploadPosterAndUpdate(updates);
