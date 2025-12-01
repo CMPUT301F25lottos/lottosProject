@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,10 @@ import com.example.lottos.ImageLoader;
 import com.example.lottos.TimeUtils;
 import com.example.lottos.databinding.FragmentEventDetailsScreenBinding;
 import com.google.firebase.Timestamp;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -228,6 +233,15 @@ public class EventDetailsScreen extends Fragment {
 
         // boolean isSelected   = selectedEvents.contains(eventName);
 
+        // Show QR code if user is selected/enrolled
+        if (isSelected) {
+            Bitmap qr = generateQRCode(userName + "_" + eventName);
+            if (qr != null) {
+                binding.ivEventPoster.setImageBitmap(qr);
+            }
+        }
+
+
         // --- WAITLIST CAPACITY LOGIC ---
         int currentWaitSize = (waitUsers != null) ? waitUsers.size() : 0;
 
@@ -278,6 +292,27 @@ public class EventDetailsScreen extends Fragment {
             binding.btnAccept.setVisibility(View.GONE);
             binding.btnDecline.setVisibility(View.GONE);
         }
+
+        // Show QR code for selected entrant after event is closed
+        if (!isOpen && isSelected) {
+            binding.imageQRCode.setVisibility(View.VISIBLE);
+
+            String qrContent = eventName + ":" + userName;
+            Bitmap qrBitmap = generateQRCode(qrContent);
+
+            if (qrBitmap != null) {
+                binding.imageQRCode.setImageBitmap(qrBitmap);
+            }
+        }
+        // Show QR code if the user is enrolled/selected
+        if (isOpen) {
+            Bitmap qr = generateQRCode(eventName); // generate QR using event name
+            binding.ivEventPoster.setImageBitmap(qr); // set QR in the ImageView
+            binding.ivEventPoster.setVisibility(View.VISIBLE);
+        } else {
+            binding.ivEventPoster.setVisibility(View.GONE); // hide if not selected
+        }
+
     }
     private void openEditEvent() {
         NavHostFragment.findNavController(this)
@@ -438,4 +473,27 @@ public class EventDetailsScreen extends Fragment {
         binding = null;
         imageExecutor.shutdown();
     }
+
+    private Bitmap generateQRCode(String text) {
+        try {
+            BitMatrix bitMatrix = new MultiFormatWriter().encode(
+                    text,
+                    BarcodeFormat.QR_CODE,
+                    512, 512
+            );
+            int width = bitMatrix.getWidth();
+            int height = bitMatrix.getHeight();
+            Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+            return bmp;
+        } catch (WriterException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }
