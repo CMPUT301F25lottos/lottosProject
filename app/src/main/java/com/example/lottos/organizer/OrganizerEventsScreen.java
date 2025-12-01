@@ -59,7 +59,7 @@ public class OrganizerEventsScreen extends Fragment {
         // 2. Set a click listener to handle item clicks
         listView.setOnItemClickListener((parent, itemView, position, id) -> {
             String clickedEventId = eventIds.get(position); // Get the ID using the item's position
-            openEditEventScreen(clickedEventId);
+            openEventDetailsScreen(clickedEventId);
         });
 
         loadOrganizerEvents();
@@ -99,11 +99,12 @@ public class OrganizerEventsScreen extends Fragment {
                 });
     }
 
-    private void openEditEventScreen(String eventId) {
+    private void openEventDetailsScreen(String eventId) {
         NavHostFragment.findNavController(this)
                 .navigate(OrganizerEventsScreenDirections
-                        .actionOrganizerEventsScreenToEditEventScreen(userName, eventId));
+                        .actionOrganizerEventsScreenToEventDetailsScreen(userName, eventId));
     }
+
 
     private void setupNavButtons() {
 
