@@ -9,7 +9,19 @@
     tools:context=".events.EventDetailsScreen"
     android:fillViewport="true">
 
-    <!-- Event title -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="28dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Back"
+        android:src="@drawable/ic_left_arrow"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/navy" />
+
     <TextView
         android:id="@+id/tvEventDetails"
         android:text="Event Detail"
@@ -23,140 +35,209 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="24dp"/>
 
-    <!-- CIRCULAR PROFILE IMAGE -->
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/ivEventPoster"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="24dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/sample_event"
-        app:layout_constraintTop_toBottomOf="@id/tvEventDetails"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Event details list -->
-    <LinearLayout
-        android:id="@+id/llEventDetails"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/tvEventName"
+        android:text="Event Name"
+        android:textColor="@color/navy"
+        android:textSize="25sp"
+        android:textStyle="bold"
         android:layout_height="wrap_content"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_width="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ivEventPoster"
-        android:layout_marginTop="12dp">
-
-        <TextView
-            android:id="@+id/tvStartTime"
-            android:textSize="15sp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <TextView
-            android:id="@+id/tvEndTime"
-            android:textSize="15sp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/llEventDetails2"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/llEventDetails"
-        android:layout_marginTop="8dp">
+        app:layout_constraintTop_toBottomOf="@id/tvEventDetails"/>
 
-        <TextView
-            android:id="@+id/tvEventName"
-            android:textSize="25sp"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
 
-        <TextView
-            android:id="@+id/tvLocation"
-            android:textSize="25sp"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-    </LinearLayout>
-
-    <!-- SCROLLABLE DETAILS SECTION -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/detailsScroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/llEventDetails2"
-        app:layout_constraintBottom_toTopOf="@id/llButtons"
+        app:layout_constraintTop_toBottomOf="@id/tvEventName"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"
         android:paddingStart="20dp"
         android:paddingEnd="20dp">
 
         <LinearLayout
-            android:id="@+id/llEventDetails3"
-            android:orientation="vertical"
+            android:id="@+id/contentContainer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvDescription"
-                android:textSize="20sp"
-                android:layout_marginTop="8dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivEventPoster"
+                android:layout_width="375dp"
+                android:layout_height="300dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:src="@drawable/sample_event"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvEventName"
+                android:layout_marginBottom="8dp"/>
 
-            <TextView
-                android:id="@+id/tvOrganizer"
-                android:textSize="20sp"
-                android:layout_marginTop="8dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+            <LinearLayout
+                android:id="@+id/llEventDate"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
 
-            <TextView
-                android:id="@+id/tvWLCloseDateTime"
-                android:textSize="20sp"
-                android:layout_marginTop="8dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/ic_date"
+                    app:tint="@color/navy" />
 
-            <TextView
-                android:id="@+id/tvCapacity"
-                android:textSize="20sp"
-                android:layout_marginTop="8dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                <TextView
+                    android:id="@+id/tvStartTime"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:text="Date Time"
+                    android:paddingStart="5dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/tvWLCount"
-                android:textSize="20sp"
-                android:layout_marginTop="8dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                <TextView
+                    android:id="@+id/tvEndTime"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:text=" - Date Time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/tvWLSize"
-                android:textSize="20sp"
-                android:layout_marginTop="8dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llEventLocation"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/ic_location"
+                    app:tint="@color/navy" />
+
+                <TextView
+                    android:id="@+id/tvLocation"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:paddingStart="5dp"
+                    android:text="Event Location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llRegisterCloseTime"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/ic_clock"
+                    app:tint="@color/navy" />
+
+                <TextView
+                    android:id="@+id/tvWLCloseDateTime"
+                    android:text="Register Close Time"
+                    android:paddingStart="5dp"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llCapacity"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/ic_capacity"
+                    app:tint="@color/navy" />
+
+                <LinearLayout
+                    android:id="@+id/llCapacity2"
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:paddingStart="5dp">
+
+                    <TextView
+                        android:id="@+id/tvCapacity"
+                        android:textSize="16sp"
+                        android:text="Capacity"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/tvWLCount"
+                        android:text="Wait List Count"
+                        android:textSize="16sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/tvWLSize"
+                        android:textSize="16sp"
+                        android:text="Wait List Size"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"/>
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llDescription"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/ic_other"
+                    app:tint="@color/navy" />
+
+                <TextView
+                    android:id="@+id/tvDescription"
+                    android:text="Description"
+                    android:textSize="16sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"/>
+            </LinearLayout>
 
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Buttons -->
+
     <LinearLayout
         android:id="@+id/llButtons"
         android:orientation="vertical"
@@ -164,10 +245,8 @@
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/detailsScroll"
         app:layout_constraintBottom_toTopOf="@id/navigationBar"
         android:gravity="center"
-        android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp"
         android:padding="8dp">
 
@@ -177,6 +256,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/navy"
+            android:textColor="@color/white"
             android:visibility="gone" />
 
         <Button
@@ -185,6 +265,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/navy"
+            android:textColor="@color/white"
             android:visibility="gone" />
 
         <Button
@@ -193,6 +274,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/navy"
+            android:textColor="@color/white"
             android:visibility="gone" />
 
         <Button
@@ -201,6 +283,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/navy"
+            android:textColor="@color/white"
             android:visibility="gone" />
 
         <Button
@@ -209,6 +292,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/navy"
+            android:textColor="@color/white"
             android:visibility="gone" />
 
         <Button
@@ -217,6 +301,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/navy"
+            android:textColor="@color/white"
             android:visibility="gone" />
 
         <Button
@@ -225,6 +310,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/navy"
+            android:textColor="@color/white"
             android:visibility="gone" />
 
         <Button
@@ -233,14 +319,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/navy"
+            android:textColor="@color/white"
             android:visibility="gone" />
 
-        <Button
-            android:id="@+id/btnLottery"
-            android:text="Start Lottery System"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/navy"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llAdminButtons"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp">
+
 
         <Button
             android:id="@+id/btnEditEvent"
@@ -258,6 +354,14 @@
             android:text="Export CSV"
             android:layout_marginTop="12dp"
             android:backgroundTint="@color/navy"/>
+            android:id="@+id/btnDeleteEvent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/holo_red_dark"
+            android:text="Delete Event"
+            android:textColor="@android:color/white"
+            android:layout_marginStart="8dp"/>
 
         <Button
             android:id="@+id/btnBack"
@@ -327,7 +431,8 @@
             android:src="@drawable/ic_profile"
             android:padding="4dp"
             app:tint="@color/white" />
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

@@ -12,7 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- HEADER -->
         <TextView
             android:id="@+id/tvProfile"
             android:layout_width="wrap_content"
@@ -26,7 +25,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="24dp" />
 
-        <!-- CIRCULAR PROFILE IMAGE -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imgProfile"
             android:layout_width="150dp"
@@ -41,7 +39,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- USER INFO FIELDS -->
         <LinearLayout
             android:id="@+id/userInfoLayout"
             android:layout_width="wrap_content"
@@ -85,7 +82,6 @@
                 android:textSize="20sp" />
         </LinearLayout>
 
-        <!-- ACTION BUTTONS (includes new Admin button) -->
         <LinearLayout
             android:id="@+id/actionButtons"
             android:layout_width="0dp"
@@ -99,7 +95,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <!-- NEW: ADMIN BUTTON -->
             <Button
                 android:id="@+id/btnSwitchToAdmin"
                 android:layout_width="match_parent"
@@ -109,7 +104,6 @@
                 android:textColor="@color/white"
                 android:layout_marginBottom="8dp"/>
 
-            <!-- Existing Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -126,16 +120,6 @@
                     android:layout_marginEnd="4dp"/>
 
                 <Button
-                    android:id="@+id/btnLogout"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:backgroundTint="@color/navy"
-                    android:text="Logout"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginEnd="4dp"/>
-
-                <Button
                     android:id="@+id/btnDelete"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -148,7 +132,6 @@
 
         </LinearLayout>
 
-        <!-- NAVIGATION BAR (no changes) -->
         <LinearLayout
             android:id="@+id/navigationBar"
             android:layout_width="match_parent"
@@ -159,7 +142,6 @@
             android:weightSum="5"
             app:layout_constraintBottom_toBottomOf="parent">
 
-            <!-- ImageButtons for navigation -->
             <ImageButton
                 android:id="@+id/btnBack"
                 android:layout_width="0dp"

@@ -9,9 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-/**
- * Shared date+time picker utility for CreateEventScreen and EditEventScreen.
- */
 public class DateTimePickerHelper {
 
     private final Context context;
@@ -20,7 +17,6 @@ public class DateTimePickerHelper {
         this.context = context;
     }
 
-    /** Shows a DatePicker + TimePicker and fills the EditText with "yyyy-MM-dd HH:mm". */
     public void showDateTimePicker(EditText target) {
         final Calendar calendar = Calendar.getInstance();
 

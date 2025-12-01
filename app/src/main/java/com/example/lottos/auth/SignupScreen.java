@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
-import com.example.lottos.auth.SignupScreenDirections;
 import com.example.lottos.databinding.FragmentSignupScreenBinding;
 
 /**
@@ -20,7 +19,6 @@ import com.example.lottos.databinding.FragmentSignupScreenBinding;
  * and delegates account creation to UserAuthenticator.
  */
 public class SignupScreen extends Fragment {
-
     private FragmentSignupScreenBinding binding;
     private UserAuthenticator authenticator;
 
@@ -55,10 +53,13 @@ public class SignupScreen extends Fragment {
             authenticator.registerUser(userName, displayName, password, email, phoneNumber, new UserAuthenticator.AuthListener() {
                 @Override
                 public void onSuccess(String userName) {
+                    UserSession.saveUser(requireContext(), userName);
+
                     Toast.makeText(getContext(), "Account created successfully!", Toast.LENGTH_SHORT).show();
                     NavHostFragment.findNavController(SignupScreen.this)
                             .navigate(SignupScreenDirections.actionSignupScreenToHomeScreen(userName));
                 }
+
 
                 @Override
                 public void onFailure(String errorMessage) {

@@ -1,5 +1,7 @@
-package com.example.lottos;
+package com.example.lottos.notifications;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +18,7 @@ import com.example.lottos.databinding.FragmentSendNotificationScreenBinding;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,18 +30,16 @@ public class SendNotificationScreen extends Fragment {
     private FragmentSendNotificationScreenBinding binding;
     private FirebaseFirestore db;
     private String userName;
+    private boolean isAdmin = false;
 
     private final List<String> eventNames = new ArrayList<>();
     private final List<String> eventIds = new ArrayList<>();
-
     private ArrayAdapter<String> eventAdapter;
-
     private final List<String> groups = List.of("waitList", "selectedList", "cancelledList");
     private ArrayAdapter<String> groupAdapter;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentSendNotificationScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -50,16 +51,16 @@ public class SendNotificationScreen extends Fragment {
         userName = SendNotificationScreenArgs.fromBundle(getArguments()).getUserName();
         db = FirebaseFirestore.getInstance();
 
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        isAdmin = sharedPreferences.getBoolean("isAdmin", false);
+
         setupAdapters();
-        loadOrganizerEvents();
+        loadEvents();
         setupNavButtons();
 
         binding.btnSendMessage.setOnClickListener(v -> sendNotification());
     }
 
-    // ----------------------------------------------------------
-    // ADAPTER SETUP
-    // ----------------------------------------------------------
     private void setupAdapters() {
         eventAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_item, eventNames);
@@ -72,30 +73,37 @@ public class SendNotificationScreen extends Fragment {
         binding.spGroupSelect.setAdapter(groupAdapter);
     }
 
-    // ----------------------------------------------------------
-    // LOAD ORGANIZER'S EVENTS (ID + name)
-    // ----------------------------------------------------------
-    private void loadOrganizerEvents() {
-        db.collection("open events")
-                .whereEqualTo("organizer", userName)
-                .get()
-                .addOnSuccessListener(query -> {
+    private void loadEvents() {
+        Query query;
+        if (isAdmin) {
+            query = db.collection("open events");
+        } else {
+            query = db.collection("open events").whereEqualTo("organizer", userName);
+        }
 
+        query.get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
                     eventIds.clear();
                     eventNames.clear();
 
-                    for (DocumentSnapshot doc : query.getDocuments()) {
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         String id = doc.getId();
                         String name = doc.getString("eventName");
 
-                        if (name == null) name = "(Unnamed Event)";
+                        if (name == null || name.isEmpty()) {
+                            name = "(Unnamed Event: " + id.substring(0, 5) + "...)";
+                        }
 
                         eventIds.add(id);
                         eventNames.add(name);
                     }
 
                     if (eventIds.isEmpty()) {
-                        Toast.makeText(requireContext(), "You have no events.", Toast.LENGTH_SHORT).show();
+                        String message = isAdmin ? "There are no events in the system." : "You have no events to manage.";
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                        binding.btnSendMessage.setEnabled(false);
+                    } else {
+                        binding.btnSendMessage.setEnabled(true);
                     }
 
                     eventAdapter.notifyDataSetChanged();
@@ -106,11 +114,8 @@ public class SendNotificationScreen extends Fragment {
                 });
     }
 
-    // ----------------------------------------------------------
-    // SEND NOTIFICATIONS
-    // ----------------------------------------------------------
-    private void sendNotification() {
 
+    private void sendNotification() {
         if (eventIds.isEmpty()) {
             Toast.makeText(requireContext(), "You have no events to send notifications for.", Toast.LENGTH_SHORT).show();
             return;
@@ -121,22 +126,24 @@ public class SendNotificationScreen extends Fragment {
         String message = binding.etMessageContent.getText().toString().trim();
 
         if (eventIndex < 0 || message.isEmpty()) {
-            Toast.makeText(requireContext(), "Please fill all fields.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Please select an event and write a message.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         String eventId = eventIds.get(eventIndex);
         String eventName = eventNames.get(eventIndex);
 
+        binding.btnSendMessage.setEnabled(false);
+
         db.collection("open events")
                 .document(eventId)
                 .get()
                 .addOnSuccessListener(doc -> {
-
                     Map<String, Object> groupData = (Map<String, Object>) doc.get(group);
 
                     if (groupData == null) {
-                        Toast.makeText(requireContext(), "Group is empty.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "This group does not exist for the selected event.", Toast.LENGTH_SHORT).show();
+                        binding.btnSendMessage.setEnabled(true);
                         return;
                     }
 
@@ -144,40 +151,48 @@ public class SendNotificationScreen extends Fragment {
 
                     if (users == null || users.isEmpty()) {
                         Toast.makeText(requireContext(), "No users in this group.", Toast.LENGTH_SHORT).show();
+                        binding.btnSendMessage.setEnabled(true);
                         return;
                     }
 
+                    int successCount = 0;
                     for (String receiver : users) {
-
                         Map<String, Object> notif = new HashMap<>();
                         notif.put("content", message);
-                        notif.put("eventName", eventName); // <<< FIXED (name, not ID)
+                        notif.put("eventName", eventName);
                         notif.put("receiver", receiver);
-                        notif.put("sender", userName);
+
+                        // ===================================================================
+                        // THIS IS THE CORRECTED LINE THAT WAS MISSING
+                        // If the user is an admin, the sender is "Admin".
+                        // Otherwise, it's their personal username.
+                        notif.put("sender", isAdmin ? "Admin" : userName);
+                        // ===================================================================
+
                         notif.put("timestamp", FieldValue.serverTimestamp());
 
                         db.collection("notification")
                                 .add(notif)
-                                .addOnSuccessListener(x ->
-                                        Log.d("Firestore", "Sent to " + receiver)
-                                )
-                                .addOnFailureListener(e ->
-                                        Log.e("Firestore", "Failed", e)
-                                );
+                                .addOnSuccessListener(x -> Log.d("Firestore", "Sent to " + receiver))
+                                .addOnFailureListener(e -> Log.e("Firestore", "Failed to send to " + receiver, e));
+                        successCount++;
                     }
 
                     Toast.makeText(requireContext(),
-                            "Message sent to " + users.size() + " users.",
+                            "Message sent to " + successCount + " users.",
                             Toast.LENGTH_SHORT
                     ).show();
 
                     binding.etMessageContent.setText("");
+                    binding.btnSendMessage.setEnabled(true);
 
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(), "Error sending.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Error sending message.", Toast.LENGTH_SHORT).show();
+                    binding.btnSendMessage.setEnabled(true);
                 });
     }
+
 
     private void setupNavButtons() {
         binding.btnNotification.setOnClickListener(v ->
@@ -205,6 +220,7 @@ public class SendNotificationScreen extends Fragment {
                         .navigate(SendNotificationScreenDirections.actionSendNotificationScreenToOrganizerEventsScreen(userName))
         );
     }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();

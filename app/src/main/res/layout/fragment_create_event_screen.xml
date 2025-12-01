@@ -1,55 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".organizer.CreateEventScreen"
-    android:fillViewport="true">
+    tools:context=".organizer.CreateEventScreen">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvCreateEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create Event"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:textColor="@color/navy"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp" />
 
-        <TextView
-            android:id="@+id/tvCreateEvent"
-            android:text="Create Event"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="24dp" />
+    <!-- Scrollable content area -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollCreateEvent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/tvCreateEvent"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Form content -->
         <LinearLayout
             android:id="@+id/llEventCreation"
-            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="10dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvCreateEvent">
+            android:orientation="vertical"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp">
+
+            <ImageView
+                android:id="@+id/imgEventPoster"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="12dp"
+                android:scaleType="centerCrop"
+                android:src="@android:drawable/ic_menu_gallery"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/tvPosterHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="4dp"
+                android:text="Tap image to add poster"
+                android:textSize="12sp" />
 
             <EditText
                 android:id="@+id/etEventName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
                 android:hint="Enter Event Name" />
 
             <EditText
                 android:id="@+id/etEventLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:hint="Enter Location" />
 
             <EditText
                 android:id="@+id/etRegisterEndTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:hint="Register End Time"
                 android:focusable="false"
                 android:clickable="true" />
@@ -58,6 +89,7 @@
                 android:id="@+id/etStartTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:hint="Start Time"
                 android:focusable="false"
                 android:clickable="true" />
@@ -66,6 +98,7 @@
                 android:id="@+id/etEndTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:hint="End Time"
                 android:focusable="false"
                 android:clickable="true" />
@@ -74,116 +107,134 @@
                 android:id="@+id/etDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter Description" />
+                android:layout_marginTop="8dp"
+                android:hint="Enter Description"
+                android:minLines="3"
+                android:gravity="top|start"
+                android:inputType="textMultiLine" />
 
             <EditText
                 android:id="@+id/etCapacity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter Event Capacity" />
+                android:layout_marginTop="8dp"
+                android:hint="Enter Event Capacity"
+                android:inputType="number" />
 
             <EditText
                 android:id="@+id/etWaitListCapacity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter WaitList Capacity (Optional)" />
+                android:layout_marginTop="8dp"
+                android:hint="Enter WaitList Capacity (Optional)"
+                android:inputType="number" />
+
+            <MultiAutoCompleteTextView
+                android:id="@+id/etFilter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter keywords (comma separated)"
+                android:inputType="text"
+                android:completionThreshold="0" />
+
+            <!-- Action buttons inside scroll (so they move with content) -->
+            <LinearLayout
+                android:id="@+id/actionButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp">
+
+                <Button
+                    android:id="@+id/btnCreateEvent"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/navy"
+                    android:text="Create Event"
+                    android:textColor="@android:color/white" />
+
+                <Button
+                    android:id="@+id/btnCancel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:backgroundTint="@color/navy"
+                    android:text="Cancel"
+                    android:textColor="@android:color/white" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
+    </androidx.core.widget.NestedScrollView>
 
-        <LinearLayout
-            android:id="@+id/actionButtons"
+    <!-- Bottom navigation bar (fixed) -->
+    <LinearLayout
+        android:id="@+id/navigationBar"
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:background="@color/navy"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:weightSum="5"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnBack"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginTop="24dp"
-            app:layout_constraintBottom_toTopOf="@id/navigationBar"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_home"
+            android:padding="4dp"
+            app:tint="@color/white" />
 
-            <Button
-                android:id="@+id/btnCreateEvent"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/navy"
-                android:text="Create Event" />
+        <ImageButton
+            android:id="@+id/btnOpenEvents"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_event"
+            android:padding="4dp"
+            app:tint="@color/white" />
 
-            <Button
-                android:id="@+id/btnCancel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/navy"
-                android:text="Cancel" />
+        <ImageButton
+            android:id="@+id/btnNotification"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_notification"
+            android:padding="4dp"
+            app:tint="@color/white" />
 
-        </LinearLayout>
+        <ImageButton
+            android:id="@+id/btnEventHistory"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_history"
+            android:padding="4dp"
+            app:tint="@color/white" />
 
+        <ImageButton
+            android:id="@+id/btnProfile"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_profile"
+            android:padding="4dp"
+            app:tint="@color/white" />
 
+    </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/navigationBar"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:background="@color/navy"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:weightSum="5"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-            <ImageButton
-                android:id="@+id/btnBack"
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_home"
-                android:padding="4dp"
-                app:tint="@color/white" />
-
-            <ImageButton
-                android:id="@+id/btnOpenEvents"
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_event"
-                android:padding="4dp"
-                app:tint="@color/white"/>
-
-            <ImageButton
-                android:id="@+id/btnNotification"
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_notification"
-                android:padding="4dp"
-                app:tint="@color/white" />
-
-            <ImageButton
-                android:id="@+id/btnEventHistory"
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_history"
-                android:padding="4dp"
-                app:tint="@color/white" />
-
-            <ImageButton
-                android:id="@+id/btnProfile"
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_profile"
-                android:padding="4dp"
-                app:tint="@color/white" />
-
-        </LinearLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-</androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

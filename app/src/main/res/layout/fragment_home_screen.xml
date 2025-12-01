@@ -5,65 +5,71 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/vertical_gradient_bg"
+    android:background="@color/white"
     tools:context=".home.HomeScreen">
 
-
-    <!-- Scrollable content area -->
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scrollContent"
+    <LinearLayout
+        android:id="@+id/headerRow"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="8dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/navigationBar">
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <LinearLayout
-            android:id="@+id/contentArea"
-            android:layout_width="match_parent"
+        <!-- LEFT BUTTON -->
+        <ImageButton
+            android:id="@+id/btnInfo"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_lotteryinfo"
+            android:padding="8dp"
+            app:tint="@color/navy" />
+
+        <!-- TITLE -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:gravity="center_horizontal">
+            android:layout_weight="1"
+            android:text="Open Events"
+            android:textColor="@color/navy"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:gravity="center" />
 
-            <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Open Events"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:textSize="40sp"
-                android:textStyle="bold"
-                android:paddingBottom="8dp"/>
+        <!-- RIGHT BUTTON -->
+        <ImageButton
+            android:id="@+id/btnFilter"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_filter"
+            android:scaleType="centerInside"
+            app:tint="@color/navy" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvEvents"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:listitem="@layout/item_event"
-                android:background="@android:color/white"/>
-        </LinearLayout>
 
-    </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/btnInfo"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/ic_lotteryinfo"
-        android:padding="8dp"
-        android:contentDescription="Info"
-        app:tint="@color/white"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="10dp" />
 
-    <!-- Bottom navigation bar (always visible) -->
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvEvents"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="16dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/item_event"
+        android:scrollbars="vertical"
+        app:layout_constraintTop_toBottomOf="@id/headerRow"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <LinearLayout
         android:id="@+id/navigationBar"
         android:layout_width="0dp"
@@ -94,7 +100,7 @@
             android:background="@android:color/transparent"
             android:src="@drawable/ic_event"
             android:padding="4dp"
-            app:tint="@color/white"/>
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnNotification"
@@ -127,9 +133,5 @@
             app:tint="@color/white" />
 
     </LinearLayout>
-
-    <!-- Info button in top-right -->
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

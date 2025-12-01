@@ -1,63 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    android:orientation="vertical"
     tools:context=".organizer.OrganizerEventsScreen">
 
 
-    <LinearLayout
-        android:id="@+id/contentArea"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="My Organized Events"
+        android:textAlignment="center"
+        android:textColor="@color/navy"
+        android:textSize="40sp"
+        android:textStyle="bold"
         android:padding="16dp"
-        android:gravity="center_horizontal">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="My Organized Events"
-            android:textAlignment="center"
-            android:textColor="@color/navy"
-            android:textSize="40sp"
-            android:textStyle="bold"
-            android:paddingBottom="8dp"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvOrganizerEvents"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="16dp"
+        tools:listitem="@layout/item_event"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/buttonsRow" />
 
-        <ListView
-            android:id="@+id/lvOpenEvents"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:background="@android:color/white"
-            android:scrollbars="vertical" />
+    <LinearLayout
+        android:id="@+id/buttonsRow"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar">
 
         <Button
             android:id="@+id/btnCreateEvent"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
+            android:layout_weight="1"
             android:text="Create Event"
             android:backgroundTint="@color/navy"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp" />
+            android:textColor="@color/white"
+            android:layout_marginEnd="4dp" />
+
+        <Button
+            android:id="@+id/btnViewEventDetails"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="View Details"
+            android:backgroundTint="@color/navy"
+            android:textColor="@color/white"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp" />
+
+        <Button
+            android:id="@+id/btnEditEvent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Edit Event"
+            android:backgroundTint="@color/navy"
+            android:textColor="@color/white"
+            android:layout_marginStart="4dp" />
 
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/navigationBar"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="70dp"
         android:background="@color/navy"
         android:orientation="horizontal"
         android:gravity="center"
         android:weightSum="5"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ImageButton
             android:id="@+id/btnBack"
@@ -111,4 +143,4 @@
 
     </LinearLayout>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

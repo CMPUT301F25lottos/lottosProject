@@ -1,4 +1,4 @@
-package com.example.lottos;
+package com.example.lottos.lottery;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,7 +16,7 @@ import java.util.Map;
  */
 
 public class LotterySystem {
-    private String seed;//can just be event name or other number
+    private String seed;
     public LotterySystem(String eventName)
     { this.seed = eventName; }
     public ArrayList<String> Selected(ArrayList<String> src) {

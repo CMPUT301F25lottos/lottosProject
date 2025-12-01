@@ -2,6 +2,9 @@ package com.example.lottos.account;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull; // Import this
+
+import com.example.lottos.auth.UserAuthenticator;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -9,34 +12,29 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Map;
 
 public class UserProfileManager {
-
     private static final String TAG = "UserProfileManager";
     private final FirebaseFirestore db;
 
-    public UserProfileManager() {
-        db = FirebaseFirestore.getInstance();
+    public UserProfileManager(FirebaseFirestore db) {
+        this.db = db;
     }
 
-    // Callback for loading profile
-    public interface ProfileLoadListener {
+    public static interface ProfileLoadListener {
         void onProfileLoaded(String name, String email, String phone);
         void onProfileNotFound();
         void onError(String errorMessage);
     }
 
-    // Callback for updating profile
-    public interface ProfileUpdateListener {
+    public static interface ProfileUpdateListener {
         void onUpdateSuccess();
         void onUpdateFailure(String errorMessage);
     }
 
-    // Callback for profile deletion
-    public interface DeleteListener {
+    public static interface DeleteListener {
         void onDeleteSuccess();
         void onDeleteFailure(String errorMessage);
     }
 
-    /** Loads a user profile and extracts userInfo. */
     public void loadUserProfile(String userName, ProfileLoadListener listener) {
         DocumentReference ref = db.collection("users").document(userName);
 
@@ -44,7 +42,8 @@ public class UserProfileManager {
             if (snapshot.exists()) {
                 extractUserInfo(snapshot, listener);
             } else {
-                fallbackOrganizerCheck(userName, listener);
+                Log.d(TAG, "User profile not found for: " + userName);
+                listener.onProfileNotFound();
             }
         }).addOnFailureListener(e -> {
             Log.e(TAG, "Failed to load profile", e);
@@ -52,27 +51,12 @@ public class UserProfileManager {
         });
     }
 
-    /** Fallback lookup — reusable logic */
-    private void fallbackOrganizerCheck(String userName, ProfileLoadListener listener) {
-        DocumentReference ref = db.collection("users").document(userName);
 
-        ref.get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                extractUserInfo(snapshot, listener);
-            } else {
-                listener.onProfileNotFound();
-            }
-        }).addOnFailureListener(e -> {
-            Log.e(TAG, "Fallback profile load failed", e);
-            listener.onError("Failed to load users profile.");
-        });
-    }
-
-    /** Extract userInfo object */
     private void extractUserInfo(DocumentSnapshot snapshot, ProfileLoadListener listener) {
         Map<String, Object> userInfo = (Map<String, Object>) snapshot.get("userInfo");
 
         if (userInfo == null) {
+            Log.w(TAG, "User document exists but is missing 'userInfo' map.");
             listener.onError("No profile data found.");
             return;
         }
@@ -81,13 +65,16 @@ public class UserProfileManager {
         String email = (String) userInfo.getOrDefault("email", "N/A");
         String phone = (String) userInfo.getOrDefault("phoneNumber", "N/A");
 
+        if (name == null) {
+            Log.w(TAG, "User document is missing 'name' inside 'userInfo' map.");
+            listener.onError("Profile data is incomplete.");
+            return;
+        }
+
         listener.onProfileLoaded(name, email, phone);
     }
 
-    /** NEW — Update a user profile */
-    public void updateUserProfile(String userName, String name, String email, String phone,
-                                  ProfileUpdateListener listener) {
-
+    public void updateUserProfile(String userName, String name, String email, String phone, ProfileUpdateListener listener) {
         DocumentReference doc = db.collection("users").document(userName);
 
         doc.update(
@@ -101,13 +88,12 @@ public class UserProfileManager {
                 });
     }
 
-    /** Delete profile */
     public void deleteUser(String userName, DeleteListener listener) {
-        db.collection("users").document(userName).delete()
-                .addOnSuccessListener(aVoid -> listener.onDeleteSuccess())
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Delete failed", e);
-                    listener.onDeleteFailure("Failed to delete profile.");
-                });
+        UserAuthenticator auth = new UserAuthenticator(db);
+
+        auth.deleteUserAndDevice(userName,
+                () -> listener.onDeleteSuccess(),
+                () -> listener.onDeleteFailure("Failed to delete user and device link"));
     }
+
 }
