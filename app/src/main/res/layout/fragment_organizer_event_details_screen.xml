@@ -159,6 +159,17 @@
                 android:layout_height="wrap_content"
                 android:text="No cancelled users yet."
                 android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/btnViewWaitlistMap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:text="View Entrant Map" />
+
+
         </LinearLayout>
     </ScrollView>
 
