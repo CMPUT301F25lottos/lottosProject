@@ -16,6 +16,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A utility class responsible for performing automated cleanup tasks related to user statuses in events.
+ *
+ * Role: This class contains the logic for a "sweep" operation that finds users who have been
+ * selected for an event but did not respond (accept/decline) before the event's start time.
+ * It automatically moves these users from the 'selected' list to a 'cancelled' list and
+ * sends them a notification explaining the action. This helps maintain data integrity and
+ * automates a common administrative task. All operations are performed in a single Firestore
+ * batch write to ensure atomicity.
+ */
 public class UserStatusUpdater {
 
     private static final String TAG = "UserStatusUpdater";
@@ -23,30 +33,58 @@ public class UserStatusUpdater {
     private final FirebaseFirestore db;
     private final CollectionReference eventsRef;
     private final CollectionReference notificationsRef;
+
+    /**
+     * Default constructor that initializes its own connection to Firestore.
+     */
     public UserStatusUpdater() {
         this.db = FirebaseFirestore.getInstance();
         this.eventsRef = db.collection("open events");
         this.notificationsRef = db.collection("notification");
     }
 
+    /**
+     * Constructs a UserStatusUpdater with a provided FirebaseFirestore instance.
+     * This is useful for dependency injection and testing purposes.
+     * @param db The FirebaseFirestore instance to use for all database operations.
+     */
     public UserStatusUpdater(FirebaseFirestore db) {
         this.db = db;
         this.eventsRef = db.collection("open events");
         this.notificationsRef = db.collection("notification");
     }
+
+    /**
+     * A callback interface to report the result of the sweep operation.
+     */
     public interface UpdateListener {
+        /**
+         * Called when the sweep process completes successfully.
+         * @param updatedCount The total number of users whose status was changed.
+         */
         void onUpdateSuccess(int updatedCount);
+        /**
+         * Called when the sweep process fails.
+         * @param errorMessage A message describing the failure.
+         */
         void onUpdateFailure(String errorMessage);
     }
 
     /**
-     * When called:
-     *  - Find all events with startTime < now
-     *  - For each event:
-     *      if selectedList.users is non-empty:
-     *          move ALL those users to cancelledList.users,
-     *          clear selectedList.users,
-     *          send each user a notification.
+     * Finds all events that have already started and moves any users who are still in the
+     * 'selectedList' to the 'cancelledList'.
+     *
+     * This method performs the following actions in a single batch write:
+     *  1. Queries for all events where the `startTime` is before the current time.
+     *  2. For each expired event, it checks if the `selectedList.users` array is non-empty.
+     *  3. If there are users, it moves them from `selectedList.users` to `cancelledList.users`.
+     *  4. It clears the `selectedList.users` array.
+     *  5. It creates a new notification document for each affected user, informing them of the automatic cancellation.
+     *  6. Commits all these changes at once.
+     *
+     * The result of the operation is reported back through the provided listener.
+     *
+     * @param listener The listener to be notified of the operation's success or failure.
      */
     public void sweepExpiredSelectedUsers(UpdateListener listener) {
 

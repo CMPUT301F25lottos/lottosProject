@@ -3,34 +3,58 @@ package com.example.lottos.events;
 import android.util.Log;
 
 import com.example.lottos.EventRepository;
-import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.Timestamp;import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.TimeZone;
 
 /**
- * Handles all business logic for entrant events.
- * - Loading events for UI
- * - Join/leave waitlist
- * No UI code here.
+ * Manages the business logic for an entrant's interactions with events.
+ *
+ * Role: This class is responsible for fetching and preparing event data for presentation in the UI,
+ * but contains no direct UI code itself. It handles operations such as:
+ * <ul>
+ *     <li>Loading all open events for general browsing.</li>
+ *     <li>Loading the specific event history for a given user (e.g., waitlisted, enrolled).</li>
+ *     <li>Filtering events based on keywords or availability.</li>
+ * </ul>
+ * It uses an EventRepository to interact with the data source and communicates results
+ * back through callback interfaces.
  */
 public class EntrantEventManager {
     private final EventRepository repo;
     private final FirebaseFirestore db;
+
+    /**
+     * Constructs an EntrantEventManager with a specified repository and Firestore instance.
+     * @param repo The EventRepository to use for data access.
+     * @param db The FirebaseFirestore instance for database operations.
+     */
     public EntrantEventManager(EventRepository repo, FirebaseFirestore db) {
         this.repo = repo;
         this.db = db;
     }
 
+    /**
+     * Default constructor that initializes its own FirebaseFirestore instance
+     * and a new EventRepository.
+     */
     public EntrantEventManager() {
         this.db = FirebaseFirestore.getInstance();
         this.repo = new EventRepository(this.db);
     }
 
+    /**
+     * A simplified data model representing an event for display in the UI.
+     * This class flattens the complex Firestore event structure into a simple POJO
+     * suitable for use in adapters and UI components.
+     */
     public static class EventModel {
         public String id;
         public String name;
@@ -43,6 +67,19 @@ public class EntrantEventManager {
         public long startMillis;           // for availability filtering
         public long endMillis;
 
+        /**
+         * Constructs a new EventModel object.
+         * @param id The unique ID of the event.
+         * @param name The name of the event.
+         * @param isOpen A flag indicating if the event is open.
+         * @param location The location of the event.
+         * @param startTime A formatted string for the event's start time.
+         * @param endTime A formatted string for the event's end time.
+         * @param posterUrl The URL of the event's poster image.
+         * @param filterWords A list of keywords for filtering.
+         * @param startMillis The start time in milliseconds since the epoch.
+         * @param endMillis The end time in milliseconds since the epoch.
+         */
         public EventModel(String id,
                           String name,
                           boolean isOpen,
@@ -65,6 +102,10 @@ public class EntrantEventManager {
             this.endMillis = endMillis;
         }
 
+        /**
+         * Returns the name of the event.
+         * @return The event name.
+         */
         @Override
         public String toString() {
             return name;
@@ -72,7 +113,11 @@ public class EntrantEventManager {
     }
 
     /**
-     * Load all events (open or closed) – used for admin view.
+     * Loads all events, regardless of their 'open' status. Primarily intended for
+     * administrative views where a complete list of all created events is needed.
+     * The results are sorted by end time in descending order.
+     *
+     * @param callback The callback to be invoked with the list of events or an error.
      */
     public void loadAllOpenEvents(EventsCallback callback) {
 
@@ -127,7 +172,11 @@ public class EntrantEventManager {
     }
 
     /**
-     * Load all open events (for entrant home screen).
+     * Loads all events that are currently marked as "open". This is used for the main
+     * event browsing screen for entrants, showing them events they can potentially join.
+     *
+     * @param userName The username of the user, used for potential future logic (currently unused).
+     * @param callback The callback to be invoked with the list of open events or an error.
      */
     public void loadOpenEventsForUser(String userName, EventsCallback callback) {
 
@@ -175,7 +224,12 @@ public class EntrantEventManager {
     }
 
     /**
-     * Load all events that are in the user's history (waitlisted, selected, etc.).
+     * Loads all events that a user has interacted with. This includes events they are
+     * waitlisted for, selected for, enrolled in, declined, etc. It first fetches the user's
+     * document to get all associated event IDs and then retrieves the details for those events.
+     *
+     * @param userName The username of the user whose history is being loaded.
+     * @param callback The callback to be invoked with the list of historical events or an error.
      */
     public void loadEventsHistory(String userName, EventsCallback callback) {
 
@@ -257,7 +311,12 @@ public class EntrantEventManager {
     }
 
     /**
-     * Helper: extract "filterWords" array from a Firestore document as List<String>.
+     * A private helper method to safely extract the "filterWords" array from a Firestore document.
+     * It handles cases where the field is missing or not a list of strings, returning an empty list.
+     * All words are converted to lowercase for case-insensitive matching.
+     *
+     * @param doc The QueryDocumentSnapshot from which to extract the words.
+     * @return A list of filter words, or an empty list if none are found.
      */
     private List<String> extractFilterWords(QueryDocumentSnapshot doc) {
         List<String> filterWords = new ArrayList<>();
@@ -273,59 +332,54 @@ public class EntrantEventManager {
     }
 
     /**
-     * Filters a list of events based on selected keywords.
-     * Returns events whose filterWords list contains ANY of the selected filters.
+     * Filters a given list of events based on a set of selected keywords.
+     * An event is included in the result if its list of filter words contains *any* of the selected keywords.
+     * If the list of selected filters is empty, the original list is returned unmodified.
      *
-     * @param allEvents       full list of events (e.g., loaded from loadOpenEventsForUser)
-     * @param selectedFilters keywords chosen by the user
-     * @return filtered subset of events
+     * @param allEvents       The full list of events to be filtered.
+     * @param selectedFilters A list of keywords chosen by the user for filtering.
+     * @return A new list containing only the events that match the filter criteria.
      */
     public List<EventModel> filterEventsByKeywords(List<EventModel> allEvents,
                                                    List<String> selectedFilters) {
 
         if (selectedFilters == null || selectedFilters.isEmpty()) {
-            // no filters -> return everything
             return new ArrayList<>(allEvents);
         }
 
-        // normalize selected filters to lowercase
-        List<String> normalized = new ArrayList<>();
-        for (String f : selectedFilters) {
-            if (f != null && !f.trim().isEmpty()) {
-                normalized.add(f.trim().toLowerCase());
-            }
-        }
-        if (normalized.isEmpty()) {
-            return new ArrayList<>(allEvents);
+        List<EventModel> filteredList = new ArrayList<>();
+        Set<String> filterSet = new HashSet<>();
+        for (String filter : selectedFilters) {
+            filterSet.add(filter.toLowerCase());
         }
 
-        List<EventModel> out = new ArrayList<>();
-
-        for (EventModel e : allEvents) {
-            if (e.filterWords == null || e.filterWords.isEmpty()) continue;
-
-            // include event if it matches ANY of the selected filters
-            for (String f : normalized) {
-                if (e.filterWords.contains(f)) {
-                    out.add(e);
-                    break; // prevent duplicates
+        for (EventModel event : allEvents) {
+            // Check for any intersection between event's keywords and selected filters
+            for (String eventKeyword : event.filterWords) {
+                if (filterSet.contains(eventKeyword)) {
+                    filteredList.add(event);
+                    break; // Found a match, add the event and move to the next one
                 }
             }
         }
-
-        return out;
+        return filteredList;
     }
 
     /**
-     * Filters events so that only those within the given availability range remain.
-     * If fromMillis or toMillis is null, that bound is ignored.
+     * Filters a list of events to include only those that overlap with a specified time range.
+     * An event is considered a match if its time span [startMillis, endMillis] has any
+     * overlap with the given [fromMillis, toMillis] range.
+     *
+     * @param events The list of events to filter.
+     * @param fromMillis The start of the availability range in milliseconds since the epoch. Can be null.
+     * @param toMillis The end of the availability range in milliseconds since the epoch. Can be null.
+     * @return A new list containing only the events that fall within the specified availability.
      */
     public List<EventModel> filterEventsByAvailability(List<EventModel> events,
                                                        Long fromMillis,
                                                        Long toMillis) {
 
         if (fromMillis == null && toMillis == null) {
-            // no availability filter -> return everything
             return new ArrayList<>(events);
         }
 
@@ -335,6 +389,9 @@ public class EntrantEventManager {
             long s = e.startMillis;
             long t = e.endMillis;
 
+            // An event [s, t] overlaps with a filter range [fromMillis, toMillis] if:
+            // The event doesn't end before the filter starts (t >= fromMillis) AND
+            // The event doesn't start after the filter ends (s <= toMillis).
             boolean afterStart = (fromMillis == null || t >= fromMillis);
             boolean beforeEnd  = (toMillis == null  || s <= toMillis);
 
@@ -346,16 +403,37 @@ public class EntrantEventManager {
         return out;
     }
 
+    /**
+     * Formats a Firebase Timestamp into a human-readable date-time string ("yyyy-MM-dd HH:mm").
+     * If the timestamp is null, it returns "N/A".
+     *
+     * @param ts The Timestamp to format.
+     * @return A formatted string representation of the timestamp or "N/A".
+     */
     private String formatTimestamp(Timestamp ts) {
-        if (ts == null) return "";
-        java.util.Date date = ts.toDate();
-        java.text.SimpleDateFormat sdf =
-                new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.getDefault());
-        return sdf.format(date);
+        if (ts == null) {
+            return "N/A";
+        }
+        SimpleDateFormat sdf =
+                new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault());
+        sdf.setTimeZone(TimeZone.getDefault()); // Use device's local timezone
+        return sdf.format(ts.toDate());
     }
 
+    /**
+     * A callback interface for asynchronous event loading operations.
+     */
     public interface EventsCallback {
+        /**
+         * Called when the event loading operation completes successfully.
+         * @param events A list of event models fetched from the data source.
+         * @param userWaitlistedEvents A list of event IDs for which the user is on the waitlist.
+         */
         void onSuccess(List<EventModel> events, List<String> userWaitlistedEvents);
+        /**
+         * Called when the event loading operation fails.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 }

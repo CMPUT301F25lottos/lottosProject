@@ -24,6 +24,12 @@ import com.google.firebase.storage.StorageReference;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A Fragment for administrators to view and manage all event posters in the system.
+ * It displays posters in a grid format and provides functionality to delete them.
+ * Deleting a poster removes it from Firebase Storage and clears the poster URL field
+ * in the corresponding event document in Firestore.
+ */
 public class AllImagesFragment extends Fragment implements AllImagesAdapter.OnImageClickListener {
 
     private FragmentAllImagesBinding binding;
@@ -32,6 +38,14 @@ public class AllImagesFragment extends Fragment implements AllImagesAdapter.OnIm
     private final List<EventImageData> eventImageDataList = new ArrayList<>();
     private FirebaseFirestore db;
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     * This is where the layout is inflated and view binding and Firestore instances are initialized.
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return Return the View for the fragment's UI, or null.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentAllImagesBinding.inflate(inflater, container, false);
@@ -39,6 +53,12 @@ public class AllImagesFragment extends Fragment implements AllImagesAdapter.OnIm
         return binding.getRoot();
     }
 
+    /**
+     * Called immediately after onCreateView has returned, but before any saved state has been restored in to the view.
+     * This method retrieves arguments, sets up the RecyclerView and navigation buttons, and initiates fetching of event posters.
+     * @param view The View returned by onCreateView.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -52,12 +72,18 @@ public class AllImagesFragment extends Fragment implements AllImagesAdapter.OnIm
         fetchEventPosters();
     }
 
+    /**
+     * Initializes the RecyclerView with a GridLayoutManager and sets up the AllImagesAdapter.
+     */
     private void setupRecyclerView() {
         adapter = new AllImagesAdapter(eventImageDataList, this);
         binding.rvImages.setLayoutManager(new GridLayoutManager(getContext(), 2));
         binding.rvImages.setAdapter(adapter);
     }
 
+    /**
+     * Sets up the OnClickListener for all navigation buttons in the bottom bar.
+     */
     private void setupNavButtons() {
         binding.btnHome.setOnClickListener(v -> NavHostFragment.findNavController(this).navigate(AllImagesFragmentDirections.actionAllImagesFragmentToHomeScreen(userName)));
         binding.btnProfile.setOnClickListener(v -> NavHostFragment.findNavController(this).navigate(AllImagesFragmentDirections.actionAllImagesFragmentToProfileScreen(userName)));
@@ -72,6 +98,10 @@ public class AllImagesFragment extends Fragment implements AllImagesAdapter.OnIm
     }
 
 
+    /**
+     * Fetches event data from the "open events" collection in Firestore, extracts poster URLs
+     * and associated metadata, and populates the RecyclerView.
+     */
     private void fetchEventPosters() {
         binding.progressBar.setVisibility(View.VISIBLE);
         binding.rvImages.setVisibility(View.GONE);
@@ -105,23 +135,41 @@ public class AllImagesFragment extends Fragment implements AllImagesAdapter.OnIm
                 });
     }
 
+    /**
+     * Called when the view previously created by onCreateView has been detached from the fragment.
+     * This is where the view binding is cleaned up to prevent memory leaks.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
 
+    /**
+     * Handles the click event on an image in the RecyclerView.
+     * This implementation shows the image in a full-screen dialog.
+     * @param imageUrl The URL of the clicked image.
+     */
     @Override
     public void onImageClick(String imageUrl) {
         FullScreenImageDialog dialog = FullScreenImageDialog.newInstance(imageUrl);
         dialog.show(getParentFragmentManager(), "full_screen_image_dialog");
     }
 
+    /**
+     * Handles the click event on the delete button for an image.
+     * This implementation shows a confirmation dialog before proceeding with deletion.
+     * @param eventData The data object associated with the image to be deleted.
+     */
     @Override
     public void onDeleteClick(EventImageData eventData) {
         showDeleteConfirmationDialog(eventData);
     }
 
+    /**
+     * Displays a confirmation dialog to the administrator before deleting an event poster.
+     * @param eventData The data for the event whose poster is being considered for deletion.
+     */
     private void showDeleteConfirmationDialog(EventImageData eventData) {
         if (getContext() == null) return;
 
@@ -135,6 +183,11 @@ public class AllImagesFragment extends Fragment implements AllImagesAdapter.OnIm
                 .show();
     }
 
+    /**
+     * Deletes the image file from Firebase Storage and then updates the event document in Firestore
+     * to remove the poster URL.
+     * @param eventData The data for the event whose poster is to be deleted.
+     */
     private void deleteImageFromFirebase(EventImageData eventData) {
         if (getContext() == null || eventData.posterUrl == null || eventData.posterUrl.isEmpty()) {
             Toast.makeText(getContext(), "Image reference is missing.", Toast.LENGTH_SHORT).show();

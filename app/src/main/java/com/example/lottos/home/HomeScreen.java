@@ -26,12 +26,17 @@ import java.util.Calendar;
 import java.util.List;
 
 /**
- * Home Screen Fragment.
- * - Checks if user is Admin or regular User.
- * - Updates event statuses.
- * - Sweeps expired events: selectedList → cancelledList + notifications.
- * - Shows list of events based on user role.
- * - Handles navigation buttons.
+ * A Fragment representing the main home screen of the application.
+ *
+ * Role: This class serves as the central hub for users after they log in. Its key responsibilities include:
+ * <ul>
+ *     <li>Differentiating between an Admin and a regular User to tailor the UI and data presentation.</li>
+ *     <li>Initiating background tasks to automatically update the "IsOpen" status of events based on their deadlines.</li>
+ *     <li>Triggering a global "sweep" to handle users who did not respond to event selections in time.</li>
+ *     <li>Displaying a list of events (all events for admins, open events for regular users) in a RecyclerView.</li>
+ *     <li>Providing UI for filtering events by keywords and date ranges.</li>
+ *     <li>Handling navigation to other parts of the application, such as user profiles, notifications, and event details.</li>
+ * </ul>
  */
 public class HomeScreen extends Fragment {
 
@@ -75,6 +80,14 @@ public class HomeScreen extends Fragment {
             "Other"
     };
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     * This method inflates the fragment's layout.
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The View for the fragment's UI.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
@@ -83,6 +96,12 @@ public class HomeScreen extends Fragment {
         return binding.getRoot();
     }
 
+    /**
+     * Called immediately after onCreateView has returned, but before any saved state has been restored into the view.
+     * This method initializes the fragment's components, retrieves user data, and starts the data loading process.
+     * @param view The View returned by onCreateView.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     */
     @Override
     public void onViewCreated(@NonNull View view,
                               Bundle savedInstanceState) {
@@ -123,7 +142,8 @@ public class HomeScreen extends Fragment {
     }
 
     /**
-     * Runs the global sweep (for all events, all users), then loads events.
+     * Chains the global user sweep operation to run after event statuses are updated,
+     * and then proceeds to load the event list.
      */
     private void runSelectionSweepThenLoadEvents() {
         userUpdater.sweepExpiredSelectedUsers(new UserStatusUpdater.UpdateListener() {
@@ -144,6 +164,10 @@ public class HomeScreen extends Fragment {
         });
     }
 
+    /**
+     * Initializes the RecyclerView, its adapter, and its LayoutManager.
+     * The adapter is configured with a listener to handle clicks on event items.
+     */
     private void setupRecycler() {
         adapter = new EventListAdapter(eventItems, new EventListAdapter.Listener() {
             @Override
@@ -162,6 +186,10 @@ public class HomeScreen extends Fragment {
         binding.rvEvents.setNestedScrollingEnabled(false);
     }
 
+    /**
+     * Determines whether to load events for an administrator or a regular user
+     * and calls the appropriate loading method.
+     */
     private void loadEventsBasedOnRole() {
         if (isAdmin) {
             binding.tvTitle.setText("All Events (Admin)");
@@ -172,6 +200,10 @@ public class HomeScreen extends Fragment {
         }
     }
 
+    /**
+     * Fetches the list of currently open events for a regular user.
+     * On success, it populates the main event list and updates the adapter.
+     */
     private void loadEventsForUser() {
         manager.loadOpenEventsForUser(userName, new EntrantEventManager.EventsCallback() {
             @Override
@@ -196,6 +228,10 @@ public class HomeScreen extends Fragment {
         });
     }
 
+    /**
+     * Fetches a complete list of all events, regardless of status, for an administrator.
+     * On success, it populates the main event list and updates the adapter.
+     */
     private void loadAllEventsForAdmin() {
         manager.loadAllOpenEvents(new EntrantEventManager.EventsCallback() {
             @Override
@@ -221,7 +257,9 @@ public class HomeScreen extends Fragment {
     }
 
     /**
-     * Converts EventModel list → EventItem list for the adapter.
+     * Clears the current list of displayable event items and repopulates it based on a new
+     * list of data models, then notifies the RecyclerView adapter of the change.
+     * @param eventModelList The new list of event data models to display.
      */
     private void updateAdapterWithEvents(List<EntrantEventManager.EventModel> eventModelList) {
         eventItems.clear();
@@ -239,6 +277,10 @@ public class HomeScreen extends Fragment {
         Log.d("HomeScreen", "Adapter updated with " + eventItems.size() + " events.");
     }
 
+    /**
+     * Navigates to the event details screen for a specific event.
+     * @param eventId The unique ID of the event to view.
+     */
     private void goToDetails(String eventId) {
         NavHostFragment.findNavController(this)
                 .navigate(HomeScreenDirections
@@ -246,7 +288,8 @@ public class HomeScreen extends Fragment {
     }
 
     /**
-     * Applies both interest (keywords) and availability filters and updates the list.
+     * Applies the currently selected keyword and availability filters to the master
+     * list of events and updates the RecyclerView to show the filtered result.
      */
     private void applyAllFiltersAndUpdate() {
         // 1) filter by interests
@@ -264,6 +307,10 @@ public class HomeScreen extends Fragment {
         updateAdapterWithEvents(filtered);
     }
 
+    /**
+     * Sets up the click listeners for all navigation and action buttons in the fragment.
+     * The behavior of some buttons is adjusted based on whether the user is an admin.
+     */
     private void setupNavButtons() {
 
         binding.btnProfile.setOnClickListener(v ->
@@ -317,7 +364,9 @@ public class HomeScreen extends Fragment {
     }
 
     /**
-     * Unified filter dialog for keywords + date range.
+     * Displays a multi-functional dialog that allows the user to filter events.
+     * The dialog provides options for selecting keyword filters, applying them, clearing all filters,
+     * or proceeding to a date-range selection.
      */
     private void showFilterDialog() {
         if (allEvents.isEmpty()) {
@@ -372,8 +421,8 @@ public class HomeScreen extends Fragment {
     }
 
     /**
-     * Shows a two-step date picker dialog (from / to).
-     * Updates availabilityFromMillis / availabilityToMillis and applies filters.
+     * Displays a sequence of two date picker dialogs to select a "from" and "to" date range.
+     * After both dates are selected, it updates the availability filter properties and applies all filters.
      */
     private void showDateFilterDialog() {
         Calendar cal = Calendar.getInstance();
@@ -410,6 +459,10 @@ public class HomeScreen extends Fragment {
         fromDialog.show();
     }
 
+    /**
+     * Called when the view previously created by onCreateView has been detached from the fragment.
+     * This is where the view binding object is cleared to prevent memory leaks.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
