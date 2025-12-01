@@ -2,6 +2,7 @@ package com.example.lottos.events;
 
 import com.example.lottos.EventRepository;
 import com.example.lottos.lottery.LotterySystem;
+import com.example.lottos.organizer.OrganizerEventDetailsManager;
 import com.example.lottos.organizer.OrganizerEventManager;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
@@ -143,14 +144,25 @@ public class EventDetailsManager {
         DocumentReference uDoc = db.collection("users").document(userName);
 
         db.runTransaction(tx -> {
-                    tx.update(eDoc, "cancelledList.users", FieldValue.arrayUnion(userName));
-                    tx.update(uDoc, "selectedEvents.events", FieldValue.arrayRemove(eventName));
-                    tx.update(uDoc, "declinedEvents.events", FieldValue.arrayUnion(eventName));
-                    return null;
+            tx.update(eDoc, "cancelledList.users", FieldValue.arrayUnion(userName));
+            tx.update(uDoc, "selectedEvents.events", FieldValue.arrayRemove(eventName));
+            tx.update(uDoc, "declinedEvents.events", FieldValue.arrayUnion(eventName));
+            return null;
 
-                }).addOnSuccessListener(v -> onSuccess.run())
-                .addOnFailureListener(e -> onError.run(e));
+        }).addOnSuccessListener(v -> {
+            OrganizerEventDetailsManager organizerManager =
+                    new OrganizerEventDetailsManager(db, repo);
+
+            organizerManager.replaceDeclinedUser(
+                    eventName,
+                    userName,
+                    onSuccess,
+                    onError::run
+            );
+
+        }).addOnFailureListener(e -> onError.run(e));
     }
+
 
     public void getEventDetails(String eventName, Consumer<Map<String, Object>> onSuccess, Consumer<Exception> onError) {
         repo.getEvent(eventName).get()
