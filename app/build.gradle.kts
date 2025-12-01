@@ -54,6 +54,8 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation(libs.ext.junit)
     implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.zxing:core:3.5.2")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 
 
 
