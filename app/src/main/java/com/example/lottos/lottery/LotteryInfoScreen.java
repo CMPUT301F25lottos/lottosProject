@@ -1,5 +1,3 @@
-// FINAL, CORRECTED and SPECIFIC file for LotteryInfoScreen.java
-
 package com.example.lottos.lottery;
 
 import android.content.Context;import android.content.SharedPreferences;

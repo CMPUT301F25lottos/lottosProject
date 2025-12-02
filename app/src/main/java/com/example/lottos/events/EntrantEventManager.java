@@ -63,8 +63,8 @@ public class EntrantEventManager {
         public String startTime;
         public String endTime;
         public String posterUrl;
-        public List<String> filterWords;   // keywords for filtering
-        public long startMillis;           // for availability filtering
+        public List<String> filterWords;
+        public long startMillis;
         public long endMillis;
 
         /**
@@ -160,7 +160,6 @@ public class EntrantEventManager {
                         }
                     }
 
-                    // Sort by end time (descending) as before
                     result.sort((e1, e2) -> e2.endTime.compareTo(e1.endTime));
 
                     callback.onSuccess(result, new ArrayList<>());
@@ -358,7 +357,7 @@ public class EntrantEventManager {
             for (String eventKeyword : event.filterWords) {
                 if (filterSet.contains(eventKeyword)) {
                     filteredList.add(event);
-                    break; // Found a match, add the event and move to the next one
+                    break;
                 }
             }
         }

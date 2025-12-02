@@ -76,7 +76,7 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
         SharedPreferences sharedPreferences = requireActivity()
                 .getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
 
-        // If using view binding:
+
         SwitchMaterial stShowNotification = binding.stShowNotification;
 
         isAdmin = sharedPreferences.getBoolean("isAdmin", false);
@@ -96,7 +96,6 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
             return;
         }
 
-        // 🔹 Set title + send button based on admin
         if (isAdmin) {
             binding.tvTitle.setText("All Notifications");
             binding.btnSendNotification.setVisibility(View.VISIBLE);
@@ -111,17 +110,14 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
 
         notificationManager = new NotificationManager();
 
-        // Load notifications initially (you can choose default ON/OFF)
         loadNotifications();
 
         // Switch behaviour: show/hide notifications
         stShowNotification.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                // Show list and (re)load notifications
                 binding.rvReceivedNotification.setVisibility(View.VISIBLE);
                 loadNotifications();
             } else {
-                // Hide list
                 binding.rvReceivedNotification.setVisibility(View.GONE);
             }
         });
@@ -145,7 +141,7 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
     private void setupRecyclerView() {
         adapter = new NotificationAdapter(notificationItems, this);
         adapter.setAdminView(isAdmin);
-        adapter.setCurrentUserName(userName); // ADD THIS LINE
+        adapter.setCurrentUserName(userName);
         binding.rvReceivedNotification.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.rvReceivedNotification.setAdapter(adapter);
     }
@@ -220,7 +216,6 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
     @Override
     public void onNotificationClick(NotificationAdapter.NotificationItem item) {
         if (!isAdded()) return;
-        //Toast.makeText(getContext(), "Notification from: " + item.sender, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -232,7 +227,6 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
      */
     @Override
     public void onDelete(NotificationAdapter.NotificationItem item, int position) {
-        // This method now accepts the position directly from the adapter
         if (!isAdded() || adapter == null) return;
 
 
@@ -257,7 +251,6 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
      * The navigation targets and icon resources are adjusted based on whether the user is an admin.
      */
     private void setupNavButtons() {
-        // --- Navigation that is the same for all users ---
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(NotificationScreenDirections.actionNotificationScreenToHomeScreen(userName)));
@@ -271,8 +264,6 @@ public class NotificationScreen extends Fragment implements NotificationAdapter.
                         .navigate(NotificationScreenDirections.actionNotificationScreenToSendNotificationScreen(userName)));
 
         if (isAdmin) {
-            // --- ADMIN MODE ---
-            // 1. "Event History" icon becomes "View Users".
             binding.btnEventHistory.setImageResource(R.drawable.outline_article_person_24);
             binding.btnEventHistory.setOnClickListener(v ->
                     NavHostFragment.findNavController(this)

@@ -83,7 +83,6 @@ public class OrganizerEventsScreen extends Fragment {
         RecyclerView rv = binding.rvOrganizerEvents;
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        // Initialize the adapter with a listener to handle item clicks and selections.
         adapter = new EventListAdapter(events, new EventListAdapter.Listener() {
             @Override
             public void onEventClick(String eventId) {
@@ -127,14 +126,7 @@ public class OrganizerEventsScreen extends Fragment {
                         String posterUrl = doc.getString("posterUrl");
 
                         if (name != null) {
-                            events.add(new EventListAdapter.EventItem(
-                                    id,
-                                    name,
-                                    true,
-                                    location,
-                                    startTimeText,
-                                    endTimeText,
-                                    posterUrl
+                            events.add(new EventListAdapter.EventItem(id, name, true, location, startTimeText, endTimeText, posterUrl
                             ));
                         }
                     }
@@ -226,7 +218,6 @@ public class OrganizerEventsScreen extends Fragment {
                                 .actionOrganizerEventsScreenToEventHistoryScreen(userName))
         );
 
-        // Handles click on the "Edit Event" button, checking if an event is selected first.
         binding.btnEditEvent.setOnClickListener(v -> {
             if (selectedEventId == null) {
                 Toast.makeText(getContext(),
@@ -237,7 +228,6 @@ public class OrganizerEventsScreen extends Fragment {
             openEditEventScreen(selectedEventId);
         });
 
-        // Handles click on the "View Details" button, checking if an event is selected first.
         binding.btnViewEventDetails.setOnClickListener(v -> {
             if (selectedEventId == null) {
                 Toast.makeText(getContext(),
@@ -248,7 +238,6 @@ public class OrganizerEventsScreen extends Fragment {
             openOrganizerEventDetailsScreen(selectedEventId);
         });
     }
-
 
 
     /**

@@ -111,12 +111,7 @@ public class OrganizerEventDetailsScreen extends Fragment {
              * and user lists.
              */
             @Override
-            public void onSuccess(Map<String, Object> eventData,
-                                  List<String> waitlistUsers,
-                                  List<String> selectedUsers,
-                                  List<String> notSelectedUsers,
-                                  List<String> enrolledUsers,
-                                  List<String> cancelledUsers) {
+            public void onSuccess(Map<String, Object> eventData, List<String> waitlistUsers, List<String> selectedUsers, List<String> notSelectedUsers, List<String> enrolledUsers, List<String> cancelledUsers) {
 
                 renderHeader(eventData);
 
@@ -174,7 +169,6 @@ public class OrganizerEventDetailsScreen extends Fragment {
             timeText = "Time: " + startTime + " ~ " + endTime;
         }
 
-        // 🔻 replace the old two setText calls with this block:
         binding.tvEventDateTime.setText(dateText + " | " + timeText);
 
         if (start != null && end != null) {
@@ -188,14 +182,14 @@ public class OrganizerEventDetailsScreen extends Fragment {
     }
 
     /**
-     * Renders a list of users into a designated TextView.
-     * If the list is empty, it displays a provided empty message instead.
-     * @param contentView The TextView where the user list or empty message will be displayed.
-     * @param users The list of user names to display.
-     * @param emptyMessage The message to show if the user list is null or empty.
+     * Configures and populates a RecyclerView with a list of user names.
+     * If the list of users is null or empty, it hides the RecyclerView and shows a "empty" label.
+     * Otherwise, it sets up the LayoutManager and a UserListAdapter to display the names.
+     *
+     * @param rv         The RecyclerView instance to populate.
+     * @param emptyLabel The TextView to display when the user list is empty.
+     * @param users      The list of user strings to display in the RecyclerView.
      */
-    private void renderListSection(TextView contentView, List<String> users, String emptyMessage) {
-
     private void showRecyclerView(RecyclerView rv, TextView emptyLabel, List<String> users) {
 
         if (users == null || users.isEmpty()) {
@@ -209,19 +203,11 @@ public class OrganizerEventDetailsScreen extends Fragment {
         emptyLabel.setTag(null);
         rv.setVisibility(View.VISIBLE);
 
-        // 🔥 THIS WAS MISSING — REQUIRED FOR ANY LIST TO SHOW
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
 
         rv.setAdapter(new UserListAdapter(users));
     }
 
-    /**
-     * Updates the state of interactive UI elements based on the event's status.
-     * This includes showing/hiding the lottery and export buttons and setting their click listeners.
-     * @param eventData The map containing the raw event data.
-     * @param waitUsers The current list of users on the waitlist.
-     */
-    private void updateUI(Map<String, Object> eventData, List<String> waitUsers) {
 
     private void setupSectionToggles() {
         setupToggle(binding.sectionWaitlist, binding.iconWaitlistToggle, binding.rvWaitlist, binding.tvWaitlistEmpty);
@@ -231,6 +217,16 @@ public class OrganizerEventDetailsScreen extends Fragment {
         setupToggle(binding.sectionCancelled, binding.iconCancelledToggle, binding.rvCancelled, binding.tvCancelledEmpty);
     }
 
+    /**
+     * Sets up the click listener for a single collapsible section.
+     * When the section header is clicked, it toggles the visibility of the RecyclerView and its
+     * corresponding empty-state TextView. It also rotates the toggle icon to indicate an open or closed state.
+     *
+     * @param sectionLayout The layout view that serves as the click target (the section header).
+     * @param icon          The ImageView for the expand/collapse arrow icon.
+     * @param recycler      The RecyclerView that is shown or hidden.
+     * @param emptyLabel    The TextView that is shown when the list is empty and the section is open.
+     */
     private void setupToggle(View sectionLayout, ImageView icon, View recycler, View emptyLabel) {
 
         sectionLayout.setOnClickListener(v -> {
@@ -252,6 +248,13 @@ public class OrganizerEventDetailsScreen extends Fragment {
         });
     }
 
+    /**
+     * Updates organizer-specific UI elements based on the current event state.
+     * This method controls the visibility and functionality of the "Run Lottery" and "Export CSV" buttons.
+     *
+     * @param eventData A map containing the event's data, such as its open status and lottery status.
+     * @param waitUsers A list of users currently on the waitlist.
+     */
     private void updateUI(Map<String, Object> eventData, List<String> waitUsers) {
         if (eventData == null) return;
 
@@ -315,6 +318,10 @@ public class OrganizerEventDetailsScreen extends Fragment {
         return o == null ? "" : o.toString();
     }
 
+    /**
+     * Sets up the click listeners for the main bottom navigation bar buttons.
+     * Configures navigation actions to move to other screens like Home, Profile, etc.
+     */
     private void setupNavButtons() {
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)

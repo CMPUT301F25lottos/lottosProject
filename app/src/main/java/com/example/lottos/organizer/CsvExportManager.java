@@ -59,7 +59,7 @@ public class CsvExportManager {
      * @param callback The callback to be invoked with the result of the operation.
      */
     public void exportEnrolledUsers(Map<String, Object> eventData, CsvExportCallback callback) {
-        // 1. Extract enrolled users from event data
+        // Extract enrolled users from event data
         Map<String, Object> enrolled = (Map<String, Object>) eventData.get("enrolledList");
         List<String> enrolledUsers = new ArrayList<>();
 
@@ -72,7 +72,7 @@ public class CsvExportManager {
             return;
         }
 
-        // 2. Build the CSV content
+        // Build the CSV content
         StringBuilder sb = new StringBuilder();
         sb.append("Event Name,").append("Organizer,").append("Total Enrolled\n");
         sb.append(safe(eventData.get("eventName"))).append(",").append(safe(eventData.get("organizer"))).append(",").append(enrolledUsers.size()).append("\n\n");
@@ -81,7 +81,6 @@ public class CsvExportManager {
             sb.append(user).append("\n");
         }
 
-        // 3. Create and save the file
         String fileName = safe(eventData.get("eventName")).replaceAll("[^a-zA-Z0-9.-]", "_") + "_enrolled.csv";
         try {
             File file = new File(context.getExternalFilesDir(null), fileName);
@@ -91,7 +90,7 @@ public class CsvExportManager {
             writer.close();
             callback.onSuccess(file.getAbsolutePath());
 
-            // 4. Trigger the share intent
+            // Trigger the share intent
             shareCsvFile(file);
 
         } catch (IOException e) {

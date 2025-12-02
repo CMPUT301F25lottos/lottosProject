@@ -13,6 +13,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList; // <-- IMPORT THIS
+import java.util.List;      // <-- AND THIS
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
@@ -38,7 +40,8 @@ public class EventTest {
 
     @Before
     public void setUp() {
-        event = new Event(eventName, organizerId, startTime, endTime, description, location, selectionCap, endRegisterTime);
+        // FIX: Added new ArrayList<>() as the last argument
+        event = new Event(eventName, organizerId, startTime, endTime, description, location, selectionCap, endRegisterTime, new ArrayList<>());
     }
 
     @Test
@@ -122,8 +125,9 @@ public class EventTest {
 
     @Test
     public void testEquals() {
-        Event sameEvent = new Event(eventName, "someOtherOrganizer", startTime, endTime, description, location, selectionCap, endRegisterTime);
-        Event differentEvent = new Event("Different Event", organizerId, startTime, endTime, description, location, selectionCap, endRegisterTime);
+        // FIX: Added new ArrayList<>() as the last argument
+        Event sameEvent = new Event(eventName, "someOtherOrganizer", startTime, endTime, description, location, selectionCap, endRegisterTime, new ArrayList<>());
+        Event differentEvent = new Event("Different Event", organizerId, startTime, endTime, description, location, selectionCap, endRegisterTime, new ArrayList<>());
         Event nullEvent = null;
         Object otherObject = new Object();
 
@@ -136,7 +140,8 @@ public class EventTest {
 
     @Test
     public void testHashCode() {
-        Event sameEvent = new Event(eventName, "anotherOrganizer", startTime, endTime, description, location, selectionCap, endRegisterTime);
+        // FIX: Added new ArrayList<>() as the last argument
+        Event sameEvent = new Event(eventName, "anotherOrganizer", startTime, endTime, description, location, selectionCap, endRegisterTime, new ArrayList<>());
         assertEquals(event.hashCode(), sameEvent.hashCode());
     }
 }

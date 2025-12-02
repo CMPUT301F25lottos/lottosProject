@@ -146,7 +146,6 @@ public class EventHistoryScreen extends Fragment {
         eventItems.clear();
 
         for (EntrantEventManager.EventModel evt : eventModelList) {
-            // Convert the data model to a UI-specific item
             eventItems.add(
                     new EventListAdapter.EventItem(
                             evt.id,

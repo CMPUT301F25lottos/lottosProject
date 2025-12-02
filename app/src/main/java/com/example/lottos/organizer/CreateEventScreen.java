@@ -93,9 +93,7 @@ public class CreateEventScreen extends Fragment {
      * @return The View for the fragment's UI.
      */
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentCreateEventScreenBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -108,8 +106,7 @@ public class CreateEventScreen extends Fragment {
      * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
      */
     @Override
-    public void onViewCreated(@NonNull View view,
-                              Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         userName = CreateEventScreenArgs.fromBundle(getArguments()).getUserName();
@@ -130,7 +127,6 @@ public class CreateEventScreen extends Fragment {
         // Configures the auto-complete functionality for the filter keywords input.
         setupFilterDropdown();
 
-        // Sets up all navigation and action button listeners.
         setupNavButtons();
     }
 
@@ -149,14 +145,11 @@ public class CreateEventScreen extends Fragment {
                 PRESET_KEYWORDS
         );
         filterView.setAdapter(adapter);
-
-        // Sets the number of characters the user must type before suggestions appear.
         filterView.setThreshold(1);
 
         // Defines the comma as the separator for multiple keywords.
         filterView.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
 
-        // Ensures the dropdown appears when the user clicks or focuses on the field.
         filterView.setOnClickListener(v -> {
             if (!filterView.isPopupShowing()) {
                 filterView.showDropDown();
@@ -191,14 +184,7 @@ public class CreateEventScreen extends Fragment {
         String wlCapStr = binding.etWaitListCapacity.getText().toString().trim();
         boolean geolocationRequired = binding.switchGeolocationRequired.isChecked();
 
-        // Validates that all required fields are filled.
-        if (eventName.isEmpty() ||
-                location.isEmpty() ||
-                startTime.isEmpty() ||
-                endTime.isEmpty() ||
-                capStr.isEmpty() ||
-                registerEndTime.isEmpty() ||
-                filter.isEmpty()) {
+        if (eventName.isEmpty() || location.isEmpty() || startTime.isEmpty() || endTime.isEmpty() || capStr.isEmpty() || registerEndTime.isEmpty() || filter.isEmpty()) {
 
             Toast.makeText(requireContext(),
                     "Fill required fields.",
@@ -228,7 +214,7 @@ public class CreateEventScreen extends Fragment {
             return;
         }
 
-        // Parses and validates the date and time strings.
+
         DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime startLdt;
         LocalDateTime endLdt;
@@ -265,7 +251,7 @@ public class CreateEventScreen extends Fragment {
         for (String token : filter.split(",")) {
             String word = token.trim();
             if (!word.isEmpty()) {
-                filterWords.add(word.toLowerCase());   // lowercase for easier searching later
+                filterWords.add(word.toLowerCase());
             }
         }
 
@@ -277,22 +263,11 @@ public class CreateEventScreen extends Fragment {
         }
 
         // Constructs the Event entity with the validated data.
-        Event event = new Event(
-                eventName,
-                userName,
-                startLdt,
-                endLdt,
-                desc,
-                location,
-                capacity,
-                regEndLdt,
-                filterWords
+        Event event = new Event(eventName, userName, startLdt, endLdt, desc, location, capacity, regEndLdt, filterWords
         );
 
         event.setGeolocationRequired(geolocationRequired);
 
-
-        // Decides whether to upload a poster or create the event directly.
         if (selectedPosterUri != null) {
             uploadPosterAndCreate(event, regEndLdt, waitCap, filterWords, geolocationRequired);
         } else {
@@ -311,11 +286,7 @@ public class CreateEventScreen extends Fragment {
      * @param filterWords The list of filter keywords.
      * @param geolocationRequired A flag indicating if geolocation is required.
      */
-    private void uploadPosterAndCreate(Event event,
-                                       LocalDateTime regEnd,
-                                       Integer waitCap,
-                                       List<String> filterWords,
-                                       boolean geolocationRequired) {
+    private void uploadPosterAndCreate(Event event, LocalDateTime regEnd, Integer waitCap, List<String> filterWords, boolean geolocationRequired) {
 
         String path = "event_posters/" + event.getEventId() + ".jpg";
         StorageReference ref = FirebaseStorage.getInstance().getReference(path);
@@ -342,11 +313,7 @@ public class CreateEventScreen extends Fragment {
      * @param filterWords The list of filter keywords.
      * @param geolocationRequired A flag indicating if geolocation is required.
      */
-    private void finishCreate(Event event,
-                              LocalDateTime regEnd,
-                              Integer waitCap,
-                              List<String> filterWords,
-                              boolean geolocationRequired) {
+    private void finishCreate(Event event, LocalDateTime regEnd, Integer waitCap, List<String> filterWords, boolean geolocationRequired) {
 
         manager.createEvent(event, regEnd, waitCap, filterWords, geolocationRequired,
                 () -> {

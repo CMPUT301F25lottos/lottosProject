@@ -66,14 +66,14 @@ public class EventDetailsScreen extends Fragment {
                 }
             });
 
-    private void toast(String msg) {
+
     /**
      * Displays a short-duration Toast message.
      * @param message The text to display.
      */
     private void toast(String message) {
         if (getContext() != null) {
-            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -203,16 +203,8 @@ public class EventDetailsScreen extends Fragment {
                 (cap instanceof Number ? String.valueOf(cap) : "No Restriction"));
     }
 
-    private String safe(Object o) { return o == null ? "" : o.toString(); }
 
-    private List<String> readUserList(Map<String, Object> userData, String key) {
-        if (userData == null) return new ArrayList<>();
-        Object parent = userData.get(key);
-        if (!(parent instanceof Map)) return new ArrayList<>();
-        Object list = ((Map<?, ?>) parent).get("events");
-        if (list instanceof List) return (List<String>) list;
-        return new ArrayList<>();
-    }
+
 
     /** ─────────────────────────────────────────────────────────────
      *  MAIN UI LOGIC
@@ -263,11 +255,6 @@ public class EventDetailsScreen extends Fragment {
                 : -1;
 
         boolean isFull = capacity > 0 && currentWait >= capacity;
-
-
-        /** ───────────────────────────────────────────────
-         *  ALWAYS SHOW QR CODE AT BOTTOM OF PAGE
-         *  ─────────────────────────────────────────────── */
         String qrContent = userName + "_" + eventName;
         Bitmap qr = QRCodeGenerator.generate(qrContent, 512);
 
@@ -275,9 +262,7 @@ public class EventDetailsScreen extends Fragment {
         binding.imageQRCode.setImageBitmap(qr);
 
 
-        /** ───────────────────────────────────────────────
-         *  WAITLIST JOIN / LEAVE BUTTONS
-         *  ─────────────────────────────────────────────── */
+
         if (isOpen) {
             binding.btnJoin.setVisibility(View.VISIBLE);
 
@@ -300,9 +285,7 @@ public class EventDetailsScreen extends Fragment {
             binding.btnJoin.setVisibility(View.GONE);
         }
 
-        /** ───────────────────────────────────────────────
-         *  ACCEPT / DECLINE UI
-         *  ─────────────────────────────────────────────── */
+
         if (!isOpen && isSelected) {
             binding.btnAccept.setVisibility(View.VISIBLE);
             binding.btnDecline.setVisibility(View.VISIBLE);
@@ -315,32 +298,6 @@ public class EventDetailsScreen extends Fragment {
         }
     }
 
-
-    /** ─────────────────────────────────────────────────────────────
-     *  JOIN / LEAVE / ACCEPT / DECLINE
-     *  ───────────────────────────────────────────────────────────── */
-
-        // Show QR code for selected entrant after event is closed
-        if (!isOpen && isSelected) {
-            binding.imageQRCode.setVisibility(View.VISIBLE);
-
-            String qrContent = eventName + ":" + userName;
-            Bitmap qrBitmap = generateQRCode(qrContent);
-
-            if (qrBitmap != null) {
-                binding.imageQRCode.setImageBitmap(qrBitmap);
-            }
-        }
-        // Show QR code if the user is enrolled/selected
-        if (isOpen) {
-            Bitmap qr = generateQRCode(eventName); // generate QR using event name
-            binding.ivEventPoster.setImageBitmap(qr); // set QR in the ImageView
-            binding.ivEventPoster.setVisibility(View.VISIBLE);
-        } else {
-            binding.ivEventPoster.setVisibility(View.GONE); // hide if not selected
-        }
-
-    }
     /**
      * Navigates to the edit event screen for the current event.
      */

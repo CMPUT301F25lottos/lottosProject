@@ -120,7 +120,7 @@ public class UserStatusUpdater {
                         List<String> selectedUsers =
                                 (List<String>) selectedList.get("users");
                         if (selectedUsers == null || selectedUsers.isEmpty()) {
-                            continue; // nothing to do for this event
+                            continue;
                         }
 
                         Log.d(TAG, "Event " + doc.getId() +
@@ -138,7 +138,7 @@ public class UserStatusUpdater {
                         batch.update(
                                 eventDocRef,
                                 "selectedList.users",
-                                new ArrayList<String>()  // []
+                                new ArrayList<String>()
                         );
 
 

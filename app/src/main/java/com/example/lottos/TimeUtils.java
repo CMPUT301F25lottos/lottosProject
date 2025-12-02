@@ -50,7 +50,6 @@ public class TimeUtils {
         if (date == null) {
             return "N/A";
         }
-        // Synchronize to ensure thread safety for the SimpleDateFormat instance.
         synchronized (DISPLAY_FORMAT) {
             return DISPLAY_FORMAT.format(date);
         }
@@ -66,12 +65,10 @@ public class TimeUtils {
     public static Date parseEventInput(String text) {
         if (text == null || text.trim().isEmpty()) return null;
         try {
-            // Synchronize to ensure thread safety for the SimpleDateFormat instance.
             synchronized (INPUT_FORMAT) {
                 return INPUT_FORMAT.parse(text.trim());
             }
         } catch (ParseException e) {
-            // Return null if the string does not match the expected format.
             return null;
         }
     }
@@ -92,7 +89,7 @@ public class TimeUtils {
         if (value instanceof Date) {
             return (Date) value;
         }
-        // Return null for any other type.
+
         return null;
     }
 }

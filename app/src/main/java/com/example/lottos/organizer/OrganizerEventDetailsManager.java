@@ -239,11 +239,7 @@ public class OrganizerEventDetailsManager {
         return result;
     }
 
-    public void replaceDeclinedUser(
-            String eventId,
-            String declinedUser,
-            Runnable onSuccess,
-            java.util.function.Consumer<Exception> onError) {
+    public void replaceDeclinedUser(String eventId, String declinedUser, Runnable onSuccess, java.util.function.Consumer<Exception> onError) {
 
         DocumentReference eventRef = repo.getEvent(eventId);
 
@@ -251,7 +247,11 @@ public class OrganizerEventDetailsManager {
                     DocumentSnapshot snap = transaction.get(eventRef);
 
                     if (!snap.exists()) {
-                        throw new Exception("Event not found");
+                        try {
+                            throw new Exception("Event not found");
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
                     }
 
                     List<String> selected = extractUsers(snap, "selectedList");
@@ -305,8 +305,6 @@ public class OrganizerEventDetailsManager {
      * @param notSelectedUsers The list of users who were not selected.
      */
     private void sendLotteryNotifications(WriteBatch batch, String eventName, String organizer, List<String> selectedUsers, List<String> notSelectedUsers) {
-
-        //FirebaseFirestore db = FirebaseFirestore.getInstance();
         com.google.firebase.Timestamp now = com.google.firebase.Timestamp.now();
 
         for (String user : selectedUsers) {

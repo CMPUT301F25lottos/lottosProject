@@ -94,7 +94,7 @@ public class OrganizerEventManagerTest {
 
         simulateTaskSuccess();
 
-        manager.createEvent(mockEvent, LocalDateTime.now(), 50, mockOnSuccess, mockOnError);
+        manager.createEvent(mockEvent, LocalDateTime.now(), 50, null, false, mockOnSuccess, mockOnError);
 
         verify(mockRepo).createEvent(eq("eventId123"), eventDataCaptor.capture(), any(Runnable.class), eq(mockOnError));
         Map<String, Object> capturedData = eventDataCaptor.getValue();
@@ -122,7 +122,7 @@ public class OrganizerEventManagerTest {
         simulateTaskFailure(linkException);
 
 
-        manager.createEvent(mockEvent, LocalDateTime.now(), 50, mockOnSuccess, mockOnError);
+        manager.createEvent(mockEvent, LocalDateTime.now(), 50, null, false, mockOnSuccess, mockOnError);
 
         verify(mockOnError).run(exceptionCaptor.capture());
         assertEquals(linkException, exceptionCaptor.getValue());
